@@ -1,0 +1,13 @@
+*.opendb
+*.opensdf
+*.sdf
+*.suo
+*.user
+bin/
+tools/bin2hex.exe
+tools/bin2hex.obj
+visual-studio/.vs/
+visual-studio/vk_report
+visual-studio/*.log
+visual-studio/*.psess
+visual-studio/*.vspx
