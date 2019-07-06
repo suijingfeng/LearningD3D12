@@ -117,7 +117,8 @@ void IN_DeactivateWin32Mouse( void )
 IN_Win32Mouse
 ================
 */
-void IN_Win32Mouse( int *mx, int *my ) {
+void IN_Win32Mouse( int *mx, int *my )
+{
 	POINT		current_pos;
 
 	// find mouse movement
@@ -213,13 +214,13 @@ IN_MouseEvent
 */
 void IN_MouseEvent (int mstate)
 {
-	int		i;
+	int	i;
 
 	if ( !s_wmv.mouseInitialized )
 		return;
 
 // perform button actions
-	for  (i = 0 ; i < 3 ; i++ )
+	for  (i = 0 ; i < 3 ; ++i )
 	{
 		if ( (mstate & (1<<i)) &&
 			!(s_wmv.oldButtonState & (1<<i)) )

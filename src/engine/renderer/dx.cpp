@@ -135,7 +135,8 @@ static D3D12_RESOURCE_BARRIER get_transition_barrier(
 	return barrier;
 }
 
-static D3D12_HEAP_PROPERTIES get_heap_properties(D3D12_HEAP_TYPE heap_type) {
+static D3D12_HEAP_PROPERTIES get_heap_properties(D3D12_HEAP_TYPE heap_type)
+{
 	D3D12_HEAP_PROPERTIES properties;
 	properties.Type = heap_type;
 	properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -145,7 +146,8 @@ static D3D12_HEAP_PROPERTIES get_heap_properties(D3D12_HEAP_TYPE heap_type) {
 	return properties;
 }
 
-static D3D12_RESOURCE_DESC get_buffer_desc(UINT64 size) {
+static D3D12_RESOURCE_DESC get_buffer_desc(UINT64 size)
+{
 	D3D12_RESOURCE_DESC desc;
 	desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	desc.Alignment = 0;
@@ -163,7 +165,8 @@ static D3D12_RESOURCE_DESC get_buffer_desc(UINT64 size) {
 
 ID3D12PipelineState* create_pipeline(const Vk_Pipeline_Def& def);
 
-void dx_initialize() {
+void dx_initialize()
+{
 	// enable validation in debug configuration
 #if defined(_DEBUG)
 	ID3D12Debug* debug_controller;
@@ -219,7 +222,8 @@ void dx_initialize() {
 		swapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&dx.swapchain);
 		swapchain->Release();
 
-		for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; i++) {
+		for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; ++i)
+		{
 			DX_CHECK(dx.swapchain->GetBuffer(i, IID_PPV_ARGS(&dx.render_targets[i])));
 		}
 	}
@@ -305,7 +309,8 @@ void dx_initialize() {
 		// RTV descriptors.
 		{
 			D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = dx.rtv_heap->GetCPUDescriptorHandleForHeapStart();
-			for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; i++) {
+			for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; ++i)
+			{
 				dx.device->CreateRenderTargetView(dx.render_targets[i], nullptr, rtv_handle);
 				rtv_handle.ptr += dx.rtv_descriptor_size;
 			}
@@ -420,7 +425,8 @@ void dx_initialize() {
 		}
 
 		D3D12_ROOT_SIGNATURE_DESC root_signature_desc;
-		root_signature_desc.NumParameters = _countof(root_parameters);
+		// root_signature_desc.NumParameters = _countof(root_parameters);
+		root_signature_desc.NumParameters = 5;
 		root_signature_desc.pParameters = root_parameters;
 		root_signature_desc.NumStaticSamplers = 0;
 		root_signature_desc.pStaticSamplers = nullptr;
@@ -530,14 +536,17 @@ void dx_initialize() {
 			};
 			bool polygon_offset[2] = {false, true};
 
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < 2; ++i)
+			{
 				unsigned fog_state = fog_state_bits[i];
 				unsigned dlight_state = dlight_state_bits[i];
 
-				for (int j = 0; j < 3; j++) {
+				for (int j = 0; j < 3; ++j)
+				{
 					def.face_culling = j; // cullType_t value
 
-					for (int k = 0; k < 2; k++) {
+					for (int k = 0; k < 2; ++k)
+					{
 						def.polygon_offset = polygon_offset[k];
 
 						def.state_bits = fog_state;
@@ -589,7 +598,8 @@ void dx_initialize() {
 	dx.active = true;
 }
 
-void dx_shutdown() {
+void dx_shutdown()
+{
 	::CloseHandle(dx.fence_event);
 
 	for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; i++) {
@@ -640,11 +650,13 @@ void dx_release_resources() {
 	dx_wait_device_idle();
 
 	dx_world.pipeline_create_time = 0.0f;
-	for (int i = 0; i < dx_world.num_pipelines; i++) {
+	for (int i = 0; i < dx_world.num_pipelines; ++i)
+	{
 		dx_world.pipelines[i]->Release();
 	}
 
-	for (int i = 0; i < MAX_VK_IMAGES; i++) {
+	for (int i = 0; i < MAX_VK_IMAGES; ++i)
+	{
 		if (dx_world.images[i].texture != nullptr) {
 			dx_world.images[i].texture->Release();
 		}
@@ -658,14 +670,16 @@ void dx_release_resources() {
 	dx.index_buffer_offset = 0;
 }
 
-void dx_wait_device_idle() {
-	dx.fence_value++;
+void dx_wait_device_idle()
+{
+	++dx.fence_value;
 	DX_CHECK(dx.command_queue->Signal(dx.fence, dx.fence_value));
 	DX_CHECK(dx.fence->SetEventOnCompletion(dx.fence_value, dx.fence_event));
 	WaitForSingleObject(dx.fence_event, INFINITE);
 }
 
-Dx_Image dx_create_image(int width, int height, Dx_Image_Format format, int mip_levels,  bool repeat_texture, int image_index) {
+Dx_Image dx_create_image(int width, int height, Dx_Image_Format format, int mip_levels,  bool repeat_texture, int image_index)
+{
 	Dx_Image image;
 
 	DXGI_FORMAT dx_format;
@@ -725,7 +739,8 @@ Dx_Image dx_create_image(int width, int height, Dx_Image_Format format, int mip_
 	return image;
 }
 
-void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mip_levels, const uint8_t* pixels, int bytes_per_pixel) {
+void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mip_levels, const uint8_t* pixels, int bytes_per_pixel)
+{
 	//
 	// Initialize subresource layouts int the upload texture.
 	//
@@ -768,7 +783,8 @@ void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mi
 	DX_CHECK(upload_texture->Map(0, nullptr, reinterpret_cast<void**>(&upload_texture_data)));
 	w = width;
 	h = height;
-	for (int i = 0; i < mip_levels; i++) {
+	for (int i = 0; i < mip_levels; ++i)
+	{
 		byte* upload_subresource_base = upload_texture_data + regions[i].Offset;
 		for (int y = 0; y < h; y++) {
 			Com_Memcpy(upload_subresource_base + regions[i].Footprint.RowPitch * y, pixels, w * bytes_per_pixel);
@@ -1260,7 +1276,8 @@ void dx_create_sampler_descriptor(const Vk_Sampler_Def& def, Dx_Sampler_Index sa
 	dx.device->CreateSampler(&sampler_desc, sampler_handle);
 }
 
-ID3D12PipelineState* dx_find_pipeline(const Vk_Pipeline_Def& def) {
+ID3D12PipelineState* dx_find_pipeline(const Vk_Pipeline_Def& def)
+{
 	for (int i = 0; i < dx_world.num_pipelines; i++) {
 		const auto& cur_def = dx_world.pipeline_defs[i];
 
@@ -1291,7 +1308,8 @@ ID3D12PipelineState* dx_find_pipeline(const Vk_Pipeline_Def& def) {
 	return pipeline;
 }
 
-static void get_mvp_transform(float* mvp) {
+static void get_mvp_transform(float* mvp)
+{
 	if (backEnd.projection2D) {
 		float mvp0 = 2.0f / glConfig.vidWidth;
 		float mvp5 = 2.0f / glConfig.vidHeight;
@@ -1301,7 +1319,9 @@ static void get_mvp_transform(float* mvp) {
 		mvp[8]  =  0.0f; mvp[9]  = 0.0f; mvp[10] = 1.0f; mvp[11] = 0.0f;
 		mvp[12] = -1.0f; mvp[13] = 1.0f; mvp[14] = 0.0f; mvp[15] = 1.0f;
 
-	} else {
+	} 
+	else
+	{
 		const float* p = backEnd.viewParms.projectionMatrix;
 
 		// update q3's proj matrix (opengl) to d3d conventions: z - [0, 1] instead of [-1, 1]
@@ -1321,14 +1341,18 @@ static void get_mvp_transform(float* mvp) {
 	}
 }
 
-static D3D12_RECT get_viewport_rect() {
+static D3D12_RECT get_viewport_rect()
+{
 	D3D12_RECT r;
-	if (backEnd.projection2D) {
+	if (backEnd.projection2D)
+	{
 		r.left = 0.0f;
 		r.top = 0.0f;
 		r.right = glConfig.vidWidth;
 		r.bottom = glConfig.vidHeight;
-	} else {
+	}
+	else
+	{
 		r.left = backEnd.viewParms.viewportX;
 		r.top = glConfig.vidHeight - (backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight);
 		r.right = r.left + backEnd.viewParms.viewportWidth;
@@ -1337,7 +1361,8 @@ static D3D12_RECT get_viewport_rect() {
 	return r;
 }
 
-static D3D12_VIEWPORT get_viewport(Vk_Depth_Range depth_range) {
+static D3D12_VIEWPORT get_viewport(Vk_Depth_Range depth_range)
+{
 	D3D12_RECT r = get_viewport_rect();
 
 	D3D12_VIEWPORT viewport;
@@ -1592,8 +1617,10 @@ void dx_begin_frame()
 
 	dx.command_list->SetGraphicsRootSignature(dx.root_signature);
 
-	ID3D12DescriptorHeap* heaps[] = { dx.srv_heap, dx.sampler_heap };
-	dx.command_list->SetDescriptorHeaps(_countof(heaps), heaps);
+	ID3D12DescriptorHeap* heaps[2] = { dx.srv_heap, dx.sampler_heap };
+	//dx.command_list->SetDescriptorHeaps(_countof(heaps), heaps);
+	
+	dx.command_list->SetDescriptorHeaps(2, heaps);
 
 	dx.command_list->ResourceBarrier(1, &get_transition_barrier(dx.render_targets[dx.frame_index],
 		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
