@@ -34,7 +34,6 @@ cvar_t		*vid_xpos;			// X coordinate of window position
 cvar_t		*vid_ypos;			// Y coordinate of window position
 extern cvar_t *r_fullscreen;
 
-#define VID_NUM_MODES ( sizeof( vid_modes ) / sizeof( vid_modes[0] ) )
 
 LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
@@ -75,7 +74,7 @@ static void VID_AppActivate(BOOL fActive, BOOL minimize)
 //==========================================================================
 
 static byte s_scantokey[128] = 
-					{ 
+{ 
 //  0           1       2       3       4       5       6       7 
 //  8           9       A       B       C       D       E       F 
 	0  ,    27,     '1',    '2',    '3',    '4',    '5',    '6', 
@@ -87,9 +86,9 @@ static byte s_scantokey[128] =
 	'b',    'n',    'm',    ',',    '.',    '/',    K_SHIFT,'*', 
 	K_ALT,' ',   K_CAPSLOCK  ,    K_F1, K_F2, K_F3, K_F4, K_F5,   // 3 
 	K_F6, K_F7, K_F8, K_F9, K_F10,  K_PAUSE,    0  , K_HOME, 
-	K_UPARROW,K_PGUP,K_KP_MINUS,K_LEFTARROW,K_KP_5,K_RIGHTARROW, K_KP_PLUS,K_END, //4 
-	K_DOWNARROW,K_PGDN,K_INS,K_DEL,0,0,             0,              K_F11, 
-	K_F12,0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0,        // 5
+	K_UPARROW, K_PGUP, K_KP_MINUS, K_LEFTARROW, K_KP_5, K_RIGHTARROW, K_KP_PLUS, K_END, //4 
+	K_DOWNARROW, K_PGDN, K_INS, K_DEL, 0, 0, 0, K_F11, 
+	K_F12,  0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0,        // 5
 	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0, 
 	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0,        // 6 
 	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0, 
@@ -106,12 +105,12 @@ Map from windows to quake keynums
 static int MapKey (int key)
 {
 	int result;
-	int modified;
+
 	qboolean is_extended;
 
 //	Com_Printf( "0x%x\n", key);
 
-	modified = ( key >> 16 ) & 255;
+	int modified = ( key >> 16 ) & 255;
 
 	if ( modified > 127 )
 		return 0;
@@ -182,11 +181,7 @@ main window procedure
 */
 extern cvar_t *in_mouse;
 extern cvar_t *in_logitechbug;
-LONG WINAPI MainWndProc (
-    HWND    hWnd,
-    UINT    uMsg,
-    WPARAM  wParam,
-    LPARAM  lParam)
+LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	static qboolean flip = qtrue;
 	int zDelta, i;
@@ -205,7 +200,7 @@ LONG WINAPI MainWndProc (
 			zDelta = ( short ) HIWORD( wParam ) / 120;
 			if ( zDelta > 0 )
 			{
-				for(i=0; i<zDelta; i++)
+				for(i=0; i<zDelta; ++i)
 				{
 					if (!in_logitechbug->integer)
 					{
@@ -221,7 +216,7 @@ LONG WINAPI MainWndProc (
 			}
 			else
 			{
-				for(i=0; i<-zDelta; i++)
+				for(i=0; i<-zDelta; ++i)
 				{
 					if (!in_logitechbug->integer)
 					{
@@ -261,10 +256,8 @@ LONG WINAPI MainWndProc (
 
 	case WM_ACTIVATE:
 		{
-			int	fActive, fMinimized;
-
-			fActive = LOWORD(wParam);
-			fMinimized = (BOOL) HIWORD(wParam);
+			int fActive = LOWORD(wParam);
+			int fMinimized = (BOOL) HIWORD(wParam);
 
 			VID_AppActivate( fActive != WA_INACTIVE, fMinimized);
 			SNDDMA_Activate();
@@ -312,9 +305,7 @@ LONG WINAPI MainWndProc (
 	case WM_MBUTTONUP:
 	case WM_MOUSEMOVE:
 		{
-			int	temp;
-
-			temp = 0;
+			int	temp = 0;
 
 			if (wParam & MK_LBUTTON)
 				temp |= 1;
@@ -357,7 +348,7 @@ LONG WINAPI MainWndProc (
 	case WM_CHAR:
 		Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, wParam, 0, 0, NULL );
 		break;
-   }
+	}
 
     return DefWindowProc( hWnd, uMsg, wParam, lParam );
 }
