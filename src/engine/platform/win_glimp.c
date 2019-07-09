@@ -273,7 +273,7 @@ static qboolean GLW_InitDriver(HWND hwnd) {
 	//
     int colorbits = GetDesktopColorDepth();
     int depthbits = (r_depthbits->integer == 0) ? 24 : r_depthbits->integer;
-    int stencilbits = r_stencilbits->integer;
+    int stencilbits = 8;
 
     PIXELFORMATDESCRIPTOR pfd;
     if (!GLW_SetPixelFormat(gl_hdc, &pfd, colorbits, depthbits, stencilbits, (qboolean)r_stereo->integer)) {

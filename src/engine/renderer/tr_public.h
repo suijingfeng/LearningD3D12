@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __TR_PUBLIC_H
 #define __TR_PUBLIC_H
 
-#include "../../cgame/tr_types.h"
+#include "tr_types.h"
 
 #define	REF_API_VERSION		8
 
@@ -124,6 +124,7 @@ typedef struct {
 	void (*Cvar_SetValue) (const char *name, float value);
 	void (*Cvar_CheckRange)( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral );
 	void (*Cvar_SetDescription)( cvar_t *cv, const char *description );
+
 	int (*Cvar_VariableIntegerValue) (const char *var_name);
 
 	void (*Cmd_AddCommand)( const char *name, void(*cmd)(void) );
@@ -140,9 +141,8 @@ typedef struct {
 
 	// a -1 return means the file does not exist
 	// NULL can be passed for buf to just determine existance
-	int (*FS_FileIsInPAK)( const char *name, int *pCheckSum );
-	long (*FS_ReadFile)( const char *name, void **buf );
-	long (*R_ReadFile)( const char *name, char **buf );
+	int     (*FS_FileIsInPAK)( const char *name, int *pCheckSum );
+	long    (*FS_ReadFile)( const char *name, void **buf );
 	void	(*FS_FreeFile)( void *buf );
 	char **	(*FS_ListFiles)( const char *name, const char *extension, int *numfilesfound );
 	void	(*FS_FreeFileList)( char **filelist );
@@ -156,24 +156,17 @@ typedef struct {
 
 	void	(*CL_WriteAVIVideoFrame)( const unsigned char *buffer, int size );
 
-	// system stuff
-	void	(*Sys_SetEnv)( const char *name, const char *value );
-	qboolean (*Sys_LowPhysicalMemory)( void );
 
-    // GLimp
+	// GLimp
 	void (*GLimpInit)(glconfig_t *glConfig, qboolean context);
-    void (*GLimpShutdown)(void);
-    void (*GLimpEndFrame)(void);
-    void (*GLimpMinimize)(void);
-    void (*GLimpSetGamma)(unsigned char red[256], unsigned char green[256], unsigned char blue[256]);
+	void (*GLimpShutdown)(void);
+	void (*GLimpEndFrame)(void);
+	void (*GLimpMinimize)(void);
+	void (*GLimpSetGamma)(unsigned char red[256], unsigned char green[256], unsigned char blue[256]);
 
-
-    void (*GLimpDeleteCtx)(void);
-    void (*GLimpDestroyWin)(void);
-
-    void* (*GLimpGetProcAddress)(const char* fun);
-//  qboolean (*GLimpExtensionSupported)(const char* fun);
-    
+	// system stuff
+	void (* Sys_SetEnv)( const char *name, const char *value );
+	qboolean (* Sys_LowPhysicalMemory)(void);
 } refimport_t;
 
 

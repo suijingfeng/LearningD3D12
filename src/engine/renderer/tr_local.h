@@ -968,7 +968,7 @@ extern cvar_t	*r_verbose;				// used for verbose debug spew
 
 extern cvar_t	*r_znear;				// near Z clip plane
 
-extern cvar_t	*r_stencilbits;			// number of desired stencil bits
+
 extern cvar_t	*r_depthbits;			// number of desired depth bits
 extern cvar_t	*r_stereo;				// desired pixelformat stereo flag
 extern cvar_t	*r_texturebits;			// number of desired texture bits

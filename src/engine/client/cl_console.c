@@ -774,7 +774,8 @@ void Con_Bottom( void ) {
 }
 
 
-void Con_Close( void ) {
+void Con_Close( void )
+{
 	if ( !com_cl_running->integer ) {
 		return;
 	}

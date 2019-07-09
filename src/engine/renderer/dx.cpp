@@ -57,25 +57,21 @@ const int INDEX_BUFFER_SIZE = 2 * 1024 * 1024;
 
 static DXGI_FORMAT get_depth_format()
 {
-	if (r_stencilbits->integer > 0) {
-		glConfig.stencilBits = 8;
-		return DXGI_FORMAT_D24_UNORM_S8_UINT;
-	}
-	else
-	{
-		glConfig.stencilBits = 0;
-		return DXGI_FORMAT_D32_FLOAT;
-	}
+	// allway enable stencil
+	glConfig.stencilBits = 8;
+	return DXGI_FORMAT_D24_UNORM_S8_UINT;
 }
 
-static void get_hardware_adapter(IDXGIFactory4* factory, IDXGIAdapter1** ppAdapter)
+
+static void get_hardware_adapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter)
 {
-	// The IDXGIAdapter1 interface represents a display sub-system (including one or more GPU's, DACs and video memory).
+	// The IDXGIAdapter1 interface represents a display sub-system 
+	// (including one or more GPU's, DACs and video memory).
 	UINT adapter_index = 0;
 	// Enumerates both adapters (video cards) with or without outputs.
 	// adapter_index: The index of the adapter to enumerate.
 	// The address of a pointer to an IDXGIAdapter1 interface at the position specified by the adapter_index parameter.
-	while (factory->EnumAdapters1(adapter_index++, ppAdapter) != DXGI_ERROR_NOT_FOUND)
+	while (pFactory->EnumAdapters1(adapter_index++, ppAdapter) != DXGI_ERROR_NOT_FOUND)
 	{
 		// Gets a DXGI 1.1 description of an adapter(or video card).
 		// This interface is not supported by DXGI 1.0, DXGI 1.1 support is required, which is available on Windows 7, 
@@ -95,6 +91,19 @@ static void get_hardware_adapter(IDXGIFactory4* factory, IDXGIAdapter1** ppAdapt
 		// check for 11_0 feature level support
 		if ( SUCCEEDED( D3D12CreateDevice(*ppAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr) ) )
 		{
+			ri.Printf(PRINT_ALL, "Adapter: ");
+
+			wchar_t *WStr = desc.Description;
+
+			size_t len = wcslen(WStr) + 1;
+			size_t converted = 0;
+			char *CStr = (char*) malloc(len * sizeof(char));
+			// Converts a sequence of wide characters to a 
+			// corresponding sequence of multibyte characters.
+			wcstombs_s(&converted, CStr, len, WStr, _TRUNCATE);
+			ri.Printf( PRINT_ALL, "%s\n", CStr );
+			free(CStr);
+
 			return;
 		}
 	}
@@ -176,15 +185,81 @@ void dx_initialize()
 	}
 #endif
 
-	IDXGIFactory4* factory;
-	DX_CHECK(CreateDXGIFactory1(IID_PPV_ARGS(&factory)));
+	// Enables creating Microsoft DirectX Graphics Infrastructure (DXGI) objects
+	// Use a DXGI 1.1 factory to generate objects that enumerate adapters, 
+	// create swap chains, and associate a window with the alt+enter key sequence
+	// for toggling to and from the full-screen display mode.
+
+	// If the CreateDXGIFactory1 function succeeds, 
+	// the reference count on the IDXGIFactory1 interface is incremented.
+	//
+	// To avoid a memory leak, when you finish using the interface,
+	// call the IDXGIFactory1::Release method to release the interface.
+
+	IDXGIFactory4* pFactory;
+	// Creates a DXGI 1.1 factory that can be used to generate other DXGI objects.
+	DX_CHECK( CreateDXGIFactory1(IID_PPV_ARGS(&pFactory)) );
 
 	// Create device.
 	{
-		IDXGIAdapter1* hardware_adapter;
-		get_hardware_adapter(factory, &hardware_adapter);
-		DX_CHECK(D3D12CreateDevice(hardware_adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dx.device)));
-		hardware_adapter->Release();
+		// A pointer to the video adapter to use when creating a device. 
+		// Pass NULL to use the default adapter, which is the first adapter
+		// that is enumerated by IDXGIFactory1::EnumAdapters.
+		IDXGIAdapter1* pHardwareAdapter = nullptr;
+
+		// The IDXGIAdapter1 interface represents a display sub-system 
+		// (including one or more GPU's, DACs and video memory).
+		UINT adapter_index = 0;
+		// Enumerates both adapters (video cards) with or without outputs.
+		// adapter_index: The index of the adapter to enumerate.
+		// The address of a pointer to an IDXGIAdapter1 interface at the 
+		// position specified by the adapter_index parameter.
+		while (pFactory->EnumAdapters1(adapter_index++, &pHardwareAdapter) != DXGI_ERROR_NOT_FOUND)
+		{
+			// Gets a DXGI 1.1 description of an adapter(or video card).
+			// This interface is not supported by DXGI 1.0, DXGI 1.1 support is required, which is available on Windows 7, 
+			// Windows Server 2008 R2, and as an update to Windows Vista with Service Pack 2 (SP2) (KB 971644) and Windows
+			// Server 2008 (KB 971512). win10 ??? ---suijingfeng
+			// A display subsystem is often referred to as a video card, however, on some machines the display subsystem
+			// is part of the mother board. 
+			// To enumerate the display subsystems, use IDXGIFactory1::EnumAdapters1. 
+			// To get an interface to the adapter for a particular device, use IDXGIDevice::GetAdapter.
+			// To create a software adapter, use IDXGIFactory::CreateSoftwareAdapter.
+			DXGI_ADAPTER_DESC1 desc;
+			pHardwareAdapter->GetDesc1(&desc);
+			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+			{
+				continue;
+			}
+			// check for 11_0 feature level support
+			// Creates a device that represents the display adapter.
+			if ( SUCCEEDED( D3D12CreateDevice(pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dx.device) )))
+			{
+				ri.Printf(PRINT_ALL, "Adapter: ");
+
+				wchar_t *WStr = desc.Description;
+
+				size_t len = wcslen(WStr) + 1;
+				size_t converted = 0;
+				char *CStr = (char*)malloc(len * sizeof(char));
+				// Converts a sequence of wide characters to a 
+				// corresponding sequence of multibyte characters.
+				wcstombs_s(&converted, CStr, len, WStr, _TRUNCATE);
+				ri.Printf(PRINT_ALL, "%s\n", CStr);
+				free(CStr);
+
+				break;
+			}
+			else
+			{
+				ri.Error(ERR_FATAL , " Create Device Failed. \n");
+			}
+		}
+	
+//		DX_CHECK( D3D12CreateDevice( 
+//			pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dx.device) ) 
+//		);
+		pHardwareAdapter->Release();
 	}
 
 	// Create command queue.
@@ -192,7 +267,7 @@ void dx_initialize()
 		D3D12_COMMAND_QUEUE_DESC queue_desc{};
 		queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		DX_CHECK(dx.device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&dx.command_queue)));
+		DX_CHECK( dx.device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&dx.command_queue)) );
 	}
 
 	//
@@ -209,7 +284,7 @@ void dx_initialize()
 		swap_chain_desc.SampleDesc.Count = 1;
 
 		IDXGISwapChain1* swapchain;
-		DX_CHECK(factory->CreateSwapChainForHwnd(
+		DX_CHECK(pFactory->CreateSwapChainForHwnd(
 			dx.command_queue,
 			g_wv.hWnd_dx,
 			&swap_chain_desc,
@@ -218,7 +293,7 @@ void dx_initialize()
 			&swapchain
 			));
 
-		DX_CHECK(factory->MakeWindowAssociation(g_wv.hWnd_dx, DXGI_MWA_NO_ALT_ENTER));
+		DX_CHECK(pFactory->MakeWindowAssociation(g_wv.hWnd_dx, DXGI_MWA_NO_ALT_ENTER));
 		swapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&dx.swapchain);
 		swapchain->Release();
 
@@ -228,8 +303,8 @@ void dx_initialize()
 		}
 	}
 
-	factory->Release();
-	factory = nullptr;
+	pFactory->Release();
+	pFactory = nullptr;
 
 	//
 	// Create command allocators and command list.

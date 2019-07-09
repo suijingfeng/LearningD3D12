@@ -82,7 +82,7 @@ cvar_t	*r_ext_texture_env_add;
 cvar_t	*r_ignoreGLErrors;
 cvar_t	*r_logFile;
 
-cvar_t	*r_stencilbits;
+
 cvar_t	*r_depthbits;
 cvar_t	*r_stereo;
 cvar_t	*r_texturebits;
@@ -904,6 +904,11 @@ void R_Register( void )
 	//
 	// latched and archived variables
 	//
+
+	#if defined(_WIN32)
+		#define OPENGL_DRIVER_NAME	"opengl32"
+	#endif	// !defined _WIN32
+
 	r_glDriver = ri.Cvar_Get( "r_glDriver", OPENGL_DRIVER_NAME, CVAR_ARCHIVE | CVAR_LATCH );
 	r_ext_compressed_textures = ri.Cvar_Get( "r_ext_compressed_textures", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_ext_gamma_control = ri.Cvar_Get( "r_ext_gamma_control", "1", CVAR_ARCHIVE | CVAR_LATCH );
@@ -916,7 +921,6 @@ void R_Register( void )
 	r_detailTextures = ri.Cvar_Get( "r_detailtextures", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_texturebits = ri.Cvar_Get( "r_texturebits", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_stereo = ri.Cvar_Get( "r_stereo", "0", CVAR_ARCHIVE | CVAR_LATCH );
-	r_stencilbits = ri.Cvar_Get( "r_stencilbits", "8", CVAR_ARCHIVE | CVAR_LATCH );
 	r_depthbits = ri.Cvar_Get( "r_depthbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_overBrightBits = ri.Cvar_Get ("r_overBrightBits", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE | CVAR_LATCH);
@@ -1176,20 +1180,22 @@ RE_EndRegistration
 Touch all images to make sure they are resident
 =============
 */
-void RE_EndRegistration( void ) {
+void RE_EndRegistration( void )
+{
 	R_SyncRenderThread();
-	if (!Sys_LowPhysicalMemory()) {
-		RB_ShowImages();
-	}
 
 	// VULKAN
-	if (vk.active) {
-		ri.Printf(PRINT_ALL, "Vulkan: pipelines create time %d msec\n", (int)(vk_world.pipeline_create_time * 1000));
+	if (vk.active)
+	{
+		ri.Printf(PRINT_ALL, "Vulkan: pipelines create time %d msec\n", 
+			(int)(vk_world.pipeline_create_time * 1000));
 	}
 
 	// DX12
-	if (dx.active) {
-		ri.Printf(PRINT_ALL, "DX12: pipelines create time %d msec\n", (int)(dx_world.pipeline_create_time * 1000));
+	if (dx.active)
+	{
+		ri.Printf(PRINT_ALL, "DX12: pipelines create time %d msec\n", 
+			(int)(dx_world.pipeline_create_time * 1000));
 	}
 }
 
@@ -1200,23 +1206,23 @@ GetRefAPI
 
 @@@@@@@@@@@@@@@@@@@@@
 */
-refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
-	static refexport_t	re;
+refexport_t * GetRefAPI ( int apiVersion, refimport_t *rimp )
+{
+	static refexport_t re;
 
 	ri = *rimp;
 
 	Com_Memset( &re, 0, sizeof( re ) );
 
-	if ( apiVersion != REF_API_VERSION ) {
+	if ( apiVersion != REF_API_VERSION )
+	{
 		ri.Printf(PRINT_ALL, "Mismatched REF_API_VERSION: expected %i, got %i\n", 
 			REF_API_VERSION, apiVersion );
 		return NULL;
 	}
 
 	// the RE_ functions are Renderer Entry points
-
 	re.Shutdown = RE_Shutdown;
-
 	re.BeginRegistration = RE_BeginRegistration;
 	re.RegisterModel = RE_RegisterModel;
 	re.RegisterSkin = RE_RegisterSkin;
@@ -1225,27 +1231,24 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.LoadWorld = RE_LoadWorldMap;
 	re.SetWorldVisData = RE_SetWorldVisData;
 	re.EndRegistration = RE_EndRegistration;
-
-	re.BeginFrame = RE_BeginFrame;
-	re.EndFrame = RE_EndFrame;
-
-	re.MarkFragments = R_MarkFragments;
-	re.LerpTag = R_LerpTag;
-	re.ModelBounds = R_ModelBounds;
-
 	re.ClearScene = RE_ClearScene;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
 	re.AddPolyToScene = RE_AddPolyToScene;
 	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddLightToScene;
 	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
-	re.RenderScene = RE_RenderScene;
 
+	re.RenderScene = RE_RenderScene;
 	re.SetColor = RE_SetColor;
 	re.DrawStretchPic = RE_StretchPic;
 	re.DrawStretchRaw = RE_StretchRaw;
 	re.UploadCinematic = RE_UploadCinematic;
 
+	re.BeginFrame = RE_BeginFrame;
+	re.EndFrame = RE_EndFrame;
+	re.MarkFragments = R_MarkFragments;
+	re.LerpTag = R_LerpTag;
+	re.ModelBounds = R_ModelBounds;
 	re.RegisterFont = RE_RegisterFont;
 	re.RemapShader = R_RemapShader;
 	re.GetEntityToken = R_GetEntityToken;

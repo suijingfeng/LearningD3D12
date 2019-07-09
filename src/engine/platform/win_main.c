@@ -33,18 +33,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <io.h>
 #include <conio.h>
 
-#define	CD_BASEDIR	"quake3"
-#define	CD_EXE		"quake3.exe"
-#define	CD_BASEDIR_LINUX	"bin\\x86\\glibc-2.1"
-#define	CD_EXE_LINUX "quake3"
 #define MEM_THRESHOLD 96*1024*1024
 
-static char		sys_cmdline[MAX_STRING_CHARS];
+static char	sys_cmdline[MAX_STRING_CHARS];
 
 // define this to use alternate spanking method
 // I found out that the regular way doesn't work on my box for some reason
 // see the associated spank.sh script
-#define ALT_SPANK
+// #define ALT_SPANK
 #ifdef ALT_SPANK
 #include <stdio.h>
 #include <sys\stat.h>
@@ -88,10 +84,45 @@ Sys_LowPhysicalMemory()
 ==================
 */
 
-qboolean Sys_LowPhysicalMemory() {
-	MEMORYSTATUS stat;
-  GlobalMemoryStatus (&stat);
-	return (stat.dwTotalPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
+qboolean Sys_LowPhysicalMemory()
+{
+	MEMORYSTATUSEX stat;
+	// Retrieves information about the system's current 
+	// usage of both physical and virtual memory.
+	stat.dwLength = sizeof(stat);
+
+	// You can use the GlobalMemoryStatusEx function to 
+	// determine how much memory your application can 
+	// allocate without severely impacting other applications.
+	//
+	// The information returned by the GlobalMemoryStatusEx function
+	// is volatile. There is no guarantee that two sequential calls 
+	// to this function will return the same information.
+	GlobalMemoryStatusEx (&stat);
+
+	Com_Printf( " There is %ld percent of memory in use.\n", 
+		stat.dwMemoryLoad );
+	Com_Printf( " There are %I64d total MB of physical memory.\n", 
+		stat.ullTotalPhys / (1024 * 1024) );
+	Com_Printf( " There are %I64d free MB of physical memory.\n",
+		stat.ullAvailPhys / (1024 * 1024) );
+	Com_Printf( " There are %I64d total MB of paging file.\n",
+		stat.ullTotalPageFile / (1024 * 1024) );
+	Com_Printf( " There are %I64d free MB of paging file.\n",
+		stat.ullAvailPageFile / (1024 * 1024) );
+	Com_Printf( " There are %I64d total MB of virtual memory.\n",
+		stat.ullTotalVirtual / (1024 * 1024) );
+	Com_Printf( " There are %I64d free  MB of virtual memory.\n",
+		stat.ullAvailVirtual / (1024 * 1024) );
+
+	// Show the amount of extended memory available.
+
+	Com_Printf( "There are %I64d free MB of extended memory.\n",
+		stat.ullAvailExtendedVirtual / (1024 * 1024) );
+
+	// Com_sprintf(search, sizeof(search), "%s\\*", basedir);
+
+	return (stat.ullTotalPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
 }
 
 /*
@@ -130,7 +161,8 @@ void QDECL Sys_Error( const char *error, ... ) {
 	IN_Shutdown();
 
 	// wait for the user to quit
-	while ( 1 ) {
+	while ( 1 )
+	{
 		if (!GetMessage (&msg, NULL, 0, 0))
 			Com_Quit_f ();
 		TranslateMessage (&msg);
@@ -394,72 +426,6 @@ void	Sys_FreeFileList( char **list ) {
 }
 
 //========================================================
-
-
-/*
-================
-Sys_ScanForCD
-
-Search all the drives to see if there is a valid CD to grab
-the cddir from
-================
-*/
-qboolean Sys_ScanForCD( void ) {
-	static char	cddir[MAX_OSPATH];
-	char		drive[4];
-	FILE		*f;
-	char		test[MAX_OSPATH];
-#if 0
-	// don't override a cdpath on the command line
-	if ( strstr( sys_cmdline, "cdpath" ) ) {
-		return;
-	}
-#endif
-
-	drive[0] = 'c';
-	drive[1] = ':';
-	drive[2] = '\\';
-	drive[3] = 0;
-
-	// scan the drives
-	for ( drive[0] = 'c' ; drive[0] <= 'z' ; drive[0]++ ) {
-		if ( GetDriveType (drive) != DRIVE_CDROM ) {
-			continue;
-		}
-
-		sprintf (cddir, "%s%s", drive, CD_BASEDIR);
-		sprintf (test, "%s\\%s", cddir, CD_EXE);
-		f = fopen( test, "r" );
-		if ( f ) {
-			fclose (f);
-			return qtrue;
-    } else {
-      sprintf(cddir, "%s%s", drive, CD_BASEDIR_LINUX);
-      sprintf(test, "%s\\%s", cddir, CD_EXE_LINUX);
-  		f = fopen( test, "r" );
-	  	if ( f ) {
-		  	fclose (f);
-			  return qtrue;
-      }
-    }
-	}
-
-	return qfalse;
-}
-
-/*
-================
-Sys_CheckCD
-
-Return true if the proper CD is in the drive
-================
-*/
-qboolean	Sys_CheckCD( void ) {
-  // FIXME: mission pack
-  return qtrue;
-	//return Sys_ScanForCD();
-}
-
 
 /*
 ================
@@ -1164,10 +1130,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	// get the initial time base
 	Sys_Milliseconds();
-#if 0
-	// if we find the CD, add a +set cddir xxx command line
-	Sys_ScanForCD();
-#endif
+
 
 
 	Com_Init( sys_cmdline );

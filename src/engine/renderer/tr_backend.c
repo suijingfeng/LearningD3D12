@@ -936,7 +936,8 @@ was there.  This is used to test for texture thrashing.
 Also called by RE_EndRegistration
 ===============
 */
-void RB_ShowImages( void ) {
+void RB_ShowImages( void )
+{
 	int		i;
 	image_t	*image;
 	float	x, y, w, h;
@@ -956,7 +957,8 @@ void RB_ShowImages( void ) {
 
 	start = ri.Milliseconds();
 
-	for ( i=0 ; i<tr.numImages ; i++ ) {
+	for ( i=0 ; i<tr.numImages ; i++ )
+	{
 		image = tr.images[i];
 
 		w = glConfig.vidWidth / 20;
@@ -991,8 +993,10 @@ void RB_ShowImages( void ) {
 
 // VULKAN
 // DX12
-void RB_Show_Vk_Dx_Images() {
-	if (!vk.active && !dx.active) {
+void RB_Show_Vk_Dx_Images()
+{
+	if (!vk.active && !dx.active)
+	{
 		return;
 	}
 
@@ -1083,7 +1087,8 @@ const void	*RB_SwapBuffers( const void *data ) {
 	}
 
 	// texture swapping test
-	if ( r_showImages->integer ) {
+	if ( r_showImages->integer )
+	{
 		RB_ShowImages();
 		RB_Show_Vk_Dx_Images();
 	}

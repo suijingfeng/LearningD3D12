@@ -142,16 +142,12 @@ static uint32_t find_memory_type(VkPhysicalDevice physical_device, uint32_t memo
 
 static VkFormat get_depth_format(VkPhysicalDevice physical_device) {
 	VkFormat formats[2];
-	if (r_stencilbits->integer > 0) {
-		formats[0] = VK_FORMAT_D24_UNORM_S8_UINT;
-		formats[1] = VK_FORMAT_D32_SFLOAT_S8_UINT;
-		glConfig.stencilBits = 8;
-	}
-	else {
-		formats[0] = VK_FORMAT_X8_D24_UNORM_PACK32;
-		formats[1] = VK_FORMAT_D32_SFLOAT;
-		glConfig.stencilBits = 0;
-	}
+	// allway enable stencil
+
+	formats[0] = VK_FORMAT_D24_UNORM_S8_UINT;
+	formats[1] = VK_FORMAT_D32_SFLOAT_S8_UINT;
+	glConfig.stencilBits = 8;
+
 
 	for (int i = 0; i < 2; i++) {
 		VkFormatProperties props;
@@ -2050,9 +2046,12 @@ void vk_initialize(void)
 			VK_CHECK(vkCreateImageView(vk.device, &desc, NULL, &vk.depth_image_view));
 		}
 
-		VkImageAspectFlags image_aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT;
-		if (r_stencilbits->integer)
-			image_aspect_flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
+		// if (r_stencilbits->integer)
+		// allway enable stencil
+		VkImageAspectFlags image_aspect_flags = 
+			VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		
 
 		VkCommandBufferAllocateInfo alloc_info;
 		alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
