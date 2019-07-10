@@ -141,7 +141,8 @@ Sys_Error
 Show the early console as an error dialog
 =============
 */
-void QDECL Sys_Error( const char *error, ... ) {
+void QDECL Sys_Error( const char *error, ... )
+{
 	va_list		argptr;
 	char		text[4096];
     MSG        msg;
@@ -295,7 +296,9 @@ void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, ch
 	_findclose (findhandle);
 }
 
-static qboolean strgtr(const char *s0, const char *s1) {
+
+static qboolean strgtr(const char *s0, const char *s1)
+{
 	int l0, l1, i;
 
 	l0 = (int)strlen(s0);
@@ -1011,11 +1014,16 @@ are initialized
 #define OSR2_BUILD_NUMBER 1111
 #define WIN98_BUILD_NUMBER 1998
 
-void Sys_Init( void ) {
+
+void Sys_Init( void )
+{
 	int cpuid;
 
 	// make sure the timer is high precision, otherwise
 	// NT gets 18ms resolution
+	// timeBeginPeriod function requests a minimum resolution for periodic timers.
+	// Minimum timer resolution, in milliseconds, for the application or device driver.
+	// A lower value specifies a higher (more accurate) resolution.
 	timeBeginPeriod( 1 );
 
 	Cmd_AddCommand ("in_restart", Sys_In_Restart_f);

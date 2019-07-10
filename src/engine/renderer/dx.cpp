@@ -1712,7 +1712,8 @@ void dx_begin_frame()
 	dx.index_buffer_offset = 0;
 }
 
-void dx_end_frame() {
+void dx_end_frame()
+{
 	if (!dx.active)
 		return;
 

@@ -232,13 +232,14 @@ LONG WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 void Sys_CreateConsole( void )
 {
 	HDC hDC;
-	WNDCLASS wc;
+	
 	RECT rect;
 	const char *DEDCLASS = "Console";
 	int nHeight;
 	int swidth, sheight;
 	int DEDSTYLE = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX;
-
+	
+	WNDCLASS wc;
 	memset( &wc, 0, sizeof( wc ) );
 
 	wc.style         = 0;
@@ -367,7 +368,8 @@ void Sys_CreateConsole( void )
 /*
 ** Sys_DestroyConsole
 */
-void Sys_DestroyConsole( void ) {
+void Sys_DestroyConsole( void )
+{
 	if ( s_wcd.hWnd ) {
 		ShowWindow( s_wcd.hWnd, SW_HIDE );
 		CloseWindow( s_wcd.hWnd );
