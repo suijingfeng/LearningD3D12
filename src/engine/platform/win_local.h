@@ -27,7 +27,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma warning(disable : 4201)
 #pragma warning( push )
 #endif
+
 #include <windows.h>
+
 #if defined (_MSC_VER) && (_MSC_VER >= 1200)
 #pragma warning( pop )
 #endif
@@ -38,40 +40,30 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <winsock.h>
 #include <wsipx.h>
 
-void	IN_MouseEvent (int mstate);
+
 
 void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr );
 
-void	Sys_CreateConsole( void );
-void	Sys_DestroyConsole( void );
 
-char	*Sys_ConsoleInput (void);
-
-qboolean	Sys_GetPacket ( netadr_t *net_from, msg_t *net_message );
+qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message );
 
 // Input subsystem
+void IN_Init (void);
+void IN_Shutdown (void);
 
-void	IN_Init (void);
-void	IN_Shutdown (void);
-
-void	IN_Activate (qboolean active);
-void	IN_Frame (void);
+void IN_Activate (qboolean active);
+void IN_Frame (void);
+void IN_MouseEvent(int mstate);
 
 // window procedure
-LONG WINAPI MainWndProc (
-    HWND    hWnd,
-    UINT    uMsg,
-    WPARAM  wParam,
-    LPARAM  lParam);
+LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-void Conbuf_AppendText( const char *msg );
 
 void SNDDMA_Activate( void );
 int  SNDDMA_InitDS ();
 
 typedef struct
 {
-	
 	HINSTANCE		reflib_library;		// Handle to refresh DLL 
 	qboolean		reflib_active;
 

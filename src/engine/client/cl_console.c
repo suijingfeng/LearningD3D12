@@ -367,7 +367,8 @@ All console printing must go through this in order to be logged to disk
 If no console is visible, the text will appear at the top of the game window
 ================
 */
-void CL_ConsolePrint( char *txt ) {
+void CL_ConsolePrint( char *txt )
+{
 	int		y;
 	int		c, l;
 	int		color;
@@ -398,7 +399,8 @@ void CL_ConsolePrint( char *txt ) {
 
 	color = ColorIndex(COLOR_WHITE);
 
-	while ( (c = *txt) != 0 ) {
+	while ( (c = *txt) != 0 )
+	{
 		if ( Q_IsColorString( txt ) ) {
 			color = ColorIndex( *(txt+1) );
 			txt += 2;
@@ -416,7 +418,6 @@ void CL_ConsolePrint( char *txt ) {
 		// word wrap
 		if (l != con.linewidth && (con.x + l >= con.linewidth) ) {
 			Con_Linefeed(skipnotify);
-
 		}
 
 		txt++;
@@ -443,7 +444,8 @@ void CL_ConsolePrint( char *txt ) {
 
 
 	// mark time for transparent overlay
-	if (con.current >= 0) {
+	if (con.current >= 0)
+	{
 		// NERVE - SMF
 		if ( skipnotify ) {
 			prev = con.current % NUM_CON_TIMES - 1;

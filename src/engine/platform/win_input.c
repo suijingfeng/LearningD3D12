@@ -308,7 +308,8 @@ The window may have been destroyed and recreated
 between a deactivate and an activate.
 ===========
 */
-void IN_Activate (qboolean active) {
+void IN_Activate (qboolean active)
+{
 	in_appactive = active;
 
 	if ( !active )
@@ -325,7 +326,8 @@ IN_Frame
 Called every frame, even if not generating commands
 ==================
 */
-void IN_Frame (void) {
+void IN_Frame (void)
+{
 	if ( !s_wmv.mouseInitialized ) {
 		return;
 	}

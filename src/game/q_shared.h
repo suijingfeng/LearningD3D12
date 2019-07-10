@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define	Q3_VERSION		"Q3 1.32b Kenny edition"
+#define	Q3_VERSION		"OpenArena d3d12 edition, suijingfeng, 18949883232@163.com"
 // 1.32 released 7-10-2002
 
 #define MAX_TEAMNAME 32

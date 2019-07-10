@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../../game/q_shared.h"
 #include "qcommon.h"
 #include <setjmp.h>
+
 #ifdef __linux__
 #include <netinet/in.h>
 #else
@@ -33,6 +34,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <winsock.h>
 #endif
 #endif
+
+// For Sys_Print
+#include "../platform/win_sysconsole.h" 
 
 int demo_protocols[] = { 66, 67, 68, 69, 70, 71, 0 };
 
@@ -140,34 +144,38 @@ to the apropriate place.
 A raw string should NEVER be passed as fmt, because of "%f" type crashers.
 =============
 */
-void QDECL Com_Printf( const char *fmt, ... ) {
+void QDECL Com_Printf( const char *fmt, ... )
+{
+	static qboolean opening_qconsole = qfalse;
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-  static qboolean opening_qconsole = qfalse;
 
 	va_start (argptr,fmt);
 	Q_vsnprintf (msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
 
-	if ( rd_buffer ) {
-		if ((strlen (msg) + (int)strlen(rd_buffer)) > (rd_buffersize - 1)) {
+	if ( rd_buffer )
+	{
+		if ((strlen (msg) + (int)strlen(rd_buffer)) > (rd_buffersize - 1))
+		{
 			rd_flush(rd_buffer);
 			*rd_buffer = 0;
 		}
 		Q_strcat(rd_buffer, rd_buffersize, msg);
-    // TTimo nooo .. that would defeat the purpose
+		// TTimo nooo .. that would defeat the purpose
 		//rd_flush(rd_buffer);			
 		//*rd_buffer = 0;
 		return;
 	}
 
 	// echo to console if we're not a dedicated server
-	if ( com_dedicated && !com_dedicated->integer ) {
+	if ( com_dedicated && !com_dedicated->integer )
+	{
 		CL_ConsolePrint( msg );
 	}
 
 	// echo to dedicated console and early console
-	Sys_Print( msg );
+	Sys_Print(msg);
 
 	// logfile
 	if ( com_logfile && com_logfile->integer ) {
@@ -1024,10 +1032,12 @@ void *S_Malloc( int size ) {
 Z_CheckHeap
 ========================
 */
-void Z_CheckHeap( void ) {
-	memblock_t	*block;
+void Z_CheckHeap( void )
+{
+	memblock_t* block = mainzone->blocklist.next;
 	
-	for (block = mainzone->blocklist.next ; ; block = block->next) {
+	while (block = block->next)
+	{
 		if (block->next == &mainzone->blocklist) {
 			break;			// all blocks have been hit
 		}
@@ -1369,7 +1379,8 @@ void Com_TouchMemory( void )
 Com_InitZoneMemory
 =================
 */
-void Com_InitSmallZoneMemory( void ) {
+void Com_InitSmallZoneMemory( void )
+{
 	s_smallZoneTotal = 512 * 1024;
 	// bk001205 - was malloc
 	smallzone = (memzone_t*) calloc( s_smallZoneTotal, 1 );
@@ -1381,14 +1392,16 @@ void Com_InitSmallZoneMemory( void ) {
 	return;
 }
 
-void Com_InitZoneMemory( void ) {
-	cvar_t	*cv;
+void Com_InitZoneMemory( void )
+{
 	// allocate the random block zone
-	cv = Cvar_Get( "com_zoneMegs", DEF_COMZONEMEGS, CVAR_LATCH | CVAR_ARCHIVE );
+	cvar_t * cv = Cvar_Get( "com_zoneMegs", DEF_COMZONEMEGS, CVAR_LATCH | CVAR_ARCHIVE );
 
 	if ( cv->integer < 20 ) {
 		s_zoneTotal = 1024 * 1024 * 16;
-	} else {
+	}
+	else
+	{
 		s_zoneTotal = cv->integer * 1024 * 1024;
 	}
 
@@ -1398,7 +1411,6 @@ void Com_InitZoneMemory( void ) {
 		Com_Error( ERR_FATAL, "Zone data failed to allocate %i megs", s_zoneTotal / (1024*1024) );
 	}
 	Z_ClearZone( mainzone, s_zoneTotal );
-
 }
 
 /*
@@ -1966,20 +1978,17 @@ sysEvent_t	Com_GetRealEvent( void ) {
 }
 
 
-/*
-=================
-Com_InitPushEvent
-=================
-*/
+
 // bk001129 - added
-void Com_InitPushEvent( void ) {
-  // clear the static buffer array
-  // this requires SE_NONE to be accepted as a valid but NOP event
-  memset( com_pushedEvents, 0, sizeof(com_pushedEvents) );
-  // reset counters while we are at it
-  // beware: GetEvent might still return an SE_NONE from the buffer
-  com_pushedEventsHead = 0;
-  com_pushedEventsTail = 0;
+void Com_InitPushEvent( void )
+{
+	// clear the static buffer array
+	// this requires SE_NONE to be accepted as a valid but NOP event
+	memset( com_pushedEvents, 0, sizeof(com_pushedEvents) );
+	// reset counters while we are at it
+	// beware: GetEvent might still return an SE_NONE from the buffer
+	com_pushedEventsHead = 0;
+	com_pushedEventsTail = 0;
 }
 
 
@@ -2345,7 +2354,8 @@ static void Com_WriteCDKey( const char *filename, const char *ikey ) {
 Com_Init
 =================
 */
-void Com_Init( char *commandLine ) {
+void Com_Init( char *commandLine )
+{
 	char	*s;
 
 	Com_Printf( "%s %s %s\n", Q3_VERSION, CPUSTRING, __DATE__ );
@@ -2354,8 +2364,8 @@ void Com_Init( char *commandLine ) {
 		Sys_Error ("Error during initialization");
 	}
 
-  // bk001129 - do this before anything else decides to push events
-  Com_InitPushEvent();
+	// bk001129 - do this before anything else decides to push events
+	Com_InitPushEvent();
 
 	Com_InitSmallZoneMemory();
 	Cvar_Init ();
@@ -3156,6 +3166,14 @@ float Q_acos(float c) {
 		return (float)M_PI;
 	}
 	return angle;
+}
+
+
+void Q_SnapVector(float *v)
+{
+	v[0] = (int)v[0];
+	v[1] = (int)v[1];
+	v[2] = (int)v[2];
 }
 
 /*

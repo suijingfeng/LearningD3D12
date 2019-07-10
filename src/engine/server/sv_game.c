@@ -445,7 +445,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case G_REAL_TIME:
 		return Com_RealTime( (qtime_t*) VMA(1) );
 	case G_SNAPVECTOR:
-		Sys_SnapVector( (float*) VMA(1) );
+		Q_SnapVector( (float*) VMA(1) );
 		return 0;
 
 		//====================================

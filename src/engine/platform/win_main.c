@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qcommon.h"
 #include "win_local.h"
 #include "resource.h"
+#include "win_sysconsole.h"
 #include <errno.h>
 #include <float.h>
 #include <fcntl.h>
@@ -151,8 +152,8 @@ void QDECL Sys_Error( const char *error, ... )
 	vsprintf (text, error, argptr);
 	va_end (argptr);
 
-	Conbuf_AppendText( text );
-	Conbuf_AppendText( "\n" );
+	Sys_Print( text );
+	Sys_Print( "\n" );
 
 	Sys_SetErrorText( text );
 	Sys_ShowConsole( 1, qtrue );
@@ -180,7 +181,8 @@ void QDECL Sys_Error( const char *error, ... )
 Sys_Quit
 ==============
 */
-void Sys_Quit( void ) {
+void Sys_Quit( void )
+{
 	timeEndPeriod( 1 );
 	IN_Shutdown();
 	Sys_DestroyConsole();
@@ -188,14 +190,7 @@ void Sys_Quit( void ) {
 	exit (0);
 }
 
-/*
-==============
-Sys_Print
-==============
-*/
-void Sys_Print( const char *msg ) {
-	Conbuf_AppendText( msg );
-}
+
 
 
 /*
@@ -212,7 +207,8 @@ void Sys_Mkdir( const char *path ) {
 Sys_Cwd
 ==============
 */
-char *Sys_Cwd( void ) {
+char * Sys_Cwd( void )
+{
 	static char cwd[MAX_OSPATH];
 
 	_getcwd( cwd, sizeof( cwd ) - 1 );
@@ -226,7 +222,8 @@ char *Sys_Cwd( void ) {
 Sys_DefaultCDPath
 ==============
 */
-char *Sys_DefaultCDPath( void ) {
+char *Sys_DefaultCDPath( void )
+{
 	return "";
 }
 
@@ -249,7 +246,8 @@ DIRECTORY SCANNING
 
 #define	MAX_FOUND_FILES	0x1000
 
-void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, char **list, int *numfiles ) {
+void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, char **list, int *numfiles )
+{
 	char		search[MAX_OSPATH], newsubdirs[MAX_OSPATH];
 	char		filename[MAX_OSPATH];
 	int			findhandle;
@@ -876,10 +874,10 @@ Ptr should either be null, or point to a block of data that can
 be freed by the game later.
 ================
 */
-void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr ) {
-	sysEvent_t	*ev;
-
-	ev = &eventQue[ eventHead & MASK_QUED_EVENTS ];
+void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
+{
+	sysEvent_t* const ev = &eventQue[ eventHead & MASK_QUED_EVENTS ];
+	
 	if ( eventHead - eventTail >= MAX_QUED_EVENTS ) {
 		Com_Printf("Sys_QueEvent: overflow\n");
 		// we are discarding an event, but don't leak memory
@@ -1112,15 +1110,11 @@ void Sys_Init( void )
 
 int	totalMsec, countMsec;
 
-/*
-==================
-WinMain
 
-==================
-*/
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-	char		cwd[MAX_OSPATH];
-	int			startTime, endTime;
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	char cwd[MAX_OSPATH];
+	int	startTime, endTime;
 
     // should never get a previous instance in Win32
     if ( hPrevInstance ) {
@@ -1134,11 +1128,18 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	Sys_CreateConsole();
 
 	// no abort/retry/fail errors
+	
+	// SEM_FAILCRITICALERRORS = 0x0001 :
+	// The system does not display the critical - error - handler message box. 
+	// Instead, the system sends the error to the calling process.
+	// Best practice is that all applications call the process - wide SetErrorMode
+	// function with a parameter of SEM_FAILCRITICALERRORS at startup. 
+	// This is to prevent error mode dialogs from hanging the application.
+
 	SetErrorMode( SEM_FAILCRITICALERRORS );
 
 	// get the initial time base
 	Sys_Milliseconds();
-
 
 
 	Com_Init( sys_cmdline );
@@ -1181,5 +1182,3 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	// never gets here
 }
-
-

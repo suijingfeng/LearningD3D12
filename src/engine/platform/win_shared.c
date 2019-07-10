@@ -23,9 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../../game/q_shared.h"
 #include "../qcommon/qcommon.h"
 #include "win_local.h"
-#include <lmerr.h>
-#include <lmcons.h>
-#include <lmwksta.h>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -33,72 +31,30 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <io.h>
 #include <conio.h>
 
-/*
-================
-Sys_Milliseconds
-================
-*/
-int			sys_timeBase;
+
 int Sys_Milliseconds (void)
 {
-	int			sys_curtime;
 	static qboolean	initialized = qfalse;
+	static int sys_timeBase;
 
-	if (!initialized) {
-		sys_timeBase = timeGetTime();
+	if (qfalse == initialized)
+	{
 		initialized = qtrue;
+		
+		sys_timeBase = timeGetTime();
 	}
-	sys_curtime = timeGetTime() - sys_timeBase;
 
-	return sys_curtime;
+	return (timeGetTime() - sys_timeBase);
 }
 
-
-
-
-/*
-================
-Sys_SnapVector
-================
-*/
-void Sys_SnapVector( float *v )
-{
-	v[0] = (int)v[0];
-	v[1] = (int)v[1];
-	v[2] = (int)v[2];
-}
-
-
-/*
-**
-** Disable all optimizations temporarily so this code works correctly!
-**
-*/
-#pragma optimize( "", off )
-
-/*
-** --------------------------------------------------------------------------------
-**
-** PROCESSOR STUFF
-**
-** --------------------------------------------------------------------------------
-*/
 
 int Sys_GetProcessorId( void )
 {
 	return CPUID_GENERIC;
 }
 
-/*
-**
-** Re-enable optimizations back to what they were
-**
-*/
-#pragma optimize( "", on )
 
-//============================================
-
-char *Sys_GetCurrentUser( void )
+char* Sys_GetCurrentUser( void )
 {
 	static char s_userName[1024];
 	unsigned long size = sizeof( s_userName );
@@ -115,12 +71,14 @@ char *Sys_GetCurrentUser( void )
 	return s_userName;
 }
 
-char	*Sys_DefaultHomePath(void) {
+
+char* Sys_DefaultHomePath(void)
+{
 	return NULL;
 }
 
-char *Sys_DefaultInstallPath(void)
+
+char* Sys_DefaultInstallPath(void)
 {
 	return Sys_Cwd();
 }
-
