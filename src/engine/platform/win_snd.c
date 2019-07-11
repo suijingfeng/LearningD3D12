@@ -25,6 +25,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CINTERFACE
 #include "win_local.h"
 
+#define	DIRECTSOUND_VERSION	0x0300
+
+#include <dsound.h>
+
+
 HRESULT (WINAPI *pDirectSoundCreate)(GUID FAR *lpGUID, LPDIRECTSOUND FAR *lplpDS, IUnknown FAR *pUnkOuter);
 #define iDirectSoundCreate(a,b,c)	pDirectSoundCreate(a,b,c)
 

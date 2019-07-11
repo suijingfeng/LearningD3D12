@@ -266,9 +266,7 @@ void Sys_CreateConsole( void )
 /*
 	// Retrieves a handle to the desktop window. The desktop window covers the entire screen. 
 	// The desktop window is the area on top of which other windows are painted.
-	//
 
-	
 	HDC hDC = GetDC( GetDesktopWindow() );
 	int swidth = GetDeviceCaps( hDC, HORZRES );
 	int sheight = GetDeviceCaps( hDC, VERTRES );
@@ -390,9 +388,7 @@ void Sys_DestroyConsole( void )
 	}
 }
 
-/*
-** Sys_ShowConsole
-*/
+
 void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
 {
 	s_console_window.quitOnClose = quitOnClose;

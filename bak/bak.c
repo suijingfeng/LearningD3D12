@@ -71,3 +71,57 @@ qboolean Sys_ScanForCD( void )
 
 	return qfalse;
 }
+
+// suijingfeng -- remove strange defines
+// message that will be supported by the OS 
+// #ifndef WM_MOUSEWHEEL
+// #define WM_MOUSEWHEEL (WM_MOUSELAST+1)  
+// #endif
+//
+//
+
+#if defined (_MSC_VER) && (_MSC_VER >= 1200)
+// #pragma warning(disable : 4201)
+#pragma warning( push )
+#endif
+
+#include <windows.h>
+
+#if defined (_MSC_VER) && (_MSC_VER >= 1200)
+#pragma warning( pop )
+#endif
+
+  1  常用去警告：
+ 
+         #pragma warning(disable:4035) //no return value
+         #pragma warning(disable:4068) // unknown pragma
+         #pragma warning(disable:4201) //nonstandard extension used : nameless struct/union
+         #pragma warning(disable:4267)
+         #pragma warning(disable:4018) //signed/unsigned mismatch
+         #pragma warning(disable:4127) //conditional expression is constant
+         #pragma warning(disable:4146)
+         #pragma warning(disable:4244) //conversion from 'LONG_PTR' to 'LONG', possible loss of data
+         #pragma warning(disable:4311) //'type cast' : pointer truncation from 'BYTE *' to 'ULONG'
+         #pragma warning(disable:4312) //'type cast' : conversion from 'LONG' to 'WNDPROC' of greater size
+         #pragma warning(disable:4346) //_It::iterator_category' : dependent name is not a type
+         #pragma warning(disable:4786)
+         #pragma warning(disable:4541) //'dynamic_cast' used on polymorphic type
+         #pragma warning(disable:4996) //declared deprecated ?
+         #pragma warning(disable:4200) //zero-sized array in struct/union
+         #pragma warning(disable:4800) //forcing value to bool 'true' or 'false' (performance warning)
+ 
+ 
+ 2  常用用法:
+
+        #pragma   warning(   push) 
+        #pragma   warning(   disable:XXXX)    //
+ 
+         需要消除警告的代码
+
+        #pragma   warning(   pop   )
+
+ 
+
+       or:
+
+        #pragma   warning(disable:XXXX) 

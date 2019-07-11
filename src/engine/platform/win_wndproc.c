@@ -22,20 +22,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../client/client.h"
 #include "win_local.h"
+#include "win_input.h"
 
 WinVars_t	g_wv;
 
-#ifndef WM_MOUSEWHEEL
-#define WM_MOUSEWHEEL (WM_MOUSELAST+1)  // message that will be supported by the OS 
-#endif
 
 // Console variables that we need to access from this module
 cvar_t		*vid_xpos;			// X coordinate of window position
 cvar_t		*vid_ypos;			// Y coordinate of window position
+
 extern cvar_t *r_fullscreen;
+extern cvar_t *in_mouse;
 
-
-LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 /*
 ==================
@@ -73,7 +71,7 @@ static void VID_AppActivate(BOOL fActive, BOOL minimize)
 
 //==========================================================================
 
-static byte s_scantokey[128] = 
+const static byte s_scantokey[128] = 
 { 
 //  0           1       2       3       4       5       6       7 
 //  8           9       A       B       C       D       E       F 
@@ -104,8 +102,6 @@ Map from windows to quake keynums
 */
 static int MapKey (int key)
 {
-	int result;
-
 	qboolean is_extended;
 
 //	Com_Printf( "0x%x\n", key);
@@ -124,7 +120,7 @@ static int MapKey (int key)
 		is_extended = qfalse;
 	}
 
-	result = s_scantokey[modified];
+	int result = s_scantokey[modified];
 
 	if ( !is_extended )
 	{
@@ -179,55 +175,36 @@ MainWndProc
 main window procedure
 ====================
 */
-extern cvar_t *in_mouse;
-extern cvar_t *in_logitechbug;
 LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-	static qboolean flip = qtrue;
-	int zDelta, i;
-
 	switch (uMsg)
 	{
 	case WM_MOUSEWHEEL:
 		// Windows 98/Me, Windows NT 4.0 and later - uses WM_MOUSEWHEEL
 		// only relevant for non-DI input and when console is toggled in window mode
-		//   if console is toggled in window mode (KEYCATCH_CONSOLE) then mouse is released and DI doesn't see any mouse wheel
+		// if console is toggled in window mode (KEYCATCH_CONSOLE) then mouse is released 
+		// and DI doesn't see any mouse wheel
 		if (!r_fullscreen->integer && (cls.keyCatchers & KEYCATCH_CONSOLE))
 		{
 			// 120 increments, might be 240 and multiples if wheel goes too fast
 			// NOTE Logitech: logitech drivers are screwed and send the message twice?
 			//   could add a cvar to interpret the message as successive press/release events
-			zDelta = ( short ) HIWORD( wParam ) / 120;
+			int zDelta = ( short ) HIWORD( wParam ) / 120;
+			int i;
 			if ( zDelta > 0 )
 			{
 				for(i=0; i<zDelta; ++i)
 				{
-					if (!in_logitechbug->integer)
-					{
-						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qtrue, 0, NULL );
-						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qfalse, 0, NULL );
-					}
-					else
-					{
-						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, flip, 0, NULL );
-						flip = (qboolean) !flip;
-					}
+					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qtrue, 0, NULL );
+					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qfalse, 0, NULL );
 				}
 			}
 			else
 			{
 				for(i=0; i<-zDelta; ++i)
 				{
-					if (!in_logitechbug->integer)
-					{
-						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qtrue, 0, NULL );
-						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qfalse, 0, NULL );
-					}
-					else
-					{
-						Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, flip, 0, NULL );
-						flip = (qboolean) !flip;
-					}
+					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qtrue, 0, NULL );
+					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qfalse, 0, NULL );
 				}
 			}
 			// when an application processes the WM_MOUSEWHEEL message, it must return zero
@@ -352,4 +329,3 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
     return DefWindowProc( hWnd, uMsg, wParam, lParam );
 }
-

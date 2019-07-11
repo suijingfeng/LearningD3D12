@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "win_local.h"
 #include "resource.h"
 #include "win_sysconsole.h"
+#include "win_input.h"
 #include <errno.h>
 #include <float.h>
 #include <fcntl.h>
@@ -907,10 +908,10 @@ Sys_GetEvent
 
 ================
 */
-sysEvent_t Sys_GetEvent( void ) {
+sysEvent_t Sys_GetEvent( void )
+{
     MSG			msg;
 	sysEvent_t	ev;
-	char		*s;
 	msg_t		netmsg;
 	netadr_t	adr;
 
@@ -921,7 +922,8 @@ sysEvent_t Sys_GetEvent( void ) {
 	}
 
 	// pump the message loop
-	while (PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE)) {
+	while (PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE))
+	{
 		if ( !GetMessage (&msg, NULL, 0, 0) ) {
 			Com_Quit_f();
 		}
@@ -934,20 +936,19 @@ sysEvent_t Sys_GetEvent( void ) {
 	}
 
 	// check for console commands
-	s = Sys_ConsoleInput();
-	if ( s ) {
-		char	*b;
-		int		len;
-
-		len = (int)strlen( s ) + 1;
-		b = (char*)Z_Malloc( len );
+	char* s = Sys_ConsoleInput();
+	if ( s )
+	{
+		int len = (int)strlen( s ) + 1;
+		char* b = (char*)Z_Malloc( len );
 		Q_strncpyz( b, s, len-1 );
 		Sys_QueEvent( 0, SE_CONSOLE, 0, 0, len, b );
 	}
 
 	// check for network packets
 	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
-	if ( Sys_GetPacket ( &adr, &netmsg ) ) {
+	if ( Sys_GetPacket ( &adr, &netmsg ) )
+	{
 		netadr_t		*buf;
 		int				len;
 
@@ -1060,7 +1061,8 @@ void Sys_Init( void )
 	{
 		Cvar_Set( "arch", "unknown Windows variant" );
 	}
-
+	// window procedure
+	extern LONG WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	// save out a couple things in rom cvars for the renderer to access
 	Cvar_Get( "win_wndproc", va("%p", MainWndProc), CVAR_ROM );
 
@@ -1179,6 +1181,5 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		totalMsec += endTime - startTime;
 		countMsec++;
 	}
-
 	// never gets here
 }

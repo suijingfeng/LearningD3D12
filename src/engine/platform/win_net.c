@@ -25,6 +25,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qcommon.h"
 #include "win_local.h"
 
+#include <winsock.h>
+#include <wsipx.h>
+
 static WSADATA	winsockdata;
 static qboolean	winsockInitialized = qfalse;
 static qboolean usingSocks = qfalse;
@@ -239,7 +242,8 @@ Never called by the game logic, just the system event queing
 */
 int	recvfromCount;
 
-qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message ) {
+qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message )
+{
 	int 	ret;
 	struct sockaddr from;
 	int		fromlen;
@@ -247,7 +251,8 @@ qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message ) {
 	int		protocol;
 	int		err;
 
-	for( protocol = 0 ; protocol < 2 ; protocol++ )	{
+	for( protocol = 0; protocol < 2; ++protocol )
+	{
 		if( protocol == 0 ) {
 			net_socket = ip_socket;
 		}

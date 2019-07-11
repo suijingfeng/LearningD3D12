@@ -23,40 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #pragma once
 
-#if defined (_MSC_VER) && (_MSC_VER >= 1200)
-#pragma warning(disable : 4201)
-#pragma warning( push )
-#endif
 
 #include <windows.h>
 
-#if defined (_MSC_VER) && (_MSC_VER >= 1200)
-#pragma warning( pop )
-#endif
-
-#define	DIRECTSOUND_VERSION	0x0300
-
-#include <dsound.h>
-#include <winsock.h>
-#include <wsipx.h>
-
-
-
 void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr );
 
-
 qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message );
-
-// Input subsystem
-void IN_Init (void);
-void IN_Shutdown (void);
-
-void IN_Activate (qboolean active);
-void IN_Frame (void);
-void IN_MouseEvent(int mstate);
-
-// window procedure
-LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
 void SNDDMA_Activate( void );
@@ -83,4 +55,4 @@ typedef struct
 	unsigned		sysMsgTime;
 } WinVars_t;
 
-extern WinVars_t	g_wv;
+extern WinVars_t g_wv;

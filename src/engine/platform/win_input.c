@@ -24,23 +24,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../client/client.h"
 #include "win_local.h"
+#include "win_input.h"
 
 
 typedef struct {
-	int			oldButtonState;
+	int	oldButtonState;
+	int	window_center_x;
+	int	window_center_y;
 
 	qboolean	mouseActive;
 	qboolean	mouseInitialized;
+	qboolean	isAppActive;
 } WinMouseVars_t;
 
 static WinMouseVars_t s_wmv;
 
-static int	window_center_x, window_center_y;
 
 cvar_t	*in_mouse;
-cvar_t  *in_logitechbug;
 
-qboolean	in_appactive;
+
+
 
 /*
 ============================================================
@@ -50,35 +53,24 @@ WIN32 MOUSE CONTROL
 ============================================================
 */
 
-/*
-================
-IN_InitWin32Mouse
-================
-*/
-void IN_InitWin32Mouse( void ) 
+
+static void IN_InitWin32Mouse( void ) 
 {
 }
 
-/*
-================
-IN_ShutdownWin32Mouse
-================
-*/
-void IN_ShutdownWin32Mouse( void ) {
+
+static void IN_ShutdownWin32Mouse( void )
+{
 }
 
-/*
-================
-IN_ActivateWin32Mouse
-================
-*/
-void IN_ActivateWin32Mouse( void ) {
-	int			width, height;
-	RECT		window_rect;
 
-	width = GetSystemMetrics (SM_CXSCREEN);
-	height = GetSystemMetrics (SM_CYSCREEN);
+static void IN_ActivateWin32Mouse( void )
+{
 
+	int width = GetSystemMetrics (SM_CXSCREEN);
+	int height = GetSystemMetrics (SM_CYSCREEN);
+
+	RECT window_rect;
 	GetWindowRect ( g_wv.hWnd, &window_rect);
 	if (window_rect.left < 0)
 		window_rect.left = 0;
@@ -88,10 +80,11 @@ void IN_ActivateWin32Mouse( void ) {
 		window_rect.right = width-1;
 	if (window_rect.bottom >= height-1)
 		window_rect.bottom = height-1;
-	window_center_x = (window_rect.right + window_rect.left)/2;
-	window_center_y = (window_rect.top + window_rect.bottom)/2;
 
-	SetCursorPos (window_center_x, window_center_y);
+	s_wmv.window_center_x = (window_rect.right + window_rect.left)/2;
+	s_wmv.window_center_y = (window_rect.top + window_rect.bottom)/2;
+
+	SetCursorPos (s_wmv.window_center_x, s_wmv.window_center_y);
 
 	SetCapture ( g_wv.hWnd );
 	ClipCursor (&window_rect);
@@ -99,12 +92,8 @@ void IN_ActivateWin32Mouse( void ) {
 		;
 }
 
-/*
-================
-IN_DeactivateWin32Mouse
-================
-*/
-void IN_DeactivateWin32Mouse( void ) 
+
+static void IN_DeactivateWin32Mouse( void ) 
 {
 	ClipCursor (NULL);
 	ReleaseCapture ();
@@ -112,32 +101,21 @@ void IN_DeactivateWin32Mouse( void )
 		;
 }
 
-/*
-================
-IN_Win32Mouse
-================
-*/
-void IN_Win32Mouse( int *mx, int *my )
+
+static void IN_Win32Mouse( int * const mx, int * const my )
 {
-	POINT		current_pos;
+	POINT current_pos;
 
 	// find mouse movement
 	GetCursorPos (&current_pos);
 
 	// force the mouse to the center, so there's room to move
-	SetCursorPos (window_center_x, window_center_y);
+	SetCursorPos (s_wmv.window_center_x, s_wmv.window_center_y);
 
-	*mx = current_pos.x - window_center_x;
-	*my = current_pos.y - window_center_y;
+	*mx = current_pos.x - s_wmv.window_center_x;
+	*my = current_pos.y - s_wmv.window_center_y;
 }
 
-/*
-============================================================
-
-  MOUSE CONTROL
-
-============================================================
-*/
 
 /*
 ===========
@@ -146,9 +124,10 @@ IN_ActivateMouse
 Called when the window gains focus or changes in some way
 ===========
 */
-void IN_ActivateMouse( void ) 
+static void IN_ActivateMouse( void ) 
 {
-	if (!s_wmv.mouseInitialized ) {
+	if (!s_wmv.mouseInitialized )
+	{
 		return;
 	}
 	if ( !in_mouse->integer ) 
@@ -174,7 +153,8 @@ IN_DeactivateMouse
 Called when the window loses focus
 ===========
 */
-void IN_DeactivateMouse( void ) {
+static void IN_DeactivateMouse( void )
+{
 	if (!s_wmv.mouseInitialized ) {
 		return;
 	}
@@ -187,115 +167,39 @@ void IN_DeactivateMouse( void ) {
 }
 
 
-
-/*
-===========
-IN_StartupMouse
-===========
-*/
-void IN_StartupMouse( void ) 
+static void IN_StartupMouse(void)
 {
 	s_wmv.mouseInitialized = qfalse;
 
-	if ( in_mouse->integer == 0 ) {
-		Com_Printf ("Mouse control not active.\n");
+	if (in_mouse->integer == 0) {
+		Com_Printf("Mouse control not active.\n");
 		return;
 	}
 
 	s_wmv.mouseInitialized = qtrue;
 	IN_InitWin32Mouse();
-    Com_Printf ("Win32 mouse input initialized.\n");
+	Com_Printf("Win32 mouse input initialized.\n");
 }
 
-/*
-===========
-IN_MouseEvent
-===========
-*/
-void IN_MouseEvent (int mstate)
+
+// ====================================================
+// 
+// ====================================================
+
+void IN_Init( void )
 {
-	int	i;
+    in_mouse = Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE|CVAR_LATCH);
 
-	if ( !s_wmv.mouseInitialized )
-		return;
-
-// perform button actions
-	for  (i = 0 ; i < 3 ; ++i )
-	{
-		if ( (mstate & (1<<i)) &&
-			!(s_wmv.oldButtonState & (1<<i)) )
-		{
-			Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MOUSE1 + i, qtrue, 0, NULL );
-		}
-
-		if ( !(mstate & (1<<i)) &&
-			(s_wmv.oldButtonState & (1<<i)) )
-		{
-			Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MOUSE1 + i, qfalse, 0, NULL );
-		}
-	}	
-
-	s_wmv.oldButtonState = mstate;
-}
-
-
-/*
-===========
-IN_MouseMove
-===========
-*/
-void IN_MouseMove ( void ) {
-	int		mx, my;
-
-    IN_Win32Mouse( &mx, &my );
-
-	if ( !mx && !my ) {
-		return;
-	}
-
-	Sys_QueEvent( 0, SE_MOUSE, mx, my, 0, NULL );
-}
-
-
-/*
-=========================================================================
-
-=========================================================================
-*/
-
-/*
-===========
-IN_Startup
-===========
-*/
-void IN_Startup( void ) {
-	Com_Printf ("\n------- Input Initialization -------\n");
-	IN_StartupMouse ();
-	Com_Printf ("------------------------------------\n");
+	Com_Printf("\n------- Input Initialization -------\n");
+	IN_StartupMouse();
+	Com_Printf("------------------------------------\n");
 
 	in_mouse->modified = qfalse;
 }
 
-/*
-===========
-IN_Shutdown
-===========
-*/
-void IN_Shutdown( void ) {
+void IN_Shutdown(void)
+{
 	IN_DeactivateMouse();
-}
-
-
-/*
-===========
-IN_Init
-===========
-*/
-void IN_Init( void ) {
-    in_mouse = Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE|CVAR_LATCH);
-	in_logitechbug  = Cvar_Get ("in_logitechbug", "0", CVAR_ARCHIVE);
-
-	IN_Startup();
 }
 
 
@@ -310,7 +214,7 @@ between a deactivate and an activate.
 */
 void IN_Activate (qboolean active)
 {
-	in_appactive = active;
+	s_wmv.isAppActive = active;
 
 	if ( !active )
 	{
@@ -332,7 +236,8 @@ void IN_Frame (void)
 		return;
 	}
 
-	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
+	if ( cls.keyCatchers & KEYCATCH_CONSOLE )
+	{
 		// temporarily deactivate if not in the game and
 		// running on the desktop
 		// voodoo always counts as full screen
@@ -342,7 +247,8 @@ void IN_Frame (void)
 		}
 	}
 
-	if ( !in_appactive ) {
+	if ( !s_wmv.isAppActive)
+	{
 		IN_DeactivateMouse ();
 		return;
 	}
@@ -350,6 +256,42 @@ void IN_Frame (void)
 	IN_ActivateMouse();
 
 	// post events to the system que
-	IN_MouseMove();
+	// IN_MouseMove();
 
+	int	mx, my;
+
+	IN_Win32Mouse(&mx, &my);
+
+	if (mx || my)
+	{
+		Sys_QueEvent(0, SE_MOUSE, mx, my, 0, NULL);
+	}
+}
+
+
+
+void IN_MouseEvent(int mstate)
+{
+	int	i;
+
+	if (!s_wmv.mouseInitialized)
+		return;
+
+	// perform button actions
+	for (i = 0; i < 3; ++i)
+	{
+		if ((mstate & (1 << i)) &&
+			!(s_wmv.oldButtonState & (1 << i)))
+		{
+			Sys_QueEvent(g_wv.sysMsgTime, SE_KEY, K_MOUSE1 + i, qtrue, 0, NULL);
+		}
+
+		if (!(mstate & (1 << i)) &&
+			(s_wmv.oldButtonState & (1 << i)))
+		{
+			Sys_QueEvent(g_wv.sysMsgTime, SE_KEY, K_MOUSE1 + i, qfalse, 0, NULL);
+		}
+	}
+
+	s_wmv.oldButtonState = mstate;
 }
