@@ -892,7 +892,8 @@ Cvar_Init
 Reads in all archived cvars
 ============
 */
-void Cvar_Init (void) {
+void Cvar_Init(void)
+{
 	cvar_cheats = Cvar_Get("sv_cheats", "1", CVAR_ROM | CVAR_SYSTEMINFO );
 
 	Cmd_AddCommand ("toggle", Cvar_Toggle_f);

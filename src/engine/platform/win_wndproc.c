@@ -28,8 +28,8 @@ WinVars_t	g_wv;
 
 
 // Console variables that we need to access from this module
-cvar_t		*vid_xpos;			// X coordinate of window position
-cvar_t		*vid_ypos;			// Y coordinate of window position
+// cvar_t* vid_xpos; // X coordinate of window position
+// cvar_t* vid_ypos; // Y coordinate of window position
 
 extern cvar_t *r_fullscreen;
 extern cvar_t *in_mouse;
@@ -216,8 +216,8 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 		g_wv.hWnd = hWnd;
 
-		vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
-		vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
+		// vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
+		// vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 		r_fullscreen = Cvar_Get ("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
 
 		break;
@@ -260,10 +260,10 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 				style = GetWindowLong( hWnd, GWL_STYLE );
 				AdjustWindowRect( &r, style, FALSE );
 
-				Cvar_SetValue( "vid_xpos", xPos + r.left);
-				Cvar_SetValue( "vid_ypos", yPos + r.top);
-				vid_xpos->modified = qfalse;
-				vid_ypos->modified = qfalse;
+				// Cvar_SetValue( "vid_xpos", xPos + r.left);
+				// Cvar_SetValue( "vid_ypos", yPos + r.top);
+				// vid_xpos->modified = qfalse;
+				// vid_ypos->modified = qfalse;
 				if ( g_wv.activeApp )
 				{
 					IN_Activate (qtrue);

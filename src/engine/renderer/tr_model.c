@@ -523,10 +523,9 @@ static qboolean R_LoadMD4( model_t *mod, void *buffer, const char *mod_name ) {
 
 //=============================================================================
 
-/*
-** RE_BeginRegistration
-*/
-void RE_BeginRegistration( glconfig_t *glconfigOut ) {
+
+void RE_BeginRegistration( glconfig_t *glconfigOut )
+{
 
 	R_Init();
 

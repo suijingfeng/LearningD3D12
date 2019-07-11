@@ -183,6 +183,8 @@ RenderApi get_render_api()
 		return RENDER_API_DX; // use default (d3d12) if invalid r_renderAPI value is specified
 }
 
+
+
 /*
 ** This function is responsible for initializing a valid OpenGL/Vulkan subsystem.
 */
@@ -1044,7 +1046,8 @@ void R_Register( void )
 R_Init
 ===============
 */
-void R_Init( void ) {	
+void R_Init( void )
+{	
 	int	err;
 	int i;
 	byte *ptr;

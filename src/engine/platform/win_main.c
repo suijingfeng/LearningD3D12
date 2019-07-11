@@ -1148,7 +1148,8 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	NET_Init();
 
 	_getcwd (cwd, sizeof(cwd));
-	Com_Printf("Working directory: %s\n", cwd);
+
+	Com_Printf(" Working directory: %s\n", cwd);
 
 	// hide the early console since we've reached the point where we
 	// have a working graphics subsystems
@@ -1157,7 +1158,8 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	}
 
     // main game loop
-	while( 1 ) {
+	while( 1 )
+	{
 		// if not running as a game client, sleep a bit
 		if ( g_wv.isMinimized || ( com_dedicated && com_dedicated->integer ) ) {
 			Sleep( 5 );

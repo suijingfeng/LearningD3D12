@@ -49,7 +49,8 @@ next frame.  This allows commands like:
 bind g "cmd use rocket ; +attack ; wait ; -attack ; cmd use blaster"
 ============
 */
-void Cmd_Wait_f( void ) {
+void Cmd_Wait_f( void )
+{
 	if ( Cmd_Argc() == 2 ) {
 		cmd_wait = atoi( Cmd_Argv( 1 ) );
 	} else {
@@ -66,11 +67,6 @@ void Cmd_Wait_f( void ) {
 =============================================================================
 */
 
-/*
-============
-Cbuf_Init
-============
-*/
 void Cbuf_Init (void)
 {
 	cmd_text.data = cmd_text_buf;
@@ -700,16 +696,12 @@ void Cmd_List_f (void)
 	Com_Printf ("%i commands\n", i);
 }
 
-/*
-============
-Cmd_Init
-============
-*/
-void Cmd_Init (void) {
-	Cmd_AddCommand ("cmdlist",Cmd_List_f);
-	Cmd_AddCommand ("exec",Cmd_Exec_f);
-	Cmd_AddCommand ("vstr",Cmd_Vstr_f);
-	Cmd_AddCommand ("echo",Cmd_Echo_f);
-	Cmd_AddCommand ("wait", Cmd_Wait_f);
-}
 
+void Cmd_Init(void)
+{
+	Cmd_AddCommand( "cmdlist", Cmd_List_f );
+	Cmd_AddCommand( "exec", Cmd_Exec_f );
+	Cmd_AddCommand( "vstr", Cmd_Vstr_f );
+	Cmd_AddCommand( "echo", Cmd_Echo_f );
+	Cmd_AddCommand( "wait", Cmd_Wait_f );
+}

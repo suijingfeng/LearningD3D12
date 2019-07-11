@@ -35,12 +35,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ** vk_imp_shutdown
 ** vk_imp_create_surface
 */
+
 #include "../renderer/tr_local.h"
 #include "resource.h"
 #include "win_local.h"
+#include <stdio.h>
 
-#define	MAIN_WINDOW_CLASS_NAME	"Quake 3: Arena"
-#define	TWIN_WINDOW_CLASS_NAME	"Quake 3: Arena [Twin]"
+#define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
+#define	TWIN_WINDOW_CLASS_NAME	"OpenArena [Twin]"
+
+extern	refimport_t	ri;
 
 static bool s_main_window_class_registered = false;
 static bool s_twin_window_class_registered = false;
@@ -58,15 +62,31 @@ void QGL_EnableLogging(qboolean enable);
 void WG_CheckHardwareGamma();
 void WG_RestoreGamma();
 
-static int GetDesktopCaps(int index) {
-    HDC hdc = GetDC(GetDesktopWindow());
-    int value = GetDeviceCaps(hdc, index);
-    ReleaseDC(GetDesktopWindow(), hdc);
-    return value;
+
+
+static int GetDesktopColorDepth(void)
+{
+	HDC hdc = GetDC(GetDesktopWindow());
+	int value = GetDeviceCaps(hdc, BITSPIXEL);
+	ReleaseDC(GetDesktopWindow(), hdc);
+	return value;
 }
-static int GetDesktopColorDepth() { return GetDesktopCaps(BITSPIXEL); }
-static int GetDesktopWidth() { return GetDesktopCaps(HORZRES); }
-static int GetDesktopHeight() { return GetDesktopCaps(VERTRES); }
+
+static int GetDesktopWidth(void)
+{
+	HDC hdc = GetDC(GetDesktopWindow());
+	int value = GetDeviceCaps(hdc, HORZRES);
+	ReleaseDC(GetDesktopWindow(), hdc);
+	return value;
+}
+
+static int GetDesktopHeight(void)
+{
+	HDC hdc = GetDC(GetDesktopWindow());
+	int value = GetDeviceCaps(hdc, VERTRES);
+	ReleaseDC(GetDesktopWindow(), hdc);
+	return value;
+}
 
 /*
 ** ChoosePFD
@@ -96,7 +116,8 @@ static int GLW_ChoosePixelFormat(HDC hDC, const PIXELFORMATDESCRIPTOR *pPFD)
 
 	// look for a best match
     int bestMatch = 0;
-	for (int i = 1; i <= maxPFD; i++ ) {
+	for (int i = 1; i <= maxPFD; ++i )
+	{
         if (bestMatch != 0 &&
             (pfds[bestMatch].dwFlags & PFD_STEREO) == (pPFD->dwFlags & PFD_STEREO) &&
             pfds[bestMatch].cColorBits == pPFD->cColorBits &&
@@ -203,7 +224,8 @@ static int GLW_ChoosePixelFormat(HDC hDC, const PIXELFORMATDESCRIPTOR *pPFD)
 	return bestMatch;
 }
 
-static bool GLW_SetPixelFormat(HDC hdc, PIXELFORMATDESCRIPTOR *pPFD, int colorbits, int depthbits, int stencilbits, qboolean stereo) {
+static bool GLW_SetPixelFormat(HDC hdc, PIXELFORMATDESCRIPTOR *pPFD, int colorbits, int depthbits, int stencilbits, qboolean stereo)
+{
     const PIXELFORMATDESCRIPTOR pfd_base =
     {
         sizeof(PIXELFORMATDESCRIPTOR),	// size of this pfd
@@ -254,7 +276,8 @@ static bool GLW_SetPixelFormat(HDC hdc, PIXELFORMATDESCRIPTOR *pPFD, int colorbi
 }
 
 // Sets pixel format and creates opengl context for the given window.
-static qboolean GLW_InitDriver(HWND hwnd) {
+static qboolean GLW_InitDriver(HWND hwnd)
+{
 	ri.Printf( PRINT_ALL, "Initializing OpenGL driver\n" );
 
 	//
@@ -412,7 +435,9 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 	char window_name[1024];
 	if (r_twinMode->integer == 0) {
 		strcpy(window_name, MAIN_WINDOW_CLASS_NAME);
-	} else {
+	}
+	else
+	{
 		const char* api_name = "invalid-render-api";
 		if (get_render_api() == RENDER_API_GL)
 			api_name = "OpenGL";
@@ -444,6 +469,7 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 	ri.Printf(PRINT_ALL, "...created window@%d,%d (%dx%d)\n", x, y, w, h);
     return hwnd;
 }
+
 
 static HWND create_twin_window(int width, int height, RenderApi render_api)
 {
@@ -527,6 +553,7 @@ static HWND create_twin_window(int width, int height, RenderApi render_api)
 		api_name = "Vulkan";
 	else if (render_api == RENDER_API_DX)
 		api_name = "DX12";
+	
 	sprintf(window_name, "%s [%s]", MAIN_WINDOW_CLASS_NAME, api_name);
 
     HWND hwnd = CreateWindowEx(
@@ -756,7 +783,9 @@ void GLimp_Init( void )
 		SetForegroundWindow(g_wv.hWnd);
 		SetFocus(g_wv.hWnd);
 		WG_CheckHardwareGamma();
-	} else {
+	} 
+	else
+	{
 		g_wv.hWnd_opengl = create_twin_window(glConfig.vidWidth, glConfig.vidHeight, RENDER_API_GL);
 	}
 
@@ -926,10 +955,11 @@ void vk_imp_create_surface()
 
 void dx_imp_init()
 {
-	ri.Printf(PRINT_ALL, "Initializing DX12 subsystem\n");
+	ri.Printf(PRINT_ALL, " Initializing DX12 subsystem \n");
 
 	// This will set qgl pointers to no-op placeholders.
-	if (!gl_active) {
+	if (!gl_active)
+	{
 		QGL_Init(nullptr);
 		qglActiveTextureARB = [] (GLenum)  {};
 		qglClientActiveTextureARB = [](GLenum) {};

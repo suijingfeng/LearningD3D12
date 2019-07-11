@@ -2256,7 +2256,8 @@ void CL_ShutdownRef( void ) {
 CL_InitRenderer
 ============
 */
-void CL_InitRenderer( void ) {
+void CL_InitRenderer( void )
+{
 	// this sets up the renderer and calls R_Init
 	re.BeginRegistration( &cls.glconfig );
 
@@ -2276,7 +2277,8 @@ After the server has cleared the hunk, these will need to be restarted
 This is the only place that any of these functions are called from
 ============================
 */
-void CL_StartHunkUsers( void ) {
+void CL_StartHunkUsers( void )
+{
 	if (!com_cl_running) {
 		return;
 	}

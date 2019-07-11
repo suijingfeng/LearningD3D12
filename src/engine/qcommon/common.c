@@ -365,18 +365,22 @@ Com_ParseCommandLine
 Break it up into multiple console lines
 ==================
 */
-void Com_ParseCommandLine( char *commandLine ) {
+void Com_ParseCommandLine( char *commandLine )
+{
     int inq = 0;
     com_consoleLines[0] = commandLine;
     com_numConsoleLines = 1;
 
-    while ( *commandLine ) {
-        if (*commandLine == '"') {
+    while ( *commandLine )
+	{
+        if (*commandLine == '"')
+		{
             inq = !inq;
         }
         // look for a + seperating character
         // if commandLine came from a file, we might have real line seperators
-        if ( (*commandLine == '+' && !inq) || *commandLine == '\n'  || *commandLine == '\r' ) {
+        if ( (*commandLine == '+' && !inq) || *commandLine == '\n'  || *commandLine == '\r' )
+		{
             if ( com_numConsoleLines == MAX_CONSOLE_LINES ) {
                 return;
             }
@@ -419,23 +423,27 @@ Com_StartupVariable
 Searches for command line parameters that are set commands.
 If match is not NULL, only that cvar will be looked for.
 That is necessary because cddir and basedir need to be set
-before the filesystem is started, but all other sets shouls
+before the filesystem is started, but all other sets shoulds
 be after execing the config and default.
 ===============
 */
-void Com_StartupVariable( const char *match ) {
-	int		i;
-	char	*s;
+void Com_StartupVariable( const char *match )
+{
+	int	i;
+
 	cvar_t	*cv;
 
-	for (i=0 ; i < com_numConsoleLines ; i++) {
+	for (i=0; i < com_numConsoleLines; ++i)
+	{
 		Cmd_TokenizeString( com_consoleLines[i] );
-		if ( strcmp( Cmd_Argv(0), "set" ) ) {
+		if ( strcmp( Cmd_Argv(0), "set" ) )
+		{
 			continue;
 		}
 
-		s = Cmd_Argv(1);
-		if ( !match || !strcmp( s, match ) ) {
+		char* s = Cmd_Argv(1);
+		if ( !match || !strcmp( s, match ) )
+		{
 			Cvar_Set( s, Cmd_Argv(2) );
 			cv = Cvar_Get( s, "", 0 );
 			cv->flags |= CVAR_USER_CREATED;
@@ -758,13 +766,10 @@ memzone_t	*smallzone;
 
 void Z_CheckHeap( void );
 
-/*
-========================
-Z_ClearZone
-========================
-*/
-void Z_ClearZone( memzone_t *zone, int size ) {
-	memblock_t	*block;
+
+void Z_ClearZone( memzone_t *zone, int size )
+{
+	memblock_t* block;
 	
 	// set the entire zone to one free block
 
@@ -1374,11 +1379,6 @@ void Com_TouchMemory( void )
 
 
 
-/*
-=================
-Com_InitZoneMemory
-=================
-*/
 void Com_InitSmallZoneMemory( void )
 {
 	s_smallZoneTotal = 512 * 1024;
@@ -1389,6 +1389,8 @@ void Com_InitSmallZoneMemory( void )
 	}
 	Z_ClearZone( smallzone, s_smallZoneTotal );
 	
+	Com_Printf("InitSmallZoneMemory: %d Kb\n", s_smallZoneTotal / 1024);
+
 	return;
 }
 
@@ -1397,7 +1399,8 @@ void Com_InitZoneMemory( void )
 	// allocate the random block zone
 	cvar_t * cv = Cvar_Get( "com_zoneMegs", DEF_COMZONEMEGS, CVAR_LATCH | CVAR_ARCHIVE );
 
-	if ( cv->integer < 20 ) {
+	if ( cv->integer < 20 )
+	{
 		s_zoneTotal = 1024 * 1024 * 16;
 	}
 	else
@@ -1410,6 +1413,7 @@ void Com_InitZoneMemory( void )
 	if ( !mainzone ) {
 		Com_Error( ERR_FATAL, "Zone data failed to allocate %i megs", s_zoneTotal / (1024*1024) );
 	}
+
 	Z_ClearZone( mainzone, s_zoneTotal );
 }
 
@@ -1491,12 +1495,9 @@ void Hunk_SmallLog( void) {
 	FS_Write(buf, (int)strlen(buf), logfile);
 }
 
-/*
-=================
-Com_InitZoneMemory
-=================
-*/
-void Com_InitHunkMemory( void ) {
+
+void Com_InitHunkMemory( void )
+{
 	cvar_t	*cv;
 	int nMinAlloc;
 	char *pMsg = NULL;
@@ -2349,11 +2350,6 @@ static void Com_WriteCDKey( const char *filename, const char *ikey ) {
 #endif
 
 
-/*
-=================
-Com_Init
-=================
-*/
 void Com_Init( char *commandLine )
 {
 	char	*s;
@@ -2368,16 +2364,18 @@ void Com_Init( char *commandLine )
 	Com_InitPushEvent();
 
 	Com_InitSmallZoneMemory();
-	Cvar_Init ();
+	
+	Cvar_Init();
 
 	// prepare enough of the subsystems to handle
 	// cvar and command buffer management
 	Com_ParseCommandLine( commandLine );
 
 //	Swap_Init ();
-	Cbuf_Init ();
+	Cbuf_Init();
 
 	Com_InitZoneMemory();
+	
 	Cmd_Init ();
 
 	// override anything from the config files with command line args
@@ -2389,7 +2387,7 @@ void Com_Init( char *commandLine )
 	// done early so bind command exists
 	CL_InitKeyCommands();
 
-	FS_InitFilesystem ();
+	FS_InitFilesystem();
 
 	Com_InitJournaling();
 
