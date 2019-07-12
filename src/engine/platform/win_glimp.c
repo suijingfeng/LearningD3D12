@@ -590,7 +590,8 @@ static void SetMode(int mode, qboolean fullscreen)
 	else
 	{
 		ri.Printf( PRINT_ALL, "...setting mode %d:", mode );
-		if (!R_GetModeInfo(&glConfig.vidWidth, &glConfig.vidHeight, &glConfig.windowAspect, mode)) {
+		if (!R_GetModeInfo(&glConfig.vidWidth, &glConfig.vidHeight, &glConfig.windowAspect, mode))
+		{
 			ri.Printf( PRINT_ALL, " invalid mode\n" );
 			ri.Error(ERR_FATAL, "SetMode - could not set the given mode (%d)\n", mode);
 		}
@@ -961,7 +962,7 @@ void dx_imp_init()
 	if (!gl_active)
 	{
 		QGL_Init(nullptr);
-		qglActiveTextureARB = [] (GLenum)  {};
+		qglActiveTextureARB = [](GLenum) {};
 		qglClientActiveTextureARB = [](GLenum) {};
 	}
 

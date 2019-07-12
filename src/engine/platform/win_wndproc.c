@@ -35,11 +35,7 @@ extern cvar_t *r_fullscreen;
 extern cvar_t *in_mouse;
 
 
-/*
-==================
-VID_AppActivate
-==================
-*/
+
 static void VID_AppActivate(BOOL fActive, BOOL minimize)
 {
 	g_wv.isMinimized = (qboolean) minimize;

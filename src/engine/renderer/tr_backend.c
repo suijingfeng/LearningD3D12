@@ -78,9 +78,7 @@ void GL_Bind( image_t *image ) {
 	}
 }
 
-/*
-** GL_SelectTexture
-*/
+
 void GL_SelectTexture( int unit )
 {
 	if ( glState.currenttmu == unit )
@@ -101,7 +99,8 @@ void GL_SelectTexture( int unit )
 		GLimp_LogComment( "glActiveTextureARB( GL_TEXTURE1_ARB )\n" );
 		qglClientActiveTextureARB( GL_TEXTURE1_ARB );
 		GLimp_LogComment( "glClientActiveTextureARB( GL_TEXTURE1_ARB )\n" );
-	} else {
+	}
+	else {
 		ri.Error( ERR_DROP, "GL_SelectTexture: unit = %i", unit );
 	}
 

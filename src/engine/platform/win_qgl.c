@@ -728,8 +728,9 @@ void QGL_Shutdown( void )
 	qwglMakeCurrent              = NULL;
 }
 
-#	pragma warning (disable : 4113 4133 4047 )
-#	define GPA( a ) (dllname ? (void*)GetProcAddress(hinstOpenGL, #a) : (void*)(&no ## a))
+#pragma warning (disable :  4133 4047 )
+
+#define GPA( a ) ( dllname ? (void*)GetProcAddress(hinstOpenGL, #a) : (void*)(&no ## a) )
 
 /*
 ** QGL_Init
@@ -742,7 +743,8 @@ void QGL_Shutdown( void )
 */
 qboolean QGL_Init( const char *dllname )
 {
-	if (dllname != nullptr) {
+	if (dllname != nullptr)
+	{
 		assert( hinstOpenGL == 0 );
 
 		ri.Printf( PRINT_ALL, "...initializing QGL\n" );
@@ -775,39 +777,39 @@ qboolean QGL_Init( const char *dllname )
 	qglDisableClientState        = dllDisableClientState = (decltype(dllDisableClientState))GPA(glDisableClientState);
 	qglDrawBuffer                = dllDrawBuffer = (decltype(dllDrawBuffer))GPA(glDrawBuffer);
 	qglDrawElements              = dllDrawElements = (decltype(dllDrawElements))GPA(glDrawElements);
-	qglEnable                    = 	dllEnable                    = (decltype(dllEnable))GPA(glEnable);
-	qglEnableClientState         = 	dllEnableClientState         = (decltype(dllEnableClientState))GPA(glEnableClientState);
-	qglEnd                       = 	dllEnd                       = (decltype(dllEnd))GPA(glEnd);
-	qglFinish                    = 	dllFinish                    = (decltype(dllFinish))GPA(glFinish);
-	qglGetError                  = 	dllGetError                  = ( GLenum (__stdcall * )(void) ) GPA( glGetError );
-	qglGetIntegerv               = 	dllGetIntegerv               = (decltype(dllGetIntegerv))GPA(glGetIntegerv);
-	qglGetString                 = 	dllGetString                 = (decltype(dllGetString))GPA(glGetString);
-	qglLineWidth                 = 	dllLineWidth                 = (decltype(dllLineWidth))GPA(glLineWidth);
-	qglLoadIdentity              = 	dllLoadIdentity              = (decltype(dllLoadIdentity))GPA(glLoadIdentity);
-	qglLoadMatrixf               = 	dllLoadMatrixf               = (decltype(dllLoadMatrixf))GPA(glLoadMatrixf);
-	qglMatrixMode                = 	dllMatrixMode                = (decltype(dllMatrixMode))GPA(glMatrixMode);
-	qglOrtho                     = 	dllOrtho                     = (decltype(dllOrtho))GPA(glOrtho);
-	qglPolygonMode               = 	dllPolygonMode               = (decltype(dllPolygonMode))GPA(glPolygonMode);
-	qglPolygonOffset             = 	dllPolygonOffset             = (decltype(dllPolygonOffset))GPA(glPolygonOffset);
-	qglPopMatrix                 = 	dllPopMatrix                 = (decltype(dllPopMatrix))GPA(glPopMatrix);
-	qglPushMatrix                = 	dllPushMatrix                = (decltype(dllPushMatrix))GPA(glPushMatrix);
-	qglReadPixels                = 	dllReadPixels                = (decltype(dllReadPixels))GPA(glReadPixels);
-	qglScissor                   = 	dllScissor                   = (decltype(dllScissor))GPA(glScissor);
-	qglStencilFunc               = 	dllStencilFunc               = (decltype(dllStencilFunc))GPA(glStencilFunc);
-	qglStencilOp                 = 	dllStencilOp                 = (decltype(dllStencilOp))GPA(glStencilOp);
-	qglTexCoord2f                = 	dllTexCoord2f                = (decltype(dllTexCoord2f))GPA(glTexCoord2f);
-	qglTexCoord2fv               = 	dllTexCoord2fv               = (decltype(dllTexCoord2fv))GPA(glTexCoord2fv);
-	qglTexCoordPointer           = 	dllTexCoordPointer           = (decltype(dllTexCoordPointer))GPA(glTexCoordPointer);
-	qglTexEnvf                   = 	dllTexEnvf                   = (decltype(dllTexEnvf))GPA(glTexEnvf);
-	qglTexImage2D                = 	dllTexImage2D                = (decltype(dllTexImage2D))GPA(glTexImage2D);
-	qglTexParameterf             = 	dllTexParameterf             = (decltype(dllTexParameterf))GPA(glTexParameterf);
-	qglTexParameterfv            = 	dllTexParameterfv            = (decltype(dllTexParameterfv))GPA(glTexParameterfv);
-	qglTexSubImage2D             = 	dllTexSubImage2D             = (decltype(dllTexSubImage2D))GPA(glTexSubImage2D);
-	qglVertex2f                  = 	dllVertex2f                  = (decltype(dllVertex2f))GPA(glVertex2f);
-	qglVertex3f                  = 	dllVertex3f                  = (decltype(dllVertex3f))GPA(glVertex3f);
-	qglVertex3fv                 = 	dllVertex3fv                 = (decltype(dllVertex3fv))GPA(glVertex3fv);
-	qglVertexPointer             = 	dllVertexPointer             = (decltype(dllVertexPointer))GPA(glVertexPointer);
-	qglViewport                  = 	dllViewport                  = (decltype(dllViewport))GPA(glViewport);
+	qglEnable                    = dllEnable                    = (decltype(dllEnable))GPA(glEnable);
+	qglEnableClientState         = dllEnableClientState         = (decltype(dllEnableClientState))GPA(glEnableClientState);
+	qglEnd                       = dllEnd                       = (decltype(dllEnd))GPA(glEnd);
+	qglFinish                    = dllFinish                    = (decltype(dllFinish))GPA(glFinish);
+	qglGetError                  = dllGetError                  = ( GLenum (__stdcall * )(void) ) GPA( glGetError );
+	qglGetIntegerv               = dllGetIntegerv               = (decltype(dllGetIntegerv))GPA(glGetIntegerv);
+	qglGetString                 = dllGetString                 = (decltype(dllGetString))GPA(glGetString);
+	qglLineWidth                 = dllLineWidth                 = (decltype(dllLineWidth))GPA(glLineWidth);
+	qglLoadIdentity              = dllLoadIdentity              = (decltype(dllLoadIdentity))GPA(glLoadIdentity);
+	qglLoadMatrixf               = dllLoadMatrixf               = (decltype(dllLoadMatrixf))GPA(glLoadMatrixf);
+	qglMatrixMode                = dllMatrixMode                = (decltype(dllMatrixMode))GPA(glMatrixMode);
+	qglOrtho                     = dllOrtho                     = (decltype(dllOrtho))GPA(glOrtho);
+	qglPolygonMode               = dllPolygonMode               = (decltype(dllPolygonMode))GPA(glPolygonMode);
+	qglPolygonOffset             = dllPolygonOffset             = (decltype(dllPolygonOffset))GPA(glPolygonOffset);
+	qglPopMatrix                 = dllPopMatrix                 = (decltype(dllPopMatrix))GPA(glPopMatrix);
+	qglPushMatrix                = dllPushMatrix                = (decltype(dllPushMatrix))GPA(glPushMatrix);
+	qglReadPixels                = dllReadPixels                = (decltype(dllReadPixels))GPA(glReadPixels);
+	qglScissor                   = dllScissor                   = (decltype(dllScissor))GPA(glScissor);
+	qglStencilFunc               = dllStencilFunc               = (decltype(dllStencilFunc))GPA(glStencilFunc);
+	qglStencilOp                 = dllStencilOp                 = (decltype(dllStencilOp))GPA(glStencilOp);
+	qglTexCoord2f                = dllTexCoord2f                = (decltype(dllTexCoord2f))GPA(glTexCoord2f);
+	qglTexCoord2fv               = dllTexCoord2fv               = (decltype(dllTexCoord2fv))GPA(glTexCoord2fv);
+	qglTexCoordPointer           = dllTexCoordPointer           = (decltype(dllTexCoordPointer))GPA(glTexCoordPointer);
+	qglTexEnvf                   = dllTexEnvf                   = (decltype(dllTexEnvf))GPA(glTexEnvf);
+	qglTexImage2D                = dllTexImage2D                = (decltype(dllTexImage2D))GPA(glTexImage2D);
+	qglTexParameterf             = dllTexParameterf             = (decltype(dllTexParameterf))GPA(glTexParameterf);
+	qglTexParameterfv            = dllTexParameterfv            = (decltype(dllTexParameterfv))GPA(glTexParameterfv);
+	qglTexSubImage2D             = dllTexSubImage2D             = (decltype(dllTexSubImage2D))GPA(glTexSubImage2D);
+	qglVertex2f                  = dllVertex2f                  = (decltype(dllVertex2f))GPA(glVertex2f);
+	qglVertex3f                  = dllVertex3f                  = (decltype(dllVertex3f))GPA(glVertex3f);
+	qglVertex3fv                 = dllVertex3fv                 = (decltype(dllVertex3fv))GPA(glVertex3fv);
+	qglVertexPointer             = dllVertexPointer             = (decltype(dllVertexPointer))GPA(glVertexPointer);
+	qglViewport                  = dllViewport                  = (decltype(dllViewport))GPA(glViewport);
 
 	qwglCreateContext            = (decltype(qwglCreateContext))GPA(wglCreateContext);
 	qwglDeleteContext            = (decltype(qwglDeleteContext))GPA(wglDeleteContext);

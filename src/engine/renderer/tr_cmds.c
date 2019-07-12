@@ -70,14 +70,12 @@ void R_PerformanceCounters( void ) {
 }
 
 
-/*
-====================
-R_InitCommandBuffers
-====================
-*/
-void R_InitCommandBuffers( void ) {
+
+void R_InitCommandBuffers( void )
+{
 	glConfig.smpActive = qfalse;
-	if ( r_smp->integer ) {
+	if ( r_smp->integer )
+	{
 		ri.Printf( PRINT_ALL, "Trying SMP acceleration...\n" );
 		if ( GLimp_SpawnRenderThread( RB_RenderThread ) ) {
 			ri.Printf( PRINT_ALL, "...succeeded.\n" );
