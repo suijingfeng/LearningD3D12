@@ -732,10 +732,12 @@ void GLimp_EndFrame (void)
 	//
 	// swapinterval stuff
 	//
-	if ( r_swapInterval->modified ) {
+	if ( r_swapInterval->modified )
+	{
 		r_swapInterval->modified = qfalse;
 
-		if ( !glConfig.stereoEnabled ) {	// why?
+		if ( !glConfig.stereoEnabled )
+		{	// why?
 			if ( qwglSwapIntervalEXT ) {
 				qwglSwapIntervalEXT( r_swapInterval->integer );
 			}
@@ -910,7 +912,8 @@ void vk_imp_shutdown()
 {
 	ri.Printf(PRINT_ALL, "Shutting down Vulkan subsystem\n");
 
-	if (g_wv.hWnd_vulkan) {
+	if (g_wv.hWnd_vulkan)
+	{
 		ri.Printf(PRINT_ALL, "...destroying Vulkan window\n");
 		DestroyWindow(g_wv.hWnd_vulkan);
 
@@ -1028,7 +1031,8 @@ HANDLE	renderActiveEvent;
 
 void (*glimpRenderThread)( void );
 
-void GLimp_RenderThreadWrapper( void ) {
+void GLimp_RenderThreadWrapper( void )
+{
 	glimpRenderThread();
 
 	// unbind the context before we die
@@ -1066,10 +1070,11 @@ qboolean GLimp_SpawnRenderThread( void (*function)( void ) )
 	return qtrue;
 }
 
-static	void	*smpData;
-static	int		wglErrors;
+static void * smpData;
+static int wglErrors;
 
-void *GLimp_RendererSleep( void ) {
+void *GLimp_RendererSleep( void )
+{
 	void	*data;
 
 	if ( !qwglMakeCurrent( gl_hdc, NULL ) ) {
@@ -1099,7 +1104,8 @@ void *GLimp_RendererSleep( void ) {
 }
 
 
-void GLimp_FrontEndSleep( void ) {
+void GLimp_FrontEndSleep( void )
+{
 	WaitForSingleObject( renderCompletedEvent, INFINITE );
 
 	if ( !qwglMakeCurrent( gl_hdc, gl_hglrc ) ) {
@@ -1108,7 +1114,8 @@ void GLimp_FrontEndSleep( void ) {
 }
 
 
-void GLimp_WakeRenderer( void *data ) {
+void GLimp_WakeRenderer( void *data )
+{
 	smpData = data;
 
 	if ( !qwglMakeCurrent( gl_hdc, NULL ) ) {

@@ -1116,7 +1116,6 @@ int	totalMsec, countMsec;
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	char cwd[MAX_OSPATH];
-	int	startTime, endTime;
 
     // should never get a previous instance in Win32
     if ( hPrevInstance ) {
@@ -1167,11 +1166,11 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 		// set low precision every frame, because some system calls
 		// reset it arbitrarily
-//		_controlfp( _PC_24, _MCW_PC );
-//    _controlfp( -1, _MCW_EM  ); // no exceptions, even if some crappy
+		// _controlfp( _PC_24, _MCW_PC );
+		//_controlfp( -1, _MCW_EM  ); // no exceptions, even if some crappy
                                 // syscall turns them back on!
 
-		startTime = Sys_Milliseconds();
+		int startTime = Sys_Milliseconds();
 
 		// make sure mouse and joystick are only called once a frame
 		IN_Frame();
@@ -1179,7 +1178,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		// run the game
 		Com_Frame();
 
-		endTime = Sys_Milliseconds();
+		int endTime = Sys_Milliseconds();
 		totalMsec += endTime - startTime;
 		countMsec++;
 	}

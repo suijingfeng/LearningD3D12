@@ -27,8 +27,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 backEndData_t	*backEndData[SMP_FRAMES];
 backEndState_t	backEnd;
 
-
-static float s_flipMatrix[16] = {
+static const float s_flipMatrix[16] =
+{
 	// convert from our coordinate system (looking down X)
 	// to OpenGL's coordinate system (looking down -Z)
 	0, 0, -1, 0,
@@ -47,27 +47,32 @@ static float fast_sky_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 /*
 ** GL_Bind
 */
-void GL_Bind( image_t *image ) {
+void GL_Bind( image_t *image )
+{
     image_t* final_image = image;
 
-	if (!final_image) {
+	if (!final_image)
+	{
 		ri.Printf( PRINT_WARNING, "GL_Bind: NULL image\n" );
 		final_image = tr.defaultImage;
 	}
 
-	if ( r_nobind->integer && tr.dlightImage ) {		// performance evaluation option
+	if ( r_nobind->integer && tr.dlightImage )
+	{		// performance evaluation option
 		final_image = tr.dlightImage;
 	}
 
     int texnum = final_image->texnum;
 
-	if ( glState.currenttextures[glState.currenttmu] != texnum ) {
+	if ( glState.currenttextures[glState.currenttmu] != texnum )
+	{
 		image->frameUsed = tr.frameCount;
 		glState.currenttextures[glState.currenttmu] = texnum;
 		qglBindTexture (GL_TEXTURE_2D, texnum);
 
 		// VULKAN
-		if (vk.active) {
+		if (vk.active)
+		{
 			VkDescriptorSet set = vk_world.images[final_image->index].descriptor_set;
 			vk_world.current_descriptor_sets[glState.currenttmu] = set;
 		}
@@ -107,11 +112,11 @@ void GL_SelectTexture( int unit )
 	glState.currenttmu = unit;
 }
 
-/*
-** GL_Cull
-*/
-void GL_Cull( int cullType ) {
-	if ( glState.faceCulling == cullType ) {
+
+void GL_Cull( int cullType )
+{
+	if ( glState.faceCulling == cullType )
+	{
 		return;
 	}
 
@@ -380,7 +385,8 @@ RB_Hyperspace
 A player has predicted a teleport, but hasn't arrived yet
 ================
 */
-static void RB_Hyperspace( void ) {
+static void RB_Hyperspace( void )
+{
 	float c = ( backEnd.refdef.time & 255 ) / 255.0f;
 	qglClearColor( c, c, c, 1 );
 	qglClear( GL_COLOR_BUFFER_BIT );
@@ -418,7 +424,8 @@ Any mirrored or portaled views have already been drawn, so prepare
 to actually render the visible surfaces for this view
 =================
 */
-void RB_BeginDrawingView (void) {
+void RB_BeginDrawingView (void)
+{
 	// we will need to change the projection matrix before drawing
 	// 2D images again
 	backEnd.projection2D = qfalse;
@@ -467,7 +474,8 @@ void RB_BeginDrawingView (void) {
 	glState.faceCulling = -1;		// force face culling to set next time
 
 	// clip to the plane of the portal
-	if ( backEnd.viewParms.isPortal ) {
+	if ( backEnd.viewParms.isPortal )
+	{
 		float	plane[4];
 		double	plane2[4];
 
@@ -484,7 +492,8 @@ void RB_BeginDrawingView (void) {
 		qglLoadMatrixf( s_flipMatrix );
 		qglClipPlane (GL_CLIP_PLANE0, plane2);
 		qglEnable (GL_CLIP_PLANE0);
-	} else {
+	}
+	else {
 		qglDisable (GL_CLIP_PLANE0);
 	}
 }
@@ -494,7 +503,8 @@ void RB_BeginDrawingView (void) {
 RB_RenderDrawSurfList
 ==================
 */
-void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
+void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
+{
 	shader_t		*shader, *oldShader;
 	int				fogNum, oldFogNum;
 	int				entityNum, oldEntityNum;
@@ -572,7 +582,8 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 					// hack the depth range to prevent view model from poking into walls
 					depthRange = qtrue;
 				}
-			} else {
+			}
+			else {
 				backEnd.currentEntity = &tr.worldEntity;
 				backEnd.refdef.floatTime = originalTime;
 				backEnd.or = backEnd.viewParms.world;
