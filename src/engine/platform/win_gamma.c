@@ -36,48 +36,47 @@ static unsigned short s_oldHardwareGamma[3][256];
 */
 void WG_CheckHardwareGamma( void )
 {
-	HDC			hDC;
 
 	glConfig.deviceSupportsGamma = qfalse;
+	
+	HDC hDC = GetDC( GetDesktopWindow() );
+	
+	glConfig.deviceSupportsGamma = (qboolean) GetDeviceGammaRamp( hDC, s_oldHardwareGamma );
+	
+	ReleaseDC( GetDesktopWindow(), hDC );
 
-	if ( !r_ignorehwgamma->integer )
+	if ( glConfig.deviceSupportsGamma )
 	{
-		hDC = GetDC( GetDesktopWindow() );
-		glConfig.deviceSupportsGamma = (qboolean) GetDeviceGammaRamp( hDC, s_oldHardwareGamma );
-		ReleaseDC( GetDesktopWindow(), hDC );
-
-		if ( glConfig.deviceSupportsGamma )
+		//
+		// do a sanity check on the gamma values
+		//
+		if ( ( HIBYTE( s_oldHardwareGamma[0][255] ) <= HIBYTE( s_oldHardwareGamma[0][0] ) ) ||
+				( HIBYTE( s_oldHardwareGamma[1][255] ) <= HIBYTE( s_oldHardwareGamma[1][0] ) ) ||
+				( HIBYTE( s_oldHardwareGamma[2][255] ) <= HIBYTE( s_oldHardwareGamma[2][0] ) ) )
 		{
-			//
-			// do a sanity check on the gamma values
-			//
-			if ( ( HIBYTE( s_oldHardwareGamma[0][255] ) <= HIBYTE( s_oldHardwareGamma[0][0] ) ) ||
-				 ( HIBYTE( s_oldHardwareGamma[1][255] ) <= HIBYTE( s_oldHardwareGamma[1][0] ) ) ||
-				 ( HIBYTE( s_oldHardwareGamma[2][255] ) <= HIBYTE( s_oldHardwareGamma[2][0] ) ) )
+			glConfig.deviceSupportsGamma = qfalse;
+			ri.Printf( PRINT_WARNING, "WARNING: device has broken gamma support, generated gamma.dat\n" );
+		}
+
+		//
+		// make sure that we didn't have a prior crash in the game, and if so we need to
+		// restore the gamma values to at least a linear value
+		//
+		if ( ( HIBYTE( s_oldHardwareGamma[0][181] ) == 255 ) )
+		{
+			int g;
+
+			ri.Printf( PRINT_WARNING, "WARNING: suspicious gamma tables, using linear ramp for restoration\n" );
+
+			for ( g = 0; g < 255; g++ )
 			{
-				glConfig.deviceSupportsGamma = qfalse;
-				ri.Printf( PRINT_WARNING, "WARNING: device has broken gamma support, generated gamma.dat\n" );
-			}
-
-			//
-			// make sure that we didn't have a prior crash in the game, and if so we need to
-			// restore the gamma values to at least a linear value
-			//
-			if ( ( HIBYTE( s_oldHardwareGamma[0][181] ) == 255 ) )
-			{
-				int g;
-
-				ri.Printf( PRINT_WARNING, "WARNING: suspicious gamma tables, using linear ramp for restoration\n" );
-
-				for ( g = 0; g < 255; g++ )
-				{
-					s_oldHardwareGamma[0][g] = g << 8;
-					s_oldHardwareGamma[1][g] = g << 8;
-					s_oldHardwareGamma[2][g] = g << 8;
-				}
+				s_oldHardwareGamma[0][g] = g << 8;
+				s_oldHardwareGamma[1][g] = g << 8;
+				s_oldHardwareGamma[2][g] = g << 8;
 			}
 		}
 	}
+
 }
 
 /*
@@ -90,7 +89,8 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 	int		i, j;
 	int		ret;
 
-	if ( !glConfig.deviceSupportsGamma || r_ignorehwgamma->integer ) {
+	if ( !glConfig.deviceSupportsGamma )
+	{
 		return;
 	}
 
@@ -137,9 +137,7 @@ void WG_RestoreGamma( void )
 {
 	if ( glConfig.deviceSupportsGamma )
 	{
-		HDC hDC;
-
-		hDC = GetDC( GetDesktopWindow() );
+		HDC hDC = GetDC( GetDesktopWindow() );
 		SetDeviceGammaRamp( hDC, s_oldHardwareGamma );
 		ReleaseDC( GetDesktopWindow(), hDC );
 	}
