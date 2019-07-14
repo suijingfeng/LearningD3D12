@@ -117,9 +117,6 @@
     <ClCompile Include="..\src\engine\platform\win_syscon.c">
       <Filter>Source Files\platform</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\engine\platform\win_wndproc.c">
-      <Filter>Source Files\platform</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\engine\qcommon\cm_load.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>

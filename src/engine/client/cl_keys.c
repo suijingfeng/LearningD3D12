@@ -1233,11 +1233,12 @@ Key_ClearStates
 */
 void Key_ClearStates (void)
 {
-	int		i;
+	int	i;
 
 	anykeydown = qfalse;
 
-	for ( i=0 ; i < MAX_KEYS ; i++ ) {
+	for ( i=0 ; i < MAX_KEYS ; ++i )
+	{
 		if ( keys[i].down ) {
 			CL_KeyEvent( i, qfalse, 0 );
 

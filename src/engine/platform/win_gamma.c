@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qcommon.h"
 #include "win_local.h"
 
+
 static unsigned short s_oldHardwareGamma[3][256];
 
 /*
@@ -36,7 +37,6 @@ static unsigned short s_oldHardwareGamma[3][256];
 */
 void WG_CheckHardwareGamma( void )
 {
-
 	glConfig.deviceSupportsGamma = qfalse;
 	
 	HDC hDC = GetDC( GetDesktopWindow() );
@@ -76,7 +76,6 @@ void WG_CheckHardwareGamma( void )
 			}
 		}
 	}
-
 }
 
 /*

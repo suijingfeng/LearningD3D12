@@ -187,7 +187,7 @@ RenderApi get_render_api()
 /*
 ** This function is responsible for initializing a valid OpenGL/Vulkan subsystem.
 */
-static void InitRenderAPI( void )
+static void R_InitRenderAPI( void )
 {
 	//
 	// initialize OS specific portions of the renderer
@@ -1118,7 +1118,7 @@ void R_Init( void )
 	}
 	R_ToggleSmpFrame();
 
-	InitRenderAPI();
+	R_InitRenderAPI();
 
 	R_InitImages();
 

@@ -39,20 +39,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderer/tr_local.h"
 #include "resource.h"
 #include "win_local.h"
+
+#include "win_input.h"
 #include <stdio.h>
 
 #define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
 #define	TWIN_WINDOW_CLASS_NAME	"OpenArena [Twin]"
 
-extern	refimport_t	ri;
 
-static bool s_main_window_class_registered = false;
+
+
 static bool s_twin_window_class_registered = false;
 
 static HDC gl_hdc; // handle to device context
 static HGLRC gl_hglrc; // handle to GL rendering context
 
-static HINSTANCE vk_library_handle; // HINSTANCE for the Vulkan library
 
 FILE* log_fp;
 
@@ -146,15 +147,18 @@ static int GLW_ChoosePixelFormat(HDC hDC, const PIXELFORMATDESCRIPTOR *pPFD)
 		}
 
 		// verify proper flags
-		if ((pfds[i].dwFlags & pPFD->dwFlags) != pPFD->dwFlags) {
-			if (r_verbose->integer) {
+		if ((pfds[i].dwFlags & pPFD->dwFlags) != pPFD->dwFlags)
+		{
+			if (r_verbose->integer)
+			{
 				ri.Printf( PRINT_ALL, "...PFD %d rejected, improper flags (%x instead of %x)\n", i, pfds[i].dwFlags, pPFD->dwFlags );
 			}
 			continue;
 		}
 
 		// verify enough bits
-		if (pfds[i].cDepthBits < 15) {
+		if (pfds[i].cDepthBits < 15)
+		{
 			continue;
 		}
 		if ((pfds[i].cStencilBits < 4) && (pPFD->cStencilBits > 0)) {
@@ -278,7 +282,7 @@ static bool GLW_SetPixelFormat(HDC hdc, PIXELFORMATDESCRIPTOR *pPFD, int colorbi
 // Sets pixel format and creates opengl context for the given window.
 static qboolean GLW_InitDriver(HWND hwnd)
 {
-	ri.Printf( PRINT_ALL, "Initializing OpenGL driver\n" );
+	ri.Printf( PRINT_ALL, " Initializing OpenGL driver \n" );
 
 	//
 	// get a DC for our window
@@ -341,29 +345,204 @@ static qboolean GLW_InitDriver(HWND hwnd)
     glConfig.stereoEnabled = (pfd.dwFlags & PFD_STEREO) ? qtrue : qfalse;
 	return qtrue;
 }
+/////////////////////////////////////////////////////////////////
 
-static HWND create_main_window(int width, int height, qboolean fullscreen)
+WinVars_t	g_wv;
+
+
+// Console variables that we need to access from this module
+// cvar_t* vid_xpos; // X coordinate of window position
+// cvar_t* vid_ypos; // Y coordinate of window position
+
+extern cvar_t *r_fullscreen;
+extern cvar_t *in_mouse;
+
+extern void VID_AppActivate(void);
+extern int MapKey(int key);
+extern void processMouseWheelMsg(unsigned int, int);
+
+/*
+====================
+MainWndProc: main window procedure
+====================
+*/
+static LONG CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	switch (uMsg)
+	{
+	case WM_MOUSEWHEEL:
+		// Windows 98/Me, Windows NT 4.0 and later - uses WM_MOUSEWHEEL
+		// only relevant for non-DI input and when console is toggled in window mode
+		// if console is toggled in window mode (KEYCATCH_CONSOLE) then mouse is released 
+		// and DI doesn't see any mouse wheel
+		if (!r_fullscreen->integer)
+			processMouseWheelMsg(g_wv.sysMsgTime, HIWORD(wParam) / 120);
+		break;
+
+	case WM_CREATE:
+
+		g_wv.hWnd = hWnd;
+
+		// vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
+		// vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
+		r_fullscreen = Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH);
+
+		break;
+
+	case WM_DESTROY:
+		// let sound and input know about this?
+		g_wv.hWnd = NULL;
+		break;
+
+	case WM_CLOSE:
+		Cbuf_ExecuteText(EXEC_APPEND, "quit");
+		break;
+
+	case WM_ACTIVATE:
+	{
+		VID_AppActivate();
+
+		int fActive = LOWORD(wParam);
+
+		g_wv.isMinimized = (qboolean) HIWORD(wParam);
+
+		if (fActive && !g_wv.isMinimized)
+		{
+			g_wv.activeApp = qtrue;
+		}
+		else
+		{
+			g_wv.activeApp = qfalse;
+		}
+
+		// minimize/restore mouse-capture on demand
+		if (!g_wv.activeApp)
+		{
+			IN_Activate(qfalse);
+		}
+		else
+		{
+			IN_Activate(qtrue);
+		}
+
+		Com_DPrintf(" VID_AppActivate: %i \n", fActive);
+		
+
+		SNDDMA_Activate();
+	} break;
+
+	case WM_MOVE:
+	{
+		if (!r_fullscreen->integer)
+		{
+			int xPos = (short)LOWORD(lParam);    // horizontal position 
+			int yPos = (short)HIWORD(lParam);    // vertical position 
+			
+			RECT r;
+			r.left = 0;
+			r.top = 0;
+			r.right = 1;
+			r.bottom = 1;
+			// Retrieves information about the specified window. The function also retrieves
+			// the 32-bit (DWORD) value at the specified offset into the extra window memory. 
+			// GWL_STYLE: Retrieves the window styles.
+			int style = GetWindowLong(hWnd, GWL_STYLE);
+			AdjustWindowRect(&r, style, FALSE);
+
+			// Cvar_SetValue( "vid_xpos", xPos + r.left);
+			// Cvar_SetValue( "vid_ypos", yPos + r.top);
+			// vid_xpos->modified = qfalse;
+			// vid_ypos->modified = qfalse;
+			if (g_wv.activeApp)
+			{
+				IN_Activate(qtrue);
+			}
+		}
+	}
+	break;
+
+	// this is complicated because Win32 seems to pack multiple mouse events into
+	// one update sometimes, so we always check all states and look for events
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONDOWN:
+	case WM_MBUTTONUP:
+	case WM_MOUSEMOVE:
+	{
+		int	temp = 0;
+
+		if (wParam & MK_LBUTTON)
+			temp |= 1;
+
+		if (wParam & MK_RBUTTON)
+			temp |= 2;
+
+		if (wParam & MK_MBUTTON)
+			temp |= 4;
+
+		IN_MouseEvent(temp);
+	}
+	break;
+
+	case WM_SYSCOMMAND:
+		if (wParam == SC_SCREENSAVE)
+			return 0;
+		break;
+
+	case WM_SYSKEYDOWN:
+		if (wParam == 13)
+		{
+			if (r_fullscreen)
+			{
+				Cvar_SetValue("r_fullscreen", !r_fullscreen->integer);
+				Cbuf_AddText("vid_restart\n");
+			}
+			return 0;
+		}
+		// fall through
+	case WM_KEYDOWN:
+		Sys_QueEvent(g_wv.sysMsgTime, SE_KEY, MapKey(lParam), qtrue, 0, NULL);
+		break;
+
+	case WM_SYSKEYUP:
+	case WM_KEYUP:
+		Sys_QueEvent(g_wv.sysMsgTime, SE_KEY, MapKey(lParam), qfalse, 0, NULL);
+		break;
+
+	case WM_CHAR:
+		Sys_QueEvent(g_wv.sysMsgTime, SE_CHAR, wParam, 0, 0, NULL);
+		break;
+	}
+
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+
+////////////////////////////////////////////////////////////////
+
+HWND create_main_window(int width, int height, qboolean fullscreen)
+{
+	ri.Printf(PRINT_ALL, " Creating main window. \n");
+
+	static bool s_main_window_class_registered = false;
 	//
 	// register the window class if necessary
 	//
 	if (!s_main_window_class_registered)
 	{
-        cvar_t* cv = ri.Cvar_Get( "win_wndproc", "", 0 );
-        WNDPROC	wndproc;
-        sscanf(cv->string, "%p", (void **)&wndproc);
+		ri.Printf(PRINT_ALL, " main window class registered. \n");
 
 		WNDCLASS wc;
 
-		memset( &wc, 0, sizeof( wc ) );
-
 		wc.style         = 0;
-		wc.lpfnWndProc   = wndproc;
+		wc.lpfnWndProc   = (WNDPROC) MainWndProc;
 		wc.cbClsExtra    = 0;
 		wc.cbWndExtra    = 0;
 		wc.hInstance     = g_wv.hInstance;
-		wc.hIcon         = LoadIcon( g_wv.hInstance, MAKEINTRESOURCE(IDI_ICON1));
-		wc.hCursor       = LoadCursor (NULL,IDC_ARROW);
+		wc.hIcon         = LoadIcon( g_wv.hInstance, MAKEINTRESOURCE(IDI_ICON1) );
+		wc.hCursor       = LoadCursor( NULL, IDC_ARROW );
 		wc.hbrBackground = (HBRUSH) (void *)COLOR_GRAYTEXT;
 		wc.lpszMenuName  = 0;
 		wc.lpszClassName = MAIN_WINDOW_CLASS_NAME;
@@ -388,7 +567,7 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
     int	stylebits;
 	if ( fullscreen )
 	{
-		stylebits = WS_POPUP|WS_VISIBLE|WS_SYSMENU;
+		stylebits = WS_POPUP | WS_VISIBLE | WS_SYSMENU;
 	}
 	else
 	{
@@ -445,6 +624,7 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 			api_name = "Vulkan";
 		else if (get_render_api() == RENDER_API_DX)
 			api_name = "DX12";
+
 		sprintf(window_name, "%s [%s]", MAIN_WINDOW_CLASS_NAME, api_name);
 	}
 
@@ -471,7 +651,7 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 }
 
 
-static HWND create_twin_window(int width, int height, RenderApi render_api)
+HWND create_twin_window(int width, int height, RenderApi render_api)
 {
     //
     // register the window class if necessary
@@ -578,7 +758,8 @@ static HWND create_twin_window(int width, int height, RenderApi render_api)
     return hwnd;
 }
 
-static void SetMode(int mode, qboolean fullscreen)
+
+void SetMode(int mode, qboolean fullscreen)
 {
 	if (fullscreen)
 	{
@@ -780,7 +961,8 @@ void GLimp_Init( void )
 
 	SetMode(r_mode->integer, (qboolean)r_fullscreen->integer);
 
-	if (get_render_api() == RENDER_API_GL) {
+	if (get_render_api() == RENDER_API_GL)
+	{
 		g_wv.hWnd_opengl = create_main_window(glConfig.vidWidth, glConfig.vidHeight, (qboolean)r_fullscreen->integer);
 		g_wv.hWnd = g_wv.hWnd_opengl;
 		SetForegroundWindow(g_wv.hWnd);
@@ -811,6 +993,20 @@ void GLimp_Init( void )
 ** This routine does all OS specific shutdown procedures for the OpenGL
 ** subsystem.
 */
+void CommonCleanUP(void)
+{
+	QGL_Shutdown();
+
+	WG_RestoreGamma();
+
+	if (log_fp)
+	{
+		fclose(log_fp);
+		log_fp = 0;
+	}
+}
+
+
 void GLimp_Shutdown( void )
 {
 	const char *success[] = { "failed", "success" };
@@ -846,19 +1042,24 @@ void GLimp_Shutdown( void )
 		g_wv.hWnd_opengl = NULL;
 	}
 
-	QGL_Shutdown();
-
-	WG_RestoreGamma();
+	CommonCleanUP();
 
 	gl_active = false;
 	memset(&glConfig, 0, sizeof(glConfig));
 	memset(&glState, 0, sizeof(glState));
+}
 
-	if (log_fp) {
-		fclose(log_fp);
-		log_fp = 0;
+
+void makeDummyQglProc(void)
+{
+	if (!gl_active)
+	{
+		QGL_Init(nullptr);
+		qglActiveTextureARB = [](GLenum) {};
+		qglClientActiveTextureARB = [](GLenum) {};
 	}
 }
+
 
 void GLimp_LogComment( char *comment ) 
 {
@@ -867,155 +1068,8 @@ void GLimp_LogComment( char *comment )
 	}
 }
 
-void vk_imp_init()
-{
-	ri.Printf(PRINT_ALL, "Initializing Vulkan subsystem\n");
-
-	// This will set qgl pointers to no-op placeholders.
-	if (!gl_active) {
-		QGL_Init(nullptr);
-		qglActiveTextureARB = [] (GLenum)  {};
-		qglClientActiveTextureARB = [](GLenum) {};
-	}
-
-	// Load Vulkan DLL.
-	const char* dll_name = "vulkan-1.dll";
-
-	ri.Printf(PRINT_ALL, "...calling LoadLibrary('%s'): ", dll_name);
-	vk_library_handle = LoadLibrary(dll_name);
-
-	if (vk_library_handle == NULL) {
-		ri.Printf(PRINT_ALL, "failed\n");
-		ri.Error(ERR_FATAL, "vk_imp_init - could not load %s\n", dll_name);
-	}
-	ri.Printf( PRINT_ALL, "succeeded\n" );
-
-	vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)GetProcAddress(vk_library_handle, "vkGetInstanceProcAddr");
-
-	// Create window.
-	SetMode(r_mode->integer, (qboolean)r_fullscreen->integer);
-
-	if (get_render_api() == RENDER_API_VK)
-	{
-		g_wv.hWnd_vulkan = create_main_window(glConfig.vidWidth, glConfig.vidHeight, (qboolean)r_fullscreen->integer);
-		g_wv.hWnd = g_wv.hWnd_vulkan;
-		SetForegroundWindow(g_wv.hWnd);
-		SetFocus(g_wv.hWnd);
-		WG_CheckHardwareGamma();
-	}
-	else {
-		g_wv.hWnd_vulkan = create_twin_window(glConfig.vidWidth, glConfig.vidHeight, RENDER_API_VK);
-	}
-}
-
-void vk_imp_shutdown()
-{
-	ri.Printf(PRINT_ALL, "Shutting down Vulkan subsystem\n");
-
-	if (g_wv.hWnd_vulkan)
-	{
-		ri.Printf(PRINT_ALL, "...destroying Vulkan window\n");
-		DestroyWindow(g_wv.hWnd_vulkan);
-
-		if (g_wv.hWnd == g_wv.hWnd_vulkan) {
-			g_wv.hWnd = NULL;
-		}
-		g_wv.hWnd_vulkan = NULL;
-	}
-
-	if (vk_library_handle != NULL) {
-		ri.Printf(PRINT_ALL, "...unloading Vulkan DLL\n");
-		FreeLibrary(vk_library_handle);
-		vk_library_handle = NULL;
-	}
-	vkGetInstanceProcAddr = nullptr;
-
-	// For vulkan mode we still have qgl pointers initialized with placeholder values.
-	// Reset them the same way as we do in opengl mode.
-	QGL_Shutdown();
-
-	WG_RestoreGamma();
-
-	memset(&glConfig, 0, sizeof(glConfig));
-	memset(&glState, 0, sizeof(glState));
-
-	if (log_fp) {
-		fclose(log_fp);
-		log_fp = 0;
-	}
-}
-
-void vk_imp_create_surface()
-{
-	VkWin32SurfaceCreateInfoKHR desc;
-	desc.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	desc.pNext = nullptr;
-	desc.flags = 0;
-	desc.hinstance = ::GetModuleHandle(nullptr);
-	desc.hwnd = g_wv.hWnd_vulkan;
-	VK_CHECK(vkCreateWin32SurfaceKHR(vk.instance, &desc, nullptr, &vk.surface));
-}
 
 
-void dx_imp_init()
-{
-	ri.Printf(PRINT_ALL, " Initializing DX12 subsystem \n");
-
-	// This will set qgl pointers to no-op placeholders.
-	if (!gl_active)
-	{
-		QGL_Init(nullptr);
-		qglActiveTextureARB = [](GLenum) {};
-		qglClientActiveTextureARB = [](GLenum) {};
-	}
-
-	// Create window.
-	SetMode(r_mode->integer, (qboolean)r_fullscreen->integer);
-
-	if (get_render_api() == RENDER_API_DX)
-	{
-		g_wv.hWnd_dx = create_main_window(glConfig.vidWidth, glConfig.vidHeight, (qboolean)r_fullscreen->integer);
-		g_wv.hWnd = g_wv.hWnd_dx;
-		SetForegroundWindow(g_wv.hWnd);
-		SetFocus(g_wv.hWnd);
-		WG_CheckHardwareGamma();
-	}
-	else
-	{
-		g_wv.hWnd_dx = create_twin_window(glConfig.vidWidth, glConfig.vidHeight, RENDER_API_DX);
-	}
-}
-
-void dx_imp_shutdown()
-{
-	ri.Printf(PRINT_ALL, "Shutting down DX12 subsystem\n");
-
-	if (g_wv.hWnd_dx)
-	{
-		ri.Printf(PRINT_ALL, "...destroying DX12 window\n");
-		DestroyWindow(g_wv.hWnd_dx);
-
-		if (g_wv.hWnd == g_wv.hWnd_dx) {
-			g_wv.hWnd = NULL;
-		}
-		g_wv.hWnd_dx = NULL;
-	}
-
-	// For DX12 mode we still have qgl pointers initialized with placeholder values.
-	// Reset them the same way as we do in opengl mode.
-	QGL_Shutdown();
-
-	WG_RestoreGamma();
-
-	memset(&glConfig, 0, sizeof(glConfig));
-	memset(&glState, 0, sizeof(glState));
-
-	if (log_fp)
-	{
-		fclose(log_fp);
-		log_fp = 0;
-	}
-}
 
 /*
 ===========================================================

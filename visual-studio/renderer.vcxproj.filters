@@ -86,9 +86,6 @@
     <ClCompile Include="..\src\engine\platform\win_gamma.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\engine\platform\win_glimp.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\engine\platform\win_qgl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -165,6 +162,18 @@
       <Filter>Source Files\hlsl_compiled</Filter>
     </ClCompile>
     <ClCompile Include="..\src\engine\renderer\vk.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\engine\renderer\win_dximp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\engine\platform\win_glimp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\engine\renderer\win_msgproc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\engine\renderer\win_vkimp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
