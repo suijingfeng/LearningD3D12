@@ -111,7 +111,8 @@ static int GLW_ChoosePixelFormat(HDC hDC, const PIXELFORMATDESCRIPTOR *pPFD)
 	ri.Printf(PRINT_ALL, "...%d PFDs found\n", maxPFD);
 
 	// grab information
-	for (int i = 1; i <= maxPFD; i++) {
+	for (int i = 1; i <= maxPFD; ++i)
+	{
 		DescribePixelFormat(hDC, i, sizeof(PIXELFORMATDESCRIPTOR), &pfds[i]);
 	}
 
@@ -366,7 +367,7 @@ extern void processMouseWheelMsg(unsigned int, int);
 MainWndProc: main window procedure
 ====================
 */
-static LONG CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static LRESULT WINAPI CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
@@ -376,7 +377,13 @@ static LONG CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		// if console is toggled in window mode (KEYCATCH_CONSOLE) then mouse is released 
 		// and DI doesn't see any mouse wheel
 		if (!r_fullscreen->integer)
-			processMouseWheelMsg(g_wv.sysMsgTime, HIWORD(wParam) / 120);
+		{
+	
+			processMouseWheelMsg(g_wv.sysMsgTime, HIWORD(wParam) / WHEEL_DELTA);
+				// when an application processes the WM_MOUSEWHEEL message, it must return zero
+			return 0;
+		}
+			// 
 		break;
 
 	case WM_CREATE:

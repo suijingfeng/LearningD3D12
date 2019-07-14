@@ -23,7 +23,8 @@ void vk_imp_init()
 	ri.Printf(PRINT_ALL, "...calling LoadLibrary('%s'): ", dll_name);
 	vk_library_handle = LoadLibrary(dll_name);
 
-	if (vk_library_handle == NULL) {
+	if (vk_library_handle == NULL)
+	{
 		ri.Printf(PRINT_ALL, "failed\n");
 		ri.Error(ERR_FATAL, "vk_imp_init - could not load %s\n", dll_name);
 	}

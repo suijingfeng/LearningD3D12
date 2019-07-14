@@ -1940,12 +1940,14 @@ void Com_InitJournaling( void ) {
 Com_GetRealEvent
 =================
 */
-sysEvent_t	Com_GetRealEvent( void ) {
+sysEvent_t	Com_GetRealEvent( void )
+{
 	int			r;
 	sysEvent_t	ev;
 
 	// either get an event from the system or the journal file
-	if ( com_journal->integer == 2 ) {
+	if ( com_journal->integer == 2 )
+	{
 		r = FS_Read( &ev, sizeof(ev), com_journalFile );
 		if ( r != sizeof(ev) ) {
 			Com_Error( ERR_FATAL, "Error reading from journal file" );
@@ -1957,7 +1959,9 @@ sysEvent_t	Com_GetRealEvent( void ) {
 				Com_Error( ERR_FATAL, "Error reading from journal file" );
 			}
 		}
-	} else {
+	}
+	else
+	{
 		ev = Sys_GetEvent();
 
 		// write the journal value out if needed
@@ -2643,11 +2647,11 @@ void Com_Frame( void ) {
 	static int	lastTime;
 	int key;
  
-	int		timeBeforeFirstEvents;
-	int           timeBeforeServer;
-	int           timeBeforeEvents;
-	int           timeBeforeClient;
-	int           timeAfter;
+	int timeBeforeFirstEvents = 0;
+	int timeBeforeServer = 0;
+	int timeBeforeEvents = 0;
+	int timeBeforeClient = 0;
+	int timeAfter = 0;
   
 
 
@@ -2659,11 +2663,6 @@ void Com_Frame( void ) {
 
 	// bk001204 - init to zero.
 	//  also:  might be clobbered by `longjmp' or `vfork'
-	timeBeforeFirstEvents =0;
-	timeBeforeServer =0;
-	timeBeforeEvents =0;
-	timeBeforeClient = 0;
-	timeAfter = 0;
 
 
 	// old net chan encryption key

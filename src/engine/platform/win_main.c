@@ -922,7 +922,7 @@ sysEvent_t Sys_GetEvent( void )
 	}
 
 	// pump the message loop
-	while (PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE))
+	while ( PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE) ) 
 	{
 		if ( !GetMessage (&msg, NULL, 0, 0) ) {
 			Com_Quit_f();
@@ -949,13 +949,10 @@ sysEvent_t Sys_GetEvent( void )
 	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
 	if ( Sys_GetPacket ( &adr, &netmsg ) )
 	{
-		netadr_t		*buf;
-		int				len;
-
 		// copy out to a seperate buffer for qeueing
 		// the readcount stepahead is for SOCKS support
-		len = sizeof( netadr_t ) + netmsg.cursize - netmsg.readcount;
-		buf = (netadr_t*) Z_Malloc( len );
+		int len = sizeof( netadr_t ) + netmsg.cursize - netmsg.readcount;
+		netadr_t* buf = (netadr_t*) Z_Malloc( len );
 		*buf = adr;
 		memcpy( buf+1, &netmsg.data[netmsg.readcount], netmsg.cursize - netmsg.readcount );
 		Sys_QueEvent( 0, SE_PACKET, 0, 0, len, buf );
