@@ -172,7 +172,7 @@ static D3D12_RESOURCE_DESC get_buffer_desc(UINT64 size)
 	return desc;
 }
 
-ID3D12PipelineState* create_pipeline(const Vk_Pipeline_Def& def);
+ID3D12PipelineState* create_pipeline(const DX_Pipeline_Def& def);
 
 void dx_initialize()
 {
@@ -394,28 +394,28 @@ void dx_initialize()
 		// Samplers.
 		{
 			{
-				Vk_Sampler_Def def;
+				DX_Sampler_Def def;
 				def.repeat_texture = true;
 				def.gl_mag_filter = gl_filter_max;
 				def.gl_min_filter = gl_filter_min;
 				dx_create_sampler_descriptor(def, SAMPLER_MIP_REPEAT);
 			}
 			{
-				Vk_Sampler_Def def;
+				DX_Sampler_Def def;
 				def.repeat_texture = false;
 				def.gl_mag_filter = gl_filter_max;
 				def.gl_min_filter = gl_filter_min;
 				dx_create_sampler_descriptor(def, SAMPLER_MIP_CLAMP);
 			}
 			{
-				Vk_Sampler_Def def;
+				DX_Sampler_Def def;
 				def.repeat_texture = true;
 				def.gl_mag_filter = GL_LINEAR;
 				def.gl_min_filter = GL_LINEAR;
 				dx_create_sampler_descriptor(def, SAMPLER_NOMIP_REPEAT);
 			}
 			{
-				Vk_Sampler_Def def;
+				DX_Sampler_Def def;
 				def.repeat_texture = false;
 				def.gl_mag_filter = GL_LINEAR;
 				def.gl_min_filter = GL_LINEAR;
@@ -549,7 +549,7 @@ void dx_initialize()
 	{
 		// skybox
 		{
-			Vk_Pipeline_Def def;
+			DX_Pipeline_Def def;
 			def.shader_type = single_texture;
 			def.state_bits = 0;
 			def.face_culling = CT_FRONT_SIDED;
@@ -562,12 +562,12 @@ void dx_initialize()
 		// Q3 stencil shadows
 		{
 			{
-				Vk_Pipeline_Def def;
+				DX_Pipeline_Def def;
 				def.polygon_offset = false;
 				def.state_bits = 0;
 				def.shader_type = single_texture;
 				def.clipping_plane = false;
-				def.shadow_phase = Vk_Shadow_Phase::shadow_edges_rendering;
+				def.shadow_phase = DX_Shadow_Phase::shadow_edges_rendering;
 
 				cullType_t cull_types[2] = {CT_FRONT_SIDED, CT_BACK_SIDED};
 				bool mirror_flags[2] = {false, true};
@@ -582,21 +582,21 @@ void dx_initialize()
 			}
 
 			{
-				Vk_Pipeline_Def def;
+				DX_Pipeline_Def def;
 				def.face_culling = CT_FRONT_SIDED;
 				def.polygon_offset = false;
 				def.state_bits = GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
 				def.shader_type = single_texture;
 				def.clipping_plane = false;
 				def.mirror = false;
-				def.shadow_phase = Vk_Shadow_Phase::fullscreen_quad_rendering;
+				def.shadow_phase = DX_Shadow_Phase::fullscreen_quad_rendering;
 				dx.shadow_finish_pipeline = create_pipeline(def);
 			}
 		}
 
 		// fog and dlights
 		{
-			Vk_Pipeline_Def def;
+			DX_Pipeline_Def def;
 			def.shader_type = single_texture;
 			def.clipping_plane = false;
 			def.mirror = false;
@@ -636,35 +636,35 @@ void dx_initialize()
 
 		// debug pipelines
 		{
-			Vk_Pipeline_Def def;
+			DX_Pipeline_Def def;
 			def.state_bits = GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE;
 			dx.tris_debug_pipeline = create_pipeline(def);
 		}
 		{
-			Vk_Pipeline_Def def;
+			DX_Pipeline_Def def;
 			def.state_bits = GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE;
 			def.face_culling = CT_BACK_SIDED;
 			dx.tris_mirror_debug_pipeline = create_pipeline(def);
 		}
 		{
-			Vk_Pipeline_Def def;
+			DX_Pipeline_Def def;
 			def.state_bits = GLS_DEPTHMASK_TRUE;
 			def.line_primitives = true;
 			dx.normals_debug_pipeline = create_pipeline(def);
 		}
 		{
-			Vk_Pipeline_Def def;
+			DX_Pipeline_Def def;
 			def.state_bits = GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
 			dx.surface_debug_pipeline_solid = create_pipeline(def);
 		}
 		{
-			Vk_Pipeline_Def def;
+			DX_Pipeline_Def def;
 			def.state_bits = GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
 			def.line_primitives = true;
 			dx.surface_debug_pipeline_outline = create_pipeline(def);
 		}
 		{
-			Vk_Pipeline_Def def;
+			DX_Pipeline_Def def;
 			def.state_bits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
 			dx.images_debug_pipeline = create_pipeline(def);
 		}
@@ -905,7 +905,7 @@ void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mi
 
 
 
-static ID3D12PipelineState* create_pipeline(const Vk_Pipeline_Def& def)
+static ID3D12PipelineState* create_pipeline(const DX_Pipeline_Def& def)
 {
 	// single texture VS
 	extern unsigned char single_texture_vs[];
@@ -1198,7 +1198,7 @@ static ID3D12PipelineState* create_pipeline(const Vk_Pipeline_Def& def)
 	rt_blend_desc.BlendOp = D3D12_BLEND_OP_ADD;
 	rt_blend_desc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
 	rt_blend_desc.LogicOp = D3D12_LOGIC_OP_COPY;
-	rt_blend_desc.RenderTargetWriteMask = (def.shadow_phase == Vk_Shadow_Phase::shadow_edges_rendering) ? 0 : D3D12_COLOR_WRITE_ENABLE_ALL;
+	rt_blend_desc.RenderTargetWriteMask = (def.shadow_phase == DX_Shadow_Phase::shadow_edges_rendering) ? 0 : D3D12_COLOR_WRITE_ENABLE_ALL;
 
 	//
 	// Rasteriazation state.
@@ -1232,18 +1232,18 @@ static ID3D12PipelineState* create_pipeline(const Vk_Pipeline_Def& def)
 	depth_stencil_state.DepthEnable = (def.state_bits & GLS_DEPTHTEST_DISABLE) ? FALSE : TRUE;
 	depth_stencil_state.DepthWriteMask = (def.state_bits & GLS_DEPTHMASK_TRUE) ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 	depth_stencil_state.DepthFunc = (def.state_bits & GLS_DEPTHFUNC_EQUAL) ? D3D12_COMPARISON_FUNC_EQUAL : D3D12_COMPARISON_FUNC_LESS_EQUAL;
-	depth_stencil_state.StencilEnable = (def.shadow_phase != Vk_Shadow_Phase::disabled) ? TRUE : FALSE;
+	depth_stencil_state.StencilEnable = (def.shadow_phase != DX_Shadow_Phase::disabled) ? TRUE : FALSE;
 	depth_stencil_state.StencilReadMask = 255;
 	depth_stencil_state.StencilWriteMask = 255;
 
-	if (def.shadow_phase == Vk_Shadow_Phase::shadow_edges_rendering) {
+	if (def.shadow_phase == DX_Shadow_Phase::shadow_edges_rendering) {
 		depth_stencil_state.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 		depth_stencil_state.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
 		depth_stencil_state.FrontFace.StencilPassOp = (def.face_culling == CT_FRONT_SIDED) ? D3D12_STENCIL_OP_INCR_SAT : D3D12_STENCIL_OP_DECR_SAT;
 		depth_stencil_state.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 
 		depth_stencil_state.BackFace = depth_stencil_state.FrontFace;
-	} else if (def.shadow_phase == Vk_Shadow_Phase::fullscreen_quad_rendering) {
+	} else if (def.shadow_phase == DX_Shadow_Phase::fullscreen_quad_rendering) {
 		depth_stencil_state.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 		depth_stencil_state.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
 		depth_stencil_state.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
@@ -1291,7 +1291,7 @@ struct Timer {
 	}
 };
 
-void dx_create_sampler_descriptor(const Vk_Sampler_Def& def, Dx_Sampler_Index sampler_index)
+void dx_create_sampler_descriptor(const DX_Sampler_Def& def, Dx_Sampler_Index sampler_index)
 {
 	uint32_t min, mag, mip;
 
@@ -1351,7 +1351,7 @@ void dx_create_sampler_descriptor(const Vk_Sampler_Def& def, Dx_Sampler_Index sa
 	dx.device->CreateSampler(&sampler_desc, sampler_handle);
 }
 
-ID3D12PipelineState* dx_find_pipeline(const Vk_Pipeline_Def& def)
+ID3D12PipelineState* dx_find_pipeline(const DX_Pipeline_Def& def)
 {
 	for (int i = 0; i < dx_world.num_pipelines; i++) {
 		const auto& cur_def = dx_world.pipeline_defs[i];
@@ -1436,7 +1436,7 @@ static D3D12_RECT get_viewport_rect()
 	return r;
 }
 
-static D3D12_VIEWPORT get_viewport(Vk_Depth_Range depth_range)
+static D3D12_VIEWPORT get_viewport(DX_Depth_Range depth_range)
 {
 	D3D12_RECT r = get_viewport_rect();
 
@@ -1446,13 +1446,13 @@ static D3D12_VIEWPORT get_viewport(Vk_Depth_Range depth_range)
 	viewport.Width = (float)(r.right - r.left);
 	viewport.Height = (float)(r.bottom - r.top);
 
-	if (depth_range == Vk_Depth_Range::force_zero) {
+	if (depth_range == DX_Depth_Range::force_zero) {
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 0.0f;
-	} else if (depth_range == Vk_Depth_Range::force_one) {
+	} else if (depth_range == DX_Depth_Range::force_one) {
 		viewport.MinDepth = 1.0f;
 		viewport.MaxDepth = 1.0f;
-	} else if (depth_range == Vk_Depth_Range::weapon) {
+	} else if (depth_range == DX_Depth_Range::weapon) {
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 0.3f;
 	} else {
@@ -1583,7 +1583,7 @@ void dx_bind_geometry() {
 	dx.command_list->SetGraphicsRoot32BitConstants(0, root_constant_count, root_constants, 0);
 }
 
-void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, Vk_Depth_Range depth_range, bool indexed, bool lines)
+void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Depth_Range depth_range, bool indexed, bool lines)
 {
 	// color
 	{

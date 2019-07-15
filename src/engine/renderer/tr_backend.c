@@ -70,12 +70,6 @@ void GL_Bind( image_t *image )
 		glState.currenttextures[glState.currenttmu] = texnum;
 		qglBindTexture (GL_TEXTURE_2D, texnum);
 
-		// VULKAN
-		if (vk.active)
-		{
-			VkDescriptorSet set = vk_world.images[final_image->index].descriptor_set;
-			vk_world.current_descriptor_sets[glState.currenttmu] = set;
-		}
 		// DX12
 		if (dx.active) {
 			dx_world.current_image_indices[glState.currenttmu] = final_image->index;
@@ -393,8 +387,6 @@ static void RB_Hyperspace( void )
 
 	float color[4] = { c, c, c, 1 };
 
-	// VULKAN
-	vk_clear_attachments(false, true, color);
 
 	// DX12
 	dx_clear_attachments(false, true, color);
@@ -455,8 +447,6 @@ void RB_BeginDrawingView (void)
 
 	qglClear( clearBits );
 
-	// VULKAN
-	vk_clear_attachments(vk_world.dirty_depth_attachment, fast_sky, fast_sky_color);
 
 	// DX12
 	dx_clear_attachments(true, fast_sky, fast_sky_color);
@@ -595,8 +585,6 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 			qglLoadMatrixf( backEnd.or.modelMatrix );
 
-			// VULKAN
-			Com_Memcpy(vk_world.modelview_transform, backEnd.or.modelMatrix, 64);
 
 			// DX12
 			Com_Memcpy(dx_world.modelview_transform, backEnd.or.modelMatrix, 64);
@@ -630,8 +618,6 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 	// go back to the world modelview matrix
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
 
-	// VULKAN
-	Com_Memcpy(vk_world.modelview_transform, backEnd.viewParms.world.modelMatrix, 64);
 
 	// DX12
 	Com_Memcpy(dx_world.modelview_transform, backEnd.viewParms.world.modelMatrix, 64);
@@ -741,15 +727,7 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
 
-		// VULKAN
-		if (vk.active) {
-			Vk_Image& image = vk_world.images[tr.scratchImage[client]->index];
-			vkDestroyImage(vk.device, image.handle, nullptr);
-			vkDestroyImageView(vk.device, image.view, nullptr);
-			vkFreeDescriptorSets(vk.device, vk.descriptor_pool, 1, &image.descriptor_set);
-			image = vk_create_image(cols, rows, VK_FORMAT_R8G8B8A8_UNORM, 1, false);
-			vk_upload_image_data(image.handle, cols, rows, false, data, 4);
-		}
+
 		// DX12
 		if (dx.active) {
 			int image_index = tr.scratchImage[client]->index;
@@ -764,11 +742,6 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 			// it and don't try and do a texture compression
 			qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
 
-			// VULKAN
-			if (vk.active) {
-				const Vk_Image& image = vk_world.images[tr.scratchImage[client]->index];
-				vk_upload_image_data(image.handle, cols, rows, false, data, 4);
-			}
 			// DX12
 			if (dx.active) {
 				const Dx_Image& image = dx_world.images[tr.scratchImage[client]->index];
@@ -911,8 +884,6 @@ const void	*RB_DrawBuffer( const void *data ) {
 
 	qglDrawBuffer( cmd->buffer );
 
-	// VULKAN
-	vk_begin_frame();
 
 	// DX12
 	dx_begin_frame();
@@ -926,9 +897,9 @@ const void	*RB_DrawBuffer( const void *data ) {
 
 		// VULKAN
 		// DX12
-		if (vk.active || dx.active) {
+		if ( dx.active)
+		{
 			RB_SetGL2D(); // to ensure we have viewport that occupies entire window
-			vk_clear_attachments(false, true, color);
 			dx_clear_attachments(false, true, color);
 		}
 	}
@@ -1005,7 +976,7 @@ void RB_ShowImages( void )
 // DX12
 void RB_Show_Vk_Dx_Images()
 {
-	if (!vk.active && !dx.active)
+	if ( !dx.active)
 	{
 		return;
 	}
@@ -1016,7 +987,7 @@ void RB_Show_Vk_Dx_Images()
 
 	float black[4] = {0, 0, 0, 1};
 
-	vk_clear_attachments(false, true, black);
+
 	dx_clear_attachments(false, true, black);
 
 
@@ -1068,13 +1039,10 @@ void RB_Show_Vk_Dx_Images()
 		tess.svars.texcoords[0][3][0] = 0;
 		tess.svars.texcoords[0][3][1] = 1;
 
-		if (vk.active) {
-			vk_bind_geometry();
-			vk_shade_geometry(vk.images_debug_pipeline, false, Vk_Depth_Range::normal);
-		}
+
 		if (dx.active) {
 			dx_bind_geometry();
-			dx_shade_geometry(dx.images_debug_pipeline, false, Vk_Depth_Range::normal, true, false);
+			dx_shade_geometry(dx.images_debug_pipeline, false, DX_Depth_Range::normal, true, false);
 		}
 	}
 	tess.numIndexes = 0;
@@ -1111,8 +1079,6 @@ const void	*RB_SwapBuffers( const void *data ) {
 
 	backEnd.projection2D = qfalse;
 
-	// VULKAN
-	vk_end_frame();
 
 	// DX12
 	dx_end_frame();
@@ -1171,10 +1137,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			t2 = ri.Milliseconds ();
 			backEnd.pc.msec = t2 - t1;
 
-			// VULKAN
 			// DX12
-			if (com_errorEntered && (begin_frame_called && !end_frame_called)) {
-				vk_end_frame();
+			if (com_errorEntered && (begin_frame_called && !end_frame_called))
+			{
 				dx_end_frame();
 			}
 

@@ -27,9 +27,7 @@ bool		gl_active;
 glconfig_t	glConfig;
 glstate_t	glState;
 
-// VULKAN
-Vk_Instance vk;
-Vk_World	vk_world;
+
 
 // DX12
 Dx_Instance dx;
@@ -215,12 +213,6 @@ static void InitRenderAPI( void )
 			gl_active = true;
 		}
 
-		// VULKAN
-		if (get_render_api() == RENDER_API_VK || r_twinMode->integer)
-		{
-			vk_imp_init();
-			vk_initialize();
-		}
 
 		// DX12
 		if (get_render_api() == RENDER_API_DX || r_twinMode->integer)
@@ -412,21 +404,6 @@ void RB_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 
 	if (get_render_api() == RENDER_API_GL) {
 		qglReadPixels( x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer+18 ); 
-	} else if (get_render_api() == RENDER_API_VK) { // VULKAN
-		byte* buffer2 = (byte*) ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight*4);
-
-		vk_read_pixels(buffer2);
-
-		byte* buffer_ptr = buffer + 18;
-		byte* buffer2_ptr = buffer2;
-		for (int i = 0; i < glConfig.vidWidth * glConfig.vidHeight; i++) {
-			buffer_ptr[0] = buffer2_ptr[0];
-			buffer_ptr[1] = buffer2_ptr[1];
-			buffer_ptr[2] = buffer2_ptr[2];
-			buffer_ptr += 3;
-			buffer2_ptr += 4;
-		}
-		ri.Hunk_FreeTempMemory(buffer2);
 	} else if (get_render_api() == RENDER_API_DX) { // DX12
 		ri.Printf(PRINT_WARNING, "RT_TakeScreenshot is not implemented for DX12");
 	}
@@ -459,9 +436,8 @@ void RB_TakeScreenshotJPEG( int x, int y, int width, int height, char *fileName 
 
 	if (get_render_api() == RENDER_API_GL) {
 		qglReadPixels( x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer ); 
-	} else if (get_render_api() == RENDER_API_VK) { // VULKAN
-		vk_read_pixels(buffer);
-	} else if (get_render_api() == RENDER_API_DX) { // DX12
+	}
+	else if (get_render_api() == RENDER_API_DX) { // DX12
 		ri.Printf(PRINT_WARNING, "RT_TakeScreenshotJPEG is not implemented for DX12");
 	}
 
@@ -598,21 +574,8 @@ void R_LevelShot( void ) {
 
 	if (get_render_api() == RENDER_API_GL) {
 		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source ); 
-	} else if (get_render_api() == RENDER_API_VK) { // VULKAN
-		byte* buffer2 = (byte*) ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight*4);
-		vk_read_pixels(buffer2);
-
-		byte* buffer_ptr = source;
-		byte* buffer2_ptr = buffer2;
-		for (int i = 0; i < glConfig.vidWidth * glConfig.vidHeight; i++) {
-			buffer_ptr[0] = buffer2_ptr[0];
-			buffer_ptr[1] = buffer2_ptr[1];
-			buffer_ptr[2] = buffer2_ptr[2];
-			buffer_ptr += 3;
-			buffer2_ptr += 4;
-		}
-		ri.Hunk_FreeTempMemory(buffer2);
-	} else if (get_render_api() == RENDER_API_DX) { // DX12
+	}
+	else if (get_render_api() == RENDER_API_DX) { // DX12
 		ri.Printf(PRINT_WARNING, "R_LevelShot is not implemented for DX12");
 	}
 
@@ -845,44 +808,6 @@ void GfxInfo_f( void )
 		}
 	}
 
-	// VULKAN
-	if (vk.active) {
-		ri.Printf( PRINT_ALL, "\nActive 3D API: Vulkan\n" );
-		VkPhysicalDeviceProperties props;
-		vkGetPhysicalDeviceProperties(vk.physical_device, &props);
-
-		uint32_t major = VK_VERSION_MAJOR(props.apiVersion);
-		uint32_t minor = VK_VERSION_MINOR(props.apiVersion);
-		uint32_t patch = VK_VERSION_PATCH(props.apiVersion);
-
-		const char* device_type;
-		if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
-			device_type = "INTEGRATED_GPU";
-		else if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-			device_type = "DISCRETE_GPU";
-		else if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU)
-			device_type = "VIRTUAL_GPU";
-		else if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU)
-			device_type = "CPU";
-		else
-			device_type = "Unknown";
-
-		const char* vendor_name = "unknown";
-		if (props.vendorID == 0x1002) {
-			vendor_name = "Advanced Micro Devices, Inc.";
-		} else if (props.vendorID == 0x10DE) {
-			vendor_name = "NVIDIA";
-		} else if (props.vendorID == 0x8086) {
-			vendor_name = "Intel Corporation";
-		}
-
-		ri.Printf(PRINT_ALL, "Vk api version: %d.%d.%d\n", major, minor, patch);
-		ri.Printf(PRINT_ALL, "Vk driver version: %d\n", props.driverVersion);
-		ri.Printf(PRINT_ALL, "Vk vendor id: 0x%X (%s)\n", props.vendorID, vendor_name);
-		ri.Printf(PRINT_ALL, "Vk device id: 0x%X\n", props.deviceID);
-		ri.Printf(PRINT_ALL, "Vk device type: %s\n", device_type);
-		ri.Printf(PRINT_ALL, "Vk device name: %s\n", props.deviceName);
-	}
 
 	// DX12
 	if (dx.active) {
@@ -1056,7 +981,7 @@ void R_Init( void )
 	Com_Memset( &tr, 0, sizeof( tr ) );
 	Com_Memset( &backEnd, 0, sizeof( backEnd ) );
 	Com_Memset( &tess, 0, sizeof( tess ) );
-	Com_Memset( &vk_world, 0, sizeof( vk_world ) );
+
 
 	if ( (intptr_t)tess.xyz & 15 ) {
 		Com_Printf( "WARNING: tess.xyz not 16 byte aligned\n" );
@@ -1170,14 +1095,6 @@ void RE_Shutdown( qboolean destroyWindow ) {
 			GLimp_Shutdown();
 	}
 
-	// VULKAN
-	if (vk.active) {
-		vk_release_resources();
-		if (destroyWindow) {
-			vk_shutdown();
-			vk_imp_shutdown();
-		}
-	}
 
 	// DX12
 	if (dx.active) {
@@ -1202,13 +1119,6 @@ Touch all images to make sure they are resident
 void RE_EndRegistration( void )
 {
 	R_SyncRenderThread();
-
-	// VULKAN
-	if (vk.active)
-	{
-		ri.Printf(PRINT_ALL, "Vulkan: pipelines create time %d msec\n", 
-			(int)(vk_world.pipeline_create_time * 1000));
-	}
 
 	// DX12
 	if (dx.active)

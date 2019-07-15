@@ -31,17 +31,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ** GLimp_LogComment
 ** GLimp_Shutdown
 **
-** vk_imp_init
-** vk_imp_shutdown
-** vk_imp_create_surface
 */
 
 #include "../renderer/tr_local.h"
 #include "resource.h"
-#include "win_local.h"
+
 #include <stdio.h>
 
+#include "win_local.h"
+
 #define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
+
 #define	TWIN_WINDOW_CLASS_NAME	"OpenArena [Twin]"
 
 extern	refimport_t	ri;
@@ -52,7 +52,6 @@ static bool s_twin_window_class_registered = false;
 static HDC gl_hdc; // handle to device context
 static HGLRC gl_hglrc; // handle to GL rendering context
 
-static HINSTANCE vk_library_handle; // HINSTANCE for the Vulkan library
 
 FILE* log_fp;
 
@@ -441,8 +440,6 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 		const char* api_name = "invalid-render-api";
 		if (get_render_api() == RENDER_API_GL)
 			api_name = "OpenGL";
-		else if (get_render_api() == RENDER_API_VK)
-			api_name = "Vulkan";
 		else if (get_render_api() == RENDER_API_DX)
 			api_name = "DX12";
 		sprintf(window_name, "%s [%s]", MAIN_WINDOW_CLASS_NAME, api_name);
@@ -521,8 +518,7 @@ static HWND create_twin_window(int width, int height, RenderApi render_api)
 	int x, y;
 
 	bool first_twin_window =
-			(get_render_api() != RENDER_API_GL && render_api == RENDER_API_GL) ||
-			(get_render_api() == RENDER_API_GL && render_api == RENDER_API_VK);
+			(get_render_api() != RENDER_API_GL && render_api == RENDER_API_GL);
 
 	if (first_twin_window) {
 		x = vid_xpos->integer + width + 5;
@@ -549,8 +545,6 @@ static HWND create_twin_window(int width, int height, RenderApi render_api)
 	const char* api_name = "invalid-render-api";
 	if (render_api == RENDER_API_GL)
 		api_name = "OpenGL";
-	else if (render_api == RENDER_API_VK)
-		api_name = "Vulkan";
 	else if (render_api == RENDER_API_DX)
 		api_name = "DX12";
 	
@@ -867,94 +861,6 @@ void GLimp_LogComment( char *comment )
 	}
 }
 
-void vk_imp_init()
-{
-	ri.Printf(PRINT_ALL, "Initializing Vulkan subsystem\n");
-
-	// This will set qgl pointers to no-op placeholders.
-	if (!gl_active) {
-		QGL_Init(nullptr);
-		qglActiveTextureARB = [] (GLenum)  {};
-		qglClientActiveTextureARB = [](GLenum) {};
-	}
-
-	// Load Vulkan DLL.
-	const char* dll_name = "vulkan-1.dll";
-
-	ri.Printf(PRINT_ALL, "...calling LoadLibrary('%s'): ", dll_name);
-	vk_library_handle = LoadLibrary(dll_name);
-
-	if (vk_library_handle == NULL) {
-		ri.Printf(PRINT_ALL, "failed\n");
-		ri.Error(ERR_FATAL, "vk_imp_init - could not load %s\n", dll_name);
-	}
-	ri.Printf( PRINT_ALL, "succeeded\n" );
-
-	vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)GetProcAddress(vk_library_handle, "vkGetInstanceProcAddr");
-
-	// Create window.
-	SetMode(r_mode->integer, (qboolean)r_fullscreen->integer);
-
-	if (get_render_api() == RENDER_API_VK)
-	{
-		g_wv.hWnd_vulkan = create_main_window(glConfig.vidWidth, glConfig.vidHeight, (qboolean)r_fullscreen->integer);
-		g_wv.hWnd = g_wv.hWnd_vulkan;
-		SetForegroundWindow(g_wv.hWnd);
-		SetFocus(g_wv.hWnd);
-		WG_CheckHardwareGamma();
-	}
-	else {
-		g_wv.hWnd_vulkan = create_twin_window(glConfig.vidWidth, glConfig.vidHeight, RENDER_API_VK);
-	}
-}
-
-void vk_imp_shutdown()
-{
-	ri.Printf(PRINT_ALL, "Shutting down Vulkan subsystem\n");
-
-	if (g_wv.hWnd_vulkan)
-	{
-		ri.Printf(PRINT_ALL, "...destroying Vulkan window\n");
-		DestroyWindow(g_wv.hWnd_vulkan);
-
-		if (g_wv.hWnd == g_wv.hWnd_vulkan) {
-			g_wv.hWnd = NULL;
-		}
-		g_wv.hWnd_vulkan = NULL;
-	}
-
-	if (vk_library_handle != NULL) {
-		ri.Printf(PRINT_ALL, "...unloading Vulkan DLL\n");
-		FreeLibrary(vk_library_handle);
-		vk_library_handle = NULL;
-	}
-	vkGetInstanceProcAddr = nullptr;
-
-	// For vulkan mode we still have qgl pointers initialized with placeholder values.
-	// Reset them the same way as we do in opengl mode.
-	QGL_Shutdown();
-
-	WG_RestoreGamma();
-
-	memset(&glConfig, 0, sizeof(glConfig));
-	memset(&glState, 0, sizeof(glState));
-
-	if (log_fp) {
-		fclose(log_fp);
-		log_fp = 0;
-	}
-}
-
-void vk_imp_create_surface()
-{
-	VkWin32SurfaceCreateInfoKHR desc;
-	desc.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	desc.pNext = nullptr;
-	desc.flags = 0;
-	desc.hinstance = ::GetModuleHandle(nullptr);
-	desc.hwnd = g_wv.hWnd_vulkan;
-	VK_CHECK(vkCreateWin32SurfaceKHR(vk.instance, &desc, nullptr, &vk.surface));
-}
 
 
 void dx_imp_init()

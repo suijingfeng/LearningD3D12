@@ -452,7 +452,8 @@ static void DrawSkyBox( shader_t *shader )
 
 		// VULKAN: draw skybox side
 		// DX12
-		if (vk.active || dx.active) {
+		if (dx.active)
+		{
 			GL_Bind(shader->sky.outerbox[sky_texorder[i]]);
 
 			tess.numVertexes = 0;
@@ -495,14 +496,8 @@ static void DrawSkyBox( shader_t *shader )
 
 			Com_Memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
 
-			if (vk.active) {
-				vk_bind_geometry();
-				vk_shade_geometry(vk.skybox_pipeline, false, r_showsky->integer ? Vk_Depth_Range::force_zero : Vk_Depth_Range::force_one);
-			}
-			if (dx.active) {
-				dx_bind_geometry();
-				dx_shade_geometry(dx.skybox_pipeline, false, r_showsky->integer ? Vk_Depth_Range::force_zero : Vk_Depth_Range::force_one, true, false);
-			}
+			dx_bind_geometry();
+			dx_shade_geometry(dx.skybox_pipeline, false, r_showsky->integer ? DX_Depth_Range::force_zero : DX_Depth_Range::force_one, true, false);
 		}
 	}
 
@@ -731,7 +726,7 @@ void RB_StageIteratorSky( void ) {
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
         float modelMatrix_original[16];
-        Com_Memcpy(modelMatrix_original, vk_world.modelview_transform, sizeof(float[16]));
+
 
         float skybox_translate[16] = {
             1, 0, 0, 0,
@@ -739,17 +734,16 @@ void RB_StageIteratorSky( void ) {
             0, 0, 1, 0,
             backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2], 1
         };
-        myGlMultMatrix(skybox_translate, modelMatrix_original, vk_world.modelview_transform);
+
 		myGlMultMatrix(skybox_translate, modelMatrix_original, dx_world.modelview_transform);
 
 		GL_State( 0 );
         qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
         qglPushMatrix ();
-        qglLoadMatrixf(vk_world.modelview_transform);
+
 		DrawSkyBox( tess.shader );
 		qglPopMatrix();
 
-        Com_Memcpy(vk_world.modelview_transform, modelMatrix_original, sizeof(float[16]));
 		Com_Memcpy(dx_world.modelview_transform, modelMatrix_original, sizeof(float[16]));
 	}
 

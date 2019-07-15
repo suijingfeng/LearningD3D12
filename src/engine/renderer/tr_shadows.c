@@ -115,8 +115,9 @@ static void R_GL_RenderShadowEdges() {
 
 // VULKAN
 // DX12
-static void R_Vk_Dx_RenderShadowEdges(VkPipeline vk_pipeline, ID3D12PipelineState* dx_pipeline) {
-	if (!vk.active && !dx.active)
+static void R_Vk_Dx_RenderShadowEdges( ID3D12PipelineState* dx_pipeline)
+{
+	if (!dx.active)
 		return;
 
 	int i = 0;
@@ -144,14 +145,10 @@ static void R_Vk_Dx_RenderShadowEdges(VkPipeline vk_pipeline, ID3D12PipelineStat
 			tess.svars.colors[k][3] = 255;
 		}
 
-		if (vk.active) {
-			vk_bind_geometry();
-			vk_shade_geometry(vk_pipeline, false, Vk_Depth_Range::normal);
-		}
-		if (dx.active) {
-			dx_bind_geometry();
-			dx_shade_geometry(dx_pipeline, false, Vk_Depth_Range::normal, true, false);
-		}
+
+		dx_bind_geometry();
+		dx_shade_geometry(dx_pipeline, false, DX_Depth_Range::normal, true, false);
+
 
 		i += count;
 	}
@@ -250,10 +247,10 @@ void RB_ShadowTessEnd( void ) {
 		qglStencilOp( GL_KEEP, GL_KEEP, GL_DECR );
 		R_GL_RenderShadowEdges();
 
-		// VULKAN
+
 		// DX12
-		R_Vk_Dx_RenderShadowEdges(vk.shadow_volume_pipelines[0][1], dx.shadow_volume_pipelines[0][1]);
-		R_Vk_Dx_RenderShadowEdges(vk.shadow_volume_pipelines[1][1], dx.shadow_volume_pipelines[1][1]);
+		R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[0][1]);
+		R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[1][1]);
 	} else {
 		qglCullFace( GL_BACK );
 		qglStencilOp( GL_KEEP, GL_KEEP, GL_INCR );
@@ -263,10 +260,10 @@ void RB_ShadowTessEnd( void ) {
 		qglStencilOp( GL_KEEP, GL_KEEP, GL_DECR );
 		R_GL_RenderShadowEdges();
 
-		// VULKAN
+
 		// DX12
-		R_Vk_Dx_RenderShadowEdges(vk.shadow_volume_pipelines[0][0], dx.shadow_volume_pipelines[0][0]);
-		R_Vk_Dx_RenderShadowEdges(vk.shadow_volume_pipelines[1][0], dx.shadow_volume_pipelines[1][0]);
+		R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[0][0]);
+		R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[1][0]);
 	}
 
 	qglDisable(GL_STENCIL_TEST);
@@ -320,7 +317,8 @@ void RB_ShadowFinish( void ) {
 
 	// VULKAN
 	// DX12
-	if (vk.active || dx.active) {
+	if (dx.active)
+	{
 		tess.indexes[0] = 0;
 		tess.indexes[1] = 1;
 		tess.indexes[2] = 2;
@@ -339,37 +337,20 @@ void RB_ShadowFinish( void ) {
 		}
 		tess.numVertexes = 4;
 
-		if (vk.active) {
-			// set backEnd.or.modelMatrix to identity matrix
-			float tmp[16];
-			Com_Memcpy(tmp, vk_world.modelview_transform, 64);
-			Com_Memset(vk_world.modelview_transform, 0, 64);
-			vk_world.modelview_transform[0] = 1.0f;
-			vk_world.modelview_transform[5] = 1.0f;
-			vk_world.modelview_transform[10] = 1.0f;
-			vk_world.modelview_transform[15] = 1.0f;
+		// set backEnd.or.modelMatrix to identity matrix
+		float tmp[16];
+		Com_Memcpy(tmp, dx_world.modelview_transform, 64);
+		Com_Memset(dx_world.modelview_transform, 0, 64);
+		dx_world.modelview_transform[0] = 1.0f;
+		dx_world.modelview_transform[5] = 1.0f;
+		dx_world.modelview_transform[10] = 1.0f;
+		dx_world.modelview_transform[15] = 1.0f;
 
-			vk_bind_geometry();
-			vk_shade_geometry(vk.shadow_finish_pipeline, false, Vk_Depth_Range::normal);
+		dx_bind_geometry();
+		dx_shade_geometry(dx.shadow_finish_pipeline, false, DX_Depth_Range::normal, true, false);
 
-			Com_Memcpy(vk_world.modelview_transform, tmp, 64);
-		}
+		Com_Memcpy(dx_world.modelview_transform, tmp, 64);
 
-		if (dx.active) {
-			// set backEnd.or.modelMatrix to identity matrix
-			float tmp[16];
-			Com_Memcpy(tmp, dx_world.modelview_transform, 64);
-			Com_Memset(dx_world.modelview_transform, 0, 64);
-			dx_world.modelview_transform[0] = 1.0f;
-			dx_world.modelview_transform[5] = 1.0f;
-			dx_world.modelview_transform[10] = 1.0f;
-			dx_world.modelview_transform[15] = 1.0f;
-
-			dx_bind_geometry();
-			dx_shade_geometry(dx.shadow_finish_pipeline, false, Vk_Depth_Range::normal, true, false);
-
-			Com_Memcpy(dx_world.modelview_transform, tmp, 64);
-		}
 
 		tess.numIndexes = 0;
 		tess.numVertexes = 0;

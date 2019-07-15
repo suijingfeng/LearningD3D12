@@ -24,6 +24,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef TR_LOCAL_H
 #define TR_LOCAL_H
 
+
+#include <stdint.h>
+
 #include "../../game/q_shared.h"
 #include "../qcommon/qfiles.h"
 #include "../qcommon/qcommon.h"
@@ -31,8 +34,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "qgl.h"
 
-// VULKAN
-#include "vk.h"
+
 
 // DX12
 #include "dx.h"
@@ -321,10 +323,6 @@ typedef struct {
 
 	qboolean		isDetail;
 
-	// VULKAN
-	VkPipeline		vk_pipeline = VK_NULL_HANDLE;
-	VkPipeline		vk_portal_pipeline = VK_NULL_HANDLE;
-	VkPipeline		vk_mirror_pipeline = VK_NULL_HANDLE;
 
 	// DX12
 	ID3D12PipelineState* dx_pipeline = nullptr;
@@ -937,9 +935,6 @@ extern bool			gl_active;		// set to true if OpenGL is used for rendering
 extern glconfig_t	glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
 extern glstate_t	glState;		// outside of TR since it shouldn't be cleared during ref re-init
 
-// VULKAN
-extern Vk_Instance	vk;				// shouldn't be cleared during ref re-init
-extern Vk_World		vk_world;		// this data is cleared during ref re-init
 
 // DX12
 extern Dx_Instance	dx;				// shouldn't be cleared during ref re-init
@@ -1204,9 +1199,7 @@ void		*GLimp_RendererSleep( void );
 void		GLimp_FrontEndSleep( void );
 void		GLimp_WakeRenderer( void *data );
 
-void vk_imp_init();
-void vk_imp_shutdown();
-void vk_imp_create_surface();
+
 
 void dx_imp_init();
 void dx_imp_shutdown();
@@ -1247,7 +1240,7 @@ typedef struct shaderCommands_s
 	color4ub_t	constantColor255[SHADER_MAX_VERTEXES];
 
 	shader_t	*shader;
-  float   shaderTime;
+	float   shaderTime;
 	int			fogNum;
 
 	int			dlightBits;	// or together of all vertexDlightBits

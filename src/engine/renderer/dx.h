@@ -1,5 +1,42 @@
 #pragma once
 
+enum DX_Shader_Type {
+	single_texture,
+	multi_texture_mul,
+	multi_texture_add
+};
+
+// used with cg_shadows == 2
+enum DX_Shadow_Phase {
+	disabled,
+	shadow_edges_rendering,
+	fullscreen_quad_rendering
+};
+
+enum DX_Depth_Range {
+	normal, // [0..1]
+	force_zero, // [0..0]
+	force_one, // [1..1]
+	weapon // [0..0.3]
+};
+
+struct DX_Sampler_Def {
+	bool repeat_texture = false; // clamp/repeat texture addressing mode
+	int gl_mag_filter = 0; // GL_XXX mag filter
+	int gl_min_filter = 0; // GL_XXX min filter
+};
+
+
+struct DX_Pipeline_Def {
+	DX_Shader_Type shader_type = DX_Shader_Type::single_texture;
+	unsigned int state_bits = 0; // GLS_XXX flags
+	int face_culling = 0;// cullType_t
+	bool polygon_offset = false;
+	bool clipping_plane = false;
+	bool mirror = false;
+	bool line_primitives = false;
+	DX_Shadow_Phase shadow_phase = DX_Shadow_Phase::disabled;
+};
 
 struct ID3D12CommandAllocator;
 struct ID3D12GraphicsCommandList;
@@ -46,15 +83,15 @@ void dx_wait_device_idle();
 //
 Dx_Image dx_create_image(int width, int height, Dx_Image_Format format, int mip_levels,  bool repeat_texture, int image_index);
 void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mip_levels, const uint8_t* pixels, int bytes_per_pixel);
-void dx_create_sampler_descriptor(const Vk_Sampler_Def& def, Dx_Sampler_Index sampler_index);
-ID3D12PipelineState* dx_find_pipeline(const Vk_Pipeline_Def& def);
+void dx_create_sampler_descriptor(const DX_Sampler_Def& def, Dx_Sampler_Index sampler_index);
+ID3D12PipelineState* dx_find_pipeline(const DX_Pipeline_Def& def);
 
 //
 // Rendering setup.
 //
 void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, vec4_t color);
 void dx_bind_geometry();
-void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, Vk_Depth_Range depth_range, bool indexed, bool lines);
+void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Depth_Range depth_range, bool indexed, bool lines);
 void dx_begin_frame();
 void dx_end_frame();
 
@@ -135,13 +172,17 @@ struct Dx_Instance {
 };
 
 
+const int MAX_VK_IMAGES = 2048; // should be the same as MAX_DRAWIMAGES
+const int MAX_VK_PIPELINES = 1024;
+
+
 struct Dx_World
 {
 	//
 	// Resources.
 	//
 	int num_pipelines = 0;
-	Vk_Pipeline_Def pipeline_defs[MAX_VK_PIPELINES];
+	DX_Pipeline_Def pipeline_defs[MAX_VK_PIPELINES];
 	ID3D12PipelineState* pipelines[MAX_VK_PIPELINES];
 	float pipeline_create_time;
 

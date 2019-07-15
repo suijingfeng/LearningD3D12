@@ -110,13 +110,6 @@
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\single_texture_lt80_ps.cpp" />
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\single_texture_ps.cpp" />
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\single_texture_vs.cpp" />
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\multi_texture_add_frag.cpp" />
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\multi_texture_clipping_plane_vert.cpp" />
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\multi_texture_mul_frag.cpp" />
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\multi_texture_vert.cpp" />
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\single_texture_clipping_plane_vert.cpp" />
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\single_texture_frag.cpp" />
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\single_texture_vert.cpp" />
     <ClCompile Include="..\src\engine\renderer\tr_animation.c" />
     <ClCompile Include="..\src\engine\renderer\tr_backend.c" />
     <ClCompile Include="..\src\engine\renderer\tr_bsp.c" />
@@ -142,12 +135,10 @@
     <ClCompile Include="..\src\engine\platform\win_gamma.c" />
     <ClCompile Include="..\src\engine\platform\win_glimp.c" />
     <ClCompile Include="..\src\engine\platform\win_qgl.c" />
-    <ClCompile Include="..\src\engine\renderer\vk.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\engine\qcommon\cm_public.h" />
     <ClInclude Include="..\src\engine\renderer\dx.h" />
-    <ClInclude Include="..\src\engine\renderer\vk.h" />
     <ClInclude Include="..\src\game\q_shared.h" />
     <ClInclude Include="..\src\engine\qcommon\qcommon.h" />
     <ClInclude Include="..\src\engine\qcommon\qfiles.h" />

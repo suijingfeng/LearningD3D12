@@ -9,9 +9,6 @@
       <UniqueIdentifier>{b5fac841-7437-493f-ad30-4b4cedd1acfe}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
-    <Filter Include="Source Files\spirv">
-      <UniqueIdentifier>{b30d21cf-a2ec-44d4-80d2-73c969c32a41}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\hlsl_compiled">
       <UniqueIdentifier>{ff161648-6f6d-46ac-af5d-08fdfb82914a}</UniqueIdentifier>
     </Filter>
@@ -92,27 +89,6 @@
     <ClCompile Include="..\src\engine\platform\win_qgl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\multi_texture_add_frag.cpp">
-      <Filter>Source Files\spirv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\multi_texture_mul_frag.cpp">
-      <Filter>Source Files\spirv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\multi_texture_vert.cpp">
-      <Filter>Source Files\spirv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\single_texture_frag.cpp">
-      <Filter>Source Files\spirv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\single_texture_vert.cpp">
-      <Filter>Source Files\spirv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\multi_texture_clipping_plane_vert.cpp">
-      <Filter>Source Files\spirv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\engine\renderer\shaders\spirv\single_texture_clipping_plane_vert.cpp">
-      <Filter>Source Files\spirv</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\engine\renderer\dx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -164,9 +140,6 @@
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\single_texture_lt80_ps.cpp">
       <Filter>Source Files\hlsl_compiled</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\engine\renderer\vk.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\engine\qcommon\cm_public.h">
@@ -198,9 +171,6 @@
     </ClInclude>
     <ClInclude Include="..\src\cgame\tr_types.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\engine\renderer\vk.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\engine\renderer\dx.h">
       <Filter>Source Files</Filter>

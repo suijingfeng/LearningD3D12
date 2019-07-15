@@ -2162,8 +2162,9 @@ static shader_t *FinishShader( void ) {
 
 	// VULKAN: create pipelines for each shader stage
 	// DX12
-	if (vk.active || dx.active) {
-		Vk_Pipeline_Def def;
+	if (dx.active)
+	{
+		DX_Pipeline_Def def;
 		memset(&def, 0, sizeof(def));
 
 		def.face_culling = shader.cullType;
@@ -2184,24 +2185,20 @@ static shader_t *FinishShader( void ) {
 
 			def.clipping_plane = false;
 			def.mirror = false;
-			if (vk.active)
-				pStage->vk_pipeline = vk_find_pipeline(&def);
-			if (dx.active)
-				pStage->dx_pipeline = dx_find_pipeline(def);
+
+
+			pStage->dx_pipeline = dx_find_pipeline(def);
 
 			def.clipping_plane = true;
 			def.mirror = false;
-			if (vk.active)
-				pStage->vk_portal_pipeline = vk_find_pipeline(&def);
-			if (dx.active)
-				pStage->dx_portal_pipeline = dx_find_pipeline(def);
+
+
+			pStage->dx_portal_pipeline = dx_find_pipeline(def);
 
 			def.clipping_plane = true;
 			def.mirror = true;
-			if (vk.active)
-				pStage->vk_mirror_pipeline = vk_find_pipeline(&def);
-			if (dx.active)
-				pStage->dx_mirror_pipeline = dx_find_pipeline(def);
+
+			pStage->dx_mirror_pipeline = dx_find_pipeline(def);
 		}
 	}
 

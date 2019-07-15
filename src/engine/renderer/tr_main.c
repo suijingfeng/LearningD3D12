@@ -1405,9 +1405,9 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 	qglEnd();
 	qglDepthRange( 0, 1 );
 
-	// VULKAN
+
 	// DX12
-	if (!vk.active && !dx.active)
+	if ( !dx.active)
 		return;
 	if (numPoints < 3 || numPoints >= SHADER_MAX_VERTEXES/2)
 		return;
@@ -1418,8 +1418,9 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 	// The code assumes that polygons are convex.
 
 	// Backface culling.
-	auto transform_to_eye_space = [](vec3_t v, vec3_t v_eye) {
-		auto m = vk.active ? vk_world.modelview_transform : dx_world.modelview_transform;
+	auto transform_to_eye_space = [](vec3_t v, vec3_t v_eye)
+	{
+		auto m = dx_world.modelview_transform;
 		v_eye[0] = m[0]*v[0] + m[4]*v[1] + m[8 ]*v[2] + m[12];
 		v_eye[1] = m[1]*v[0] + m[5]*v[1] + m[9 ]*v[2] + m[13];
 		v_eye[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14];
@@ -1461,14 +1462,10 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 		tess.numIndexes += 3;
 	}
 
-	if (vk.active) {
-		vk_bind_geometry();
-		vk_shade_geometry(vk.surface_debug_pipeline_solid, false, Vk_Depth_Range::normal);
-	}
 
 	if (dx.active) {
 		dx_bind_geometry();
-		dx_shade_geometry(dx.surface_debug_pipeline_solid, false, Vk_Depth_Range::normal, true, false);
+		dx_shade_geometry(dx.surface_debug_pipeline_solid, false, DX_Depth_Range::normal, true, false);
 	}
 
 	// Outline.
@@ -1481,14 +1478,10 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 	tess.numVertexes = numPoints * 2;
 	tess.numIndexes = 0;
 
-	if (vk.active) {
-		vk_bind_geometry();
-		vk_shade_geometry(vk.surface_debug_pipeline_outline, false, Vk_Depth_Range::force_zero, false);
-	}
 
 	if (dx.active) {
 		dx_bind_geometry();
-		dx_shade_geometry(dx.surface_debug_pipeline_outline, false, Vk_Depth_Range::force_zero, false, true);
+		dx_shade_geometry(dx.surface_debug_pipeline_outline, false, DX_Depth_Range::force_zero, false, true);
 	}
 
 	tess.numVertexes = 0;

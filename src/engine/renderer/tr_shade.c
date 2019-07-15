@@ -115,18 +115,12 @@ static void DrawTris (shaderCommands_t *input) {
 	}
 	qglDepthRange( 0, 1 );
 
-	// VULKAN
-	if (vk.active) {
-		Com_Memset(tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
-		auto pipeline = backEnd.viewParms.isMirror ? vk.tris_mirror_debug_pipeline : vk.tris_debug_pipeline;
-		vk_shade_geometry(pipeline, false, Vk_Depth_Range::force_zero);
-	}
 
 	// DX12
 	if (dx.active) {
 		Com_Memset(tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
 		auto pipeline = backEnd.viewParms.isMirror ? dx.tris_mirror_debug_pipeline : dx.tris_debug_pipeline;
-		dx_shade_geometry(pipeline, false, Vk_Depth_Range::force_zero, true, false);
+		dx_shade_geometry(pipeline, false, DX_Depth_Range::force_zero, true, false);
 	}
 }
 
@@ -159,7 +153,8 @@ static void DrawNormals (shaderCommands_t *input) {
 
 	// VULKAN
 	// DX12
-	if (vk.active || dx.active) {
+	if (dx.active)
+	{
 		vec4_t xyz[SHADER_MAX_VERTEXES];
 		Com_Memcpy(xyz, tess.xyz, tess.numVertexes * sizeof(vec4_t));
 		Com_Memset(tess.svars.colors, tr.identityLightByte, SHADER_MAX_VERTEXES * sizeof(color4ub_t));
@@ -178,13 +173,9 @@ static void DrawNormals (shaderCommands_t *input) {
 			tess.numVertexes = 2 * count;
 			tess.numIndexes = 0;
 
-			if (vk.active) {
-				vk_bind_geometry();
-				vk_shade_geometry(vk.normals_debug_pipeline, false, Vk_Depth_Range::force_zero, false);
-			}
 			if (dx.active) {
 				dx_bind_geometry();
-				dx_shade_geometry(dx.normals_debug_pipeline, false, Vk_Depth_Range::force_zero, false, true);
+				dx_shade_geometry(dx.normals_debug_pipeline, false, DX_Depth_Range::force_zero, false, true);
 			}
 
 			i += count;
@@ -407,16 +398,11 @@ static void ProjectDlightTexture( void ) {
 		backEnd.pc.c_totalIndexes += numIndexes;
 		backEnd.pc.c_dlightIndexes += numIndexes;
 
-		// VULKAN
-		if (vk.active) {
-			VkPipeline pipeline = vk.dlight_pipelines[dl->additive > 0 ? 1 : 0][tess.shader->cullType][tess.shader->polygonOffset];
-			vk_shade_geometry(pipeline, false, Vk_Depth_Range::normal);
-		}
 
 		// DX12
 		if (dx.active) {
 			auto pipeline = dx.dlight_pipelines[dl->additive > 0 ? 1 : 0][tess.shader->cullType][tess.shader->polygonOffset];
-			dx_shade_geometry(pipeline, false, Vk_Depth_Range::normal, true, false);
+			dx_shade_geometry(pipeline, false, DX_Depth_Range::normal, true, false);
 		}
 	}
 }
@@ -457,18 +443,11 @@ static void RB_FogPass( void ) {
 
 	R_DrawElements( tess.numIndexes, tess.indexes );
 
-	// VULKAN
-	if (vk.active) {
-		assert(tess.shader->fogPass > 0);
-		VkPipeline pipeline = vk.fog_pipelines[tess.shader->fogPass - 1][tess.shader->cullType][tess.shader->polygonOffset];
-		vk_shade_geometry(pipeline, false, Vk_Depth_Range::normal);
-	}
-
 	// DX12
 	if (dx.active) {
 		assert(tess.shader->fogPass > 0);
 		auto pipeline = dx.fog_pipelines[tess.shader->fogPass - 1][tess.shader->cullType][tess.shader->polygonOffset];
-		dx_shade_geometry(pipeline, false, Vk_Depth_Range::normal, true, false);
+		dx_shade_geometry(pipeline, false, DX_Depth_Range::normal, true, false);
 	}
 }
 
@@ -772,9 +751,6 @@ static void ComputeTexCoords( shaderStage_t *pStage ) {
 */
 static void RB_IterateStagesGeneric( shaderCommands_t *input )
 {
-	// VULKAN
-	if (vk.active)
-		vk_bind_geometry();
 
 	// DX12
 	if (dx.active)
@@ -828,35 +804,33 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 
 		// VULKAN
 		// DX12
-		if (vk.active || dx.active) {
-			VkPipeline vk_pipeline = pStage->vk_pipeline;
+		if (dx.active)
+		{
+
 			ID3D12PipelineState* dx_pipeline = pStage->dx_pipeline;
 
 			if (backEnd.viewParms.isMirror) {
-				vk_pipeline = pStage->vk_mirror_pipeline;
 				dx_pipeline = pStage->dx_mirror_pipeline;
 			}
 			else if (backEnd.viewParms.isPortal) {
-				vk_pipeline = pStage->vk_portal_pipeline;
 				dx_pipeline = pStage->dx_portal_pipeline;
 			}
 
-			Vk_Depth_Range depth_range = Vk_Depth_Range::normal;
+			DX_Depth_Range depth_range = DX_Depth_Range::normal;
 			if (input->shader->isSky) {
-				depth_range = Vk_Depth_Range::force_one;
+				depth_range = DX_Depth_Range::force_one;
 				if (r_showsky->integer)
-					depth_range = Vk_Depth_Range::force_zero;
+					depth_range = DX_Depth_Range::force_zero;
 			} else if (backEnd.currentEntity->e.renderfx & RF_DEPTHHACK) {
-				depth_range = Vk_Depth_Range::weapon;
+				depth_range = DX_Depth_Range::weapon;
 			}
 
 			if (r_lightmap->integer && multitexture)
 				GL_Bind(tr.whiteImage); // replace diffuse texture with a white one thus effectively render only lightmap
 
-			if (vk.active)
-				vk_shade_geometry(vk_pipeline, multitexture, depth_range);
-			if (dx.active)
-				dx_shade_geometry(dx_pipeline, multitexture, depth_range, true, false);
+
+
+			dx_shade_geometry(dx_pipeline, multitexture, depth_range, true, false);
         }
 
 		// allow skipping out to show just lightmaps during development
