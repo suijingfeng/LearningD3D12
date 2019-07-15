@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Foobar; if not, write to the Free Software
+along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
@@ -293,19 +293,18 @@ void Field_BigDraw( field_t *edit, int x, int y, int width, qboolean showCursor 
 Field_Paste
 ================
 */
-void Field_Paste( field_t *edit ) {
-	char	*cbd;
-	int		pasteLen, i;
-
-	cbd = Sys_GetClipboardData();
+static void Field_Paste( field_t *edit )
+{
+	char* cbd = Sys_GetClipboardData();
 
 	if ( !cbd ) {
 		return;
 	}
 
 	// send as if typed, so insert / overstrike works properly
-	pasteLen = (int)strlen( cbd );
-	for ( i = 0 ; i < pasteLen ; i++ ) {
+	int pasteLen = (int) strlen( cbd );
+	for (int i = 0 ; i < pasteLen ; ++i )
+	{
 		Field_CharEvent( edit, cbd[i] );
 	}
 
@@ -430,17 +429,19 @@ void Field_CharEvent( field_t *edit, int ch ) {
 	//
 	// ignore any other non printable chars
 	//
-	if ( ch < 32 ) {
+	if ( ch < ' ' ) {
 		return;
 	}
 
 	if ( key_overstrikeMode ) {	
-		if ( edit->cursor == MAX_EDIT_LINE - 1 )
+		// - 2 to leave room for the leading slash and trailing \0
+		if ( edit->cursor == MAX_EDIT_LINE - 2 )
 			return;
 		edit->buffer[edit->cursor] = ch;
 		edit->cursor++;
 	} else {	// insert mode
-		if ( len == MAX_EDIT_LINE - 1 ) {
+		// - 2 to leave room for the leading slash and trailing \0
+		if ( len == MAX_EDIT_LINE - 2 ) {
 			return; // all full
 		}
 		memmove( edit->buffer + edit->cursor + 1, 
@@ -455,9 +456,10 @@ void Field_CharEvent( field_t *edit, int ch ) {
 	}
 
 	if ( edit->cursor == len + 1) {
-		edit->buffer[edit->cursor] = 0;
+		edit->buffer[edit->cursor] = '\0';
 	}
 }
+
 
 /*
 =============================================================================
@@ -608,10 +610,10 @@ Message_Key
 In game talk message
 ================
 */
-void Message_Key( int key ) {
+static void Message_Key( int key )
+{
 
 	char	buffer[MAX_STRING_CHARS];
-
 
 	if (key == K_ESCAPE) {
 		cls.keyCatchers &= ~KEYCATCH_MESSAGE;
@@ -631,8 +633,6 @@ void Message_Key( int key ) {
 				Com_sprintf( buffer, sizeof( buffer ), "say_team \"%s\"\n", chatField.buffer );
 			else
 				Com_sprintf( buffer, sizeof( buffer ), "say \"%s\"\n", chatField.buffer );
-
-
 
 			CL_AddReliableCommand( buffer );
 		}
@@ -684,7 +684,8 @@ the K_* names are matched up.
 to be configured even if they don't have defined names.
 ===================
 */
-int Key_StringToKeynum( char *str ) {
+static int Key_StringToKeynum( char *str )
+{
 	keyname_t	*kn;
 	
 	if ( !str || !str[0] ) {
@@ -1231,16 +1232,17 @@ void CL_CharEvent( int key ) {
 Key_ClearStates
 ===================
 */
-void Key_ClearStates (void)
+void Key_ClearStates( void )
 {
-	int		i;
+	int i;
 
 	anykeydown = qfalse;
 
-	for ( i=0 ; i < MAX_KEYS ; i++ ) {
-		if ( keys[i].down ) {
+	for ( i=0 ; i < MAX_KEYS ; ++i )
+	{
+		if ( keys[i].down )
+		{
 			CL_KeyEvent( i, qfalse, 0 );
-
 		}
 		keys[i].down = (qboolean) 0;
 		keys[i].repeats = 0;

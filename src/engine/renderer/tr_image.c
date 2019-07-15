@@ -761,13 +761,16 @@ static Vk_Image upload_vk_image(const Image_Upload_Data& upload_data, bool repea
 }
 
 // DX12
-static Dx_Image upload_dx_image(const Image_Upload_Data& upload_data, bool repeat_texture, int image_index) {
+static Dx_Image upload_dx_image(const Image_Upload_Data& upload_data, bool repeat_texture, int image_index)
+{
 	int w = upload_data.base_level_width;
 	int h = upload_data.base_level_height;
 
 	bool has_alpha = false;
-	for (int i = 0; i < w * h; i++) {
-		if (upload_data.buffer[i*4 + 3] != 255)  {
+	for (int i = 0; i < w * h; i++)
+	{
+		if (upload_data.buffer[i*4 + 3] != 255)
+		{
 			has_alpha = true;
 			break;
 		}
@@ -777,12 +780,14 @@ static Dx_Image upload_dx_image(const Image_Upload_Data& upload_data, bool repea
 	Dx_Image_Format format = IMAGE_FORMAT_RGBA8;
 	int bytes_per_pixel = 4;
 
+/*  I comment this, always set r_texturebits->integer = 32, 
+ *  as r_texturebits->integer = 16 emerge aliasing effect
 	if (r_texturebits->integer <= 16) {
 		buffer = (byte*) ri.Hunk_AllocateTempMemory( upload_data.buffer_size / 2 );
 		format = has_alpha ? IMAGE_FORMAT_BGRA4 : IMAGE_FORMAT_BGR5A1;
 		bytes_per_pixel = 2;
 	}
-
+*/
 	if (format == IMAGE_FORMAT_BGR5A1) {
 		auto p = (uint16_t*)buffer;
 		for (int i = 0; i < upload_data.buffer_size; i += 4, p++) {

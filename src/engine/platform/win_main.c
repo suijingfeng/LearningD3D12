@@ -1062,7 +1062,7 @@ void Sys_Init( void )
 		Cvar_Set( "arch", "unknown Windows variant" );
 	}
 	// window procedure
-	extern LONG WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	extern LRESULT WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	// save out a couple things in rom cvars for the renderer to access
 	Cvar_Get( "win_wndproc", va("%p", MainWndProc), CVAR_ROM );
 

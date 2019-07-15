@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Foobar; if not, write to the Free Software
+along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
@@ -28,8 +28,9 @@ WinVars_t	g_wv;
 
 
 // Console variables that we need to access from this module
-// cvar_t* vid_xpos; // X coordinate of window position
-// cvar_t* vid_ypos; // Y coordinate of window position
+cvar_t* vid_xpos;	// X coordinate of window position
+cvar_t* vid_ypos;	// Y coordinate of window position
+cvar_t* in_forceCharset;// 
 
 extern cvar_t *r_fullscreen;
 extern cvar_t *in_mouse;
@@ -82,25 +83,23 @@ const static byte s_scantokey[128] =
 	K_F6, K_F7, K_F8, K_F9, K_F10,  K_PAUSE,    0  , K_HOME, 
 	K_UPARROW, K_PGUP, K_KP_MINUS, K_LEFTARROW, K_KP_5, K_RIGHTARROW, K_KP_PLUS, K_END, //4 
 	K_DOWNARROW, K_PGDN, K_INS, K_DEL, 0, 0, 0, K_F11, 
-	K_F12,  0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0,        // 5
+	K_F12,  0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0,     // 5
 	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0, 
-	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0,        // 6 
+	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0,     // 6 
 	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0, 
-	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0         // 7 
+	0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0  ,    0      // 7 
 }; 
 
 /*
-=======
+==================
 MapKey
 
 Map from windows to quake keynums
-=======
+==================
 */
-static int MapKey (int key)
+static int MapKey( int nVirtKey, int key )
 {
 	qboolean is_extended;
-
-//	Com_Printf( "0x%x\n", key);
 
 	int modified = ( key >> 16 ) & 255;
 
@@ -118,6 +117,9 @@ static int MapKey (int key)
 
 	int result = s_scantokey[modified];
 
+	//Com_Printf( "key: 0x%08x modified:%i extended:%i result:%i(%02x) vk=%i\n",
+	//	key, modified, is_extended, result, result, nVirtKey );
+
 	if ( !is_extended )
 	{
 		switch ( result )
@@ -125,7 +127,13 @@ static int MapKey (int key)
 		case K_HOME:
 			return K_KP_HOME;
 		case K_UPARROW:
+			if ( Key_GetCatcher() && nVirtKey == VK_NUMPAD8 )
+				return 0;
 			return K_KP_UPARROW;
+		case K_DOWNARROW:
+			if ( Key_GetCatcher() && nVirtKey == VK_NUMPAD2 )
+				return 0;
+			return K_KP_DOWNARROW;
 		case K_PGUP:
 			return K_KP_PGUP;
 		case K_LEFTARROW:
@@ -134,8 +142,6 @@ static int MapKey (int key)
 			return K_KP_RIGHTARROW;
 		case K_END:
 			return K_KP_END;
-		case K_DOWNARROW:
-			return K_KP_DOWNARROW;
 		case K_PGDN:
 			return K_KP_PGDN;
 		case K_INS:
@@ -152,14 +158,103 @@ static int MapKey (int key)
 		{
 		case K_PAUSE:
 			return K_KP_NUMLOCK;
-		case 0x0D:
+		case K_ENTER:
 			return K_KP_ENTER;
-		case 0x2F:
+		case '/':
 			return K_KP_SLASH;
 		case 0xAF:
 			return K_KP_PLUS;
+		case '*':
+			return K_KP_STAR;
 		}
 		return result;
+	}
+}
+
+
+static qboolean directMap( const WPARAM chr )
+{
+
+	if ( !in_forceCharset->integer )
+		return qtrue;
+
+	switch ( chr ) // edit control sequences
+	{
+		case 'c'-'a'+1:
+		case 'v'-'a'+1:
+		case 'h'-'a'+1:
+		case 'a'-'a'+1:
+		case 'e'-'a'+1:
+		case 'n'-'a'+1:
+		case 'p'-'a'+1:
+		case 'l'-'a'+1: // CTRL+L
+			return qtrue;
+	}
+
+	if ( chr < ' ' || chr > 127 || in_forceCharset->integer > 1 )
+		return qfalse;
+	else
+		return qtrue;
+}
+
+
+/*
+==================
+MapChar
+
+Map input to ASCII charset
+==================
+*/
+static int MapChar( WPARAM wParam, byte scancode ) 
+{
+	static const int s_scantochar[ 128 ] = 
+	{ 
+//	0        1       2       3       4       5       6       7 
+//	8        9       A       B       C       D       E       F 
+ 	 0,      0,     '1',    '2',    '3',    '4',    '5',    '6', 
+	'7',    '8',    '9',    '0',    '-',    '=',    0x8,    0x9,	// 0
+	'q',    'w',    'e',    'r',    't',    'y',    'u',    'i', 
+	'o',    'p',    '[',    ']',    0xD,     0,     'a',    's',	// 1
+	'd',    'f',    'g',    'h',    'j',    'k',    'l',    ';', 
+	'\'',    0,      0,     '\\',   'z',    'x',    'c',    'v',	// 2
+	'b',    'n',    'm',    ',',    '.',    '/',     0,     '*', 
+	 0,     ' ',     0,      0,      0,      0,      0,      0,     // 3
+
+	 0,      0,     '!',    '@',    '#',    '$',    '%',    '^', 
+	'&',    '*',    '(',    ')',    '_',    '+',    0x8,    0x9,	// 4
+	'Q',    'W',    'E',    'R',    'T',    'Y',    'U',    'I', 
+	'O',    'P',    '{',    '}',    0xD,     0,     'A',    'S',	// 5
+	'D',    'F',    'G',    'H',    'J',    'K',    'L',    ':',
+	'"',     0,      0,     '|',    'Z',    'X',    'C',    'V',	// 6
+	'B',    'N',    'M',    '<',    '>',    '?',     0,     '*', 
+ 	 0,     ' ',     0,      0,      0,      0,      0,      0,     // 7
+	}; 
+
+	if ( scancode == 0x53 )
+		return '.';
+
+	if ( directMap( wParam ) || scancode > 0x39 )
+	{
+		return wParam;
+	}
+	else 
+	{
+		char ch = s_scantochar[ scancode ];
+		int shift = (GetKeyState( VK_SHIFT ) >> 15) & 1;
+		if ( ch >= 'a' && ch <= 'z' ) 
+		{
+			int  capital = GetKeyState( VK_CAPITAL ) & 1;
+			if ( capital ^ shift ) 
+			{
+				ch = ch - 'a' + 'A';
+			}
+		} 
+		else 
+		{
+			ch = s_scantochar[ scancode | (shift<<6) ];
+		}
+
+		return ch;
 	}
 }
 
@@ -171,7 +266,8 @@ MainWndProc
 main window procedure
 ====================
 */
-LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+
+LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	switch (uMsg)
 	{
@@ -180,12 +276,12 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		// only relevant for non-DI input and when console is toggled in window mode
 		// if console is toggled in window mode (KEYCATCH_CONSOLE) then mouse is released 
 		// and DI doesn't see any mouse wheel
-		if (!r_fullscreen->integer && (cls.keyCatchers & KEYCATCH_CONSOLE))
+		if (!r_fullscreen->integer && ( Key_GetCatcher() & KEYCATCH_CONSOLE))
 		{
 			// 120 increments, might be 240 and multiples if wheel goes too fast
 			// NOTE Logitech: logitech drivers are screwed and send the message twice?
 			//   could add a cvar to interpret the message as successive press/release events
-			int zDelta = ( short ) HIWORD( wParam ) / 120;
+			int zDelta = ( short ) HIWORD( wParam ) / WHEEL_DELTA;
 			int i;
 			if ( zDelta > 0 )
 			{
@@ -212,10 +308,10 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 		g_wv.hWnd = hWnd;
 
-		// vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
-		// vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
+		vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
+		vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 		r_fullscreen = Cvar_Get ("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
-
+		in_forceCharset = Cvar_Get( "in_forceCharset", "1", CVAR_ARCHIVE );
 		break;
 
 	case WM_DESTROY:
@@ -238,35 +334,30 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		break;
 
 	case WM_MOVE:
+	{
+		if (!r_fullscreen->integer )
 		{
-			int		xPos, yPos;
+			int xPos = (short) LOWORD(lParam);    // horizontal position 
+			int yPos = (short) HIWORD(lParam);    // vertical position 
 			RECT r;
-			int		style;
+			r.left   = 0;
+			r.top    = 0;
+			r.right  = 1;
+			r.bottom = 1;
 
-			if (!r_fullscreen->integer )
+			int style = GetWindowLong( hWnd, GWL_STYLE );
+			AdjustWindowRect( &r, style, FALSE );
+
+			// Cvar_SetValue( "vid_xpos", xPos + r.left);
+			// Cvar_SetValue( "vid_ypos", yPos + r.top);
+			// vid_xpos->modified = qfalse;
+			// vid_ypos->modified = qfalse;
+			if ( g_wv.activeApp )
 			{
-				xPos = (short) LOWORD(lParam);    // horizontal position 
-				yPos = (short) HIWORD(lParam);    // vertical position 
-
-				r.left   = 0;
-				r.top    = 0;
-				r.right  = 1;
-				r.bottom = 1;
-
-				style = GetWindowLong( hWnd, GWL_STYLE );
-				AdjustWindowRect( &r, style, FALSE );
-
-				// Cvar_SetValue( "vid_xpos", xPos + r.left);
-				// Cvar_SetValue( "vid_ypos", yPos + r.top);
-				// vid_xpos->modified = qfalse;
-				// vid_ypos->modified = qfalse;
-				if ( g_wv.activeApp )
-				{
-					IN_Activate (qtrue);
-				}
+				IN_Activate (qtrue);
 			}
 		}
-		break;
+	} break;
 
 // this is complicated because Win32 seems to pack multiple mouse events into
 // one update sometimes, so we always check all states and look for events
@@ -277,49 +368,59 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 	case WM_MBUTTONDOWN:
 	case WM_MBUTTONUP:
 	case WM_MOUSEMOVE:
-		{
-			int	temp = 0;
+	{
+		int temp = 0;
 
-			if (wParam & MK_LBUTTON)
-				temp |= 1;
+		if (wParam & MK_LBUTTON)
+			temp |= 1;
 
-			if (wParam & MK_RBUTTON)
-				temp |= 2;
+		if (wParam & MK_RBUTTON)
+			temp |= 2;
 
-			if (wParam & MK_MBUTTON)
-				temp |= 4;
+		if (wParam & MK_MBUTTON)
+			temp |= 4;
 
-			IN_MouseEvent (temp);
-		}
-		break;
+		IN_MouseEvent (temp);
+	} break;
 
 	case WM_SYSCOMMAND:
-		if ( wParam == SC_SCREENSAVE )
+	{
+		if (wParam == SC_SCREENSAVE)
 			return 0;
-		break;
+	} break;
 
-	case WM_SYSKEYDOWN:
-		if ( wParam == 13 )
+	case WM_SYSKEYDOWN: 
+	{
+		if (wParam == VK_RETURN)
 		{
-			if ( r_fullscreen )
+			//if (r_fullscreen)
 			{
-				Cvar_SetValue( "r_fullscreen", !r_fullscreen->integer );
-				Cbuf_AddText( "vid_restart\n" );
+				Cvar_SetValue("r_fullscreen", !r_fullscreen->integer);
+				Cbuf_AddText("vid_restart\n");
 			}
 			return 0;
-		}
-		// fall through
+		} 
+		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( wParam, lParam ), qtrue, 0, NULL );
+	} break;
+
 	case WM_KEYDOWN:
-		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( lParam ), qtrue, 0, NULL );
+		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( wParam, lParam ), qtrue, 0, NULL );
 		break;
 
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
-		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( lParam ), qfalse, 0, NULL );
+		//Com_Printf( "^5k-^7 wParam:%08x lParam:%08x\n", wParam, lParam );
+		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( wParam, lParam ), qfalse, 0, NULL );
 		break;
 
 	case WM_CHAR:
-		Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, wParam, 0, 0, NULL );
+		// Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, wParam, 0, 0, NULL );
+		{
+			byte scancode = ((lParam >> 16) & 0xFF);
+			if ( wParam != VK_NUMPAD0 && scancode != 0x29 ) {
+				Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, MapChar( wParam, scancode ), 0, 0, NULL );
+			}
+		}
 		break;
 	}
 
