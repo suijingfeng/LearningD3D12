@@ -1056,7 +1056,7 @@ void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 		float ilength;
 
 		VectorSubtract( lightOrigin, v, lightDir );
-//		ilength = Q_rsqrt( DotProduct( lightDir, lightDir ) );
+
 		VectorNormalizeFast( lightDir );
 
 		// calculate the specular color
@@ -1070,7 +1070,7 @@ void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 		reflected[2] = normal[2]*2*d - lightDir[2];
 
 		VectorSubtract (backEnd.or.viewOrigin, v, viewer);
-		ilength = Q_rsqrt( DotProduct( viewer, viewer ) );
+		ilength = 1.0f / sqrtf( DotProduct( viewer, viewer ) );
 		l = DotProduct (reflected, viewer);
 		l *= ilength;
 

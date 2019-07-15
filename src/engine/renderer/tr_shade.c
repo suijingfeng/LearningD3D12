@@ -343,8 +343,9 @@ static void ProjectDlightTexture( void ) {
 				clip |= 32;
 				modulate = 0.0f;
 			} else {
-				dist[2] = Q_fabs(dist[2]);
-				if ( dist[2] < radius * 0.5f ) {
+				dist[2] = fabs(dist[2]);
+				if ( dist[2] < radius * 0.5f )
+				{
 					modulate = 1.0f;
 				} else {
 					modulate = 2.0f * (radius - dist[2]) * scale;
