@@ -385,17 +385,15 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 
 static void DrawSkyBox( shader_t *shader )
 {
-	int		i;
 
 	sky_min = 0;
 	sky_max = 1;
 
 	Com_Memset( s_skyTexCoords, 0, sizeof( s_skyTexCoords ) );
 
-	for (i=0 ; i<6 ; i++)
+	for(int i=0; i<6; ++i)
 	{
 		int sky_mins_subd[2], sky_maxs_subd[2];
-		int s, t;
 
 		sky_mins[0][i] = floor( sky_mins[0][i] * HALF_SKY_SUBDIVISIONS ) / HALF_SKY_SUBDIVISIONS;
 		sky_mins[1][i] = floor( sky_mins[1][i] * HALF_SKY_SUBDIVISIONS ) / HALF_SKY_SUBDIVISIONS;
@@ -434,9 +432,9 @@ static void DrawSkyBox( shader_t *shader )
 		//
 		// iterate through the subdivisions
 		//
-		for ( t = sky_mins_subd[1]+HALF_SKY_SUBDIVISIONS; t <= sky_maxs_subd[1]+HALF_SKY_SUBDIVISIONS; t++ )
+		for (int t = sky_mins_subd[1]+HALF_SKY_SUBDIVISIONS; t <= sky_maxs_subd[1]+HALF_SKY_SUBDIVISIONS; ++t )
 		{
-			for ( s = sky_mins_subd[0]+HALF_SKY_SUBDIVISIONS; s <= sky_maxs_subd[0]+HALF_SKY_SUBDIVISIONS; s++ )
+			for (int s = sky_mins_subd[0]+HALF_SKY_SUBDIVISIONS; s <= sky_maxs_subd[0]+HALF_SKY_SUBDIVISIONS; ++s )
 			{
 				MakeSkyVec( ( s - HALF_SKY_SUBDIVISIONS ) / ( float ) HALF_SKY_SUBDIVISIONS, 
 							( t - HALF_SKY_SUBDIVISIONS ) / ( float ) HALF_SKY_SUBDIVISIONS, 
@@ -459,9 +457,9 @@ static void DrawSkyBox( shader_t *shader )
 			tess.numVertexes = 0;
 			tess.numIndexes = 0;
 
-			for ( t = sky_mins_subd[1]+HALF_SKY_SUBDIVISIONS; t < sky_maxs_subd[1]+HALF_SKY_SUBDIVISIONS; t++ )
+			for (int t = sky_mins_subd[1]+HALF_SKY_SUBDIVISIONS; t < sky_maxs_subd[1]+HALF_SKY_SUBDIVISIONS; ++t )
 			{
-				for ( s = sky_mins_subd[0]+HALF_SKY_SUBDIVISIONS; s < sky_maxs_subd[0]+HALF_SKY_SUBDIVISIONS; s++ )
+				for (int s = sky_mins_subd[0]+HALF_SKY_SUBDIVISIONS; s < sky_maxs_subd[0]+HALF_SKY_SUBDIVISIONS; ++s )
 				{
 					int ndx = tess.numVertexes;
 
@@ -497,7 +495,8 @@ static void DrawSkyBox( shader_t *shader )
 			Com_Memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
 
 			dx_bind_geometry();
-			dx_shade_geometry(dx.skybox_pipeline, false, r_showsky->integer ? DX_Depth_Range::force_zero : DX_Depth_Range::force_one, true, false);
+			dx_shade_geometry(dx.skybox_pipeline, false, 
+				r_showsky->integer ? DX_Depth_Range::force_zero : DX_Depth_Range::force_one, true, false);
 		}
 	}
 
@@ -708,7 +707,8 @@ All of the visible sky triangles are in tess
 Other things could be stuck in here, like birds in the sky, etc
 ================
 */
-void RB_StageIteratorSky( void ) {
+void RB_StageIteratorSky( void )
+{
 	// go through all the polygons and project them onto
 	// the sky box to see which blocks on each side need
 	// to be drawn
@@ -724,9 +724,11 @@ void RB_StageIteratorSky( void ) {
 	}
 
 	// draw the outer skybox
-	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
+	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage )
+	{
         float modelMatrix_original[16];
 
+		Com_Memcpy(modelMatrix_original, dx_world.modelview_transform, sizeof(float[16]));
 
         float skybox_translate[16] = {
             1, 0, 0, 0,
@@ -740,6 +742,7 @@ void RB_StageIteratorSky( void ) {
 		GL_State( 0 );
         qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
         qglPushMatrix ();
+		qglLoadMatrixf(dx_world.modelview_transform);
 
 		DrawSkyBox( tess.shader );
 		qglPopMatrix();

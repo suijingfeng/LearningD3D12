@@ -1503,7 +1503,8 @@ void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, vec4_t col
 	}
 }
 
-void dx_bind_geometry() {
+void dx_bind_geometry()
+{
 	// xyz stream
 	{
 		if ((dx.xyz_elements + tess.numVertexes) * sizeof(vec4_t) > XYZ_SIZE)
@@ -1550,12 +1551,14 @@ void dx_bind_geometry() {
 	get_mvp_transform(root_constants);
 	int root_constant_count = 16;
 
-	if (backEnd.viewParms.isPortal) {
+	if (backEnd.viewParms.isPortal)
+	{
 		// Eye space transform.
 		// NOTE: backEnd.or.modelMatrix incorporates s_flipMatrix, so it should be taken into account 
 		// when computing clipping plane too.
 		float* eye_xform = root_constants + 16;
-		for (int i = 0; i < 12; i++) {
+		for (int i = 0; i < 12; ++i)
+		{
 			eye_xform[i] = backEnd.or.modelMatrix[(i%4)*4 + i/4 ];
 		}
 
@@ -1580,8 +1583,10 @@ void dx_bind_geometry() {
 
 		root_constant_count += 16;
 	}
+
 	dx.command_list->SetGraphicsRoot32BitConstants(0, root_constant_count, root_constants, 0);
 }
+
 
 void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Depth_Range depth_range, bool indexed, bool lines)
 {
@@ -1675,12 +1680,11 @@ void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Dept
 		dx.command_list->DrawInstanced(tess.numVertexes, 1, 0, 0);
 }
 
+
 void dx_begin_frame()
 {
-	if (!dx.active)
-		return;
-
-	if (dx.fence->GetCompletedValue() < dx.fence_value) {
+	if (dx.fence->GetCompletedValue() < dx.fence_value)
+	{
 		DX_CHECK(dx.fence->SetEventOnCompletion(dx.fence_value, dx.fence_event));
 		WaitForSingleObject(dx.fence_event, INFINITE);
 	}
@@ -1714,9 +1718,6 @@ void dx_begin_frame()
 
 void dx_end_frame()
 {
-	if (!dx.active)
-		return;
-
 	dx.command_list->ResourceBarrier(1, &get_transition_barrier(dx.render_targets[dx.frame_index],
 		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 

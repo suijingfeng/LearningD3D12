@@ -981,6 +981,7 @@ void R_Init( void )
 	Com_Memset( &tr, 0, sizeof( tr ) );
 	Com_Memset( &backEnd, 0, sizeof( backEnd ) );
 	Com_Memset( &tess, 0, sizeof( tess ) );
+	Com_Memset( &dx_world, 0, sizeof(struct Dx_World));
 
 
 	if ( (intptr_t)tess.xyz & 15 ) {

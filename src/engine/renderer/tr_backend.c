@@ -539,7 +539,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 		if (shader != oldShader || fogNum != oldFogNum || dlighted != oldDlighted 
 			|| ( entityNum != oldEntityNum && !shader->entityMergable ) ) {
 			if (oldShader != NULL) {
-				RB_EndSurface();
+				RB_EndSurface(&tess);
 			}
 			RB_BeginSurface( shader, fogNum );
 			oldShader = shader;
@@ -612,7 +612,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 	// draw the contents of the last shader batch
 	if (oldShader != NULL) {
-		RB_EndSurface();
+		RB_EndSurface(&tess);
 	}
 
 	// go back to the world modelview matrix
@@ -789,7 +789,7 @@ const void *RB_StretchPic ( const void *data ) {
 	shader = cmd->shader;
 	if ( shader != tess.shader ) {
 		if ( tess.numIndexes ) {
-			RB_EndSurface();
+			RB_EndSurface(&tess);
 		}
 		backEnd.currentEntity = &backEnd.entity2D;
 		RB_BeginSurface( shader, 0 );
@@ -852,12 +852,13 @@ RB_DrawSurfs
 
 =============
 */
-const void	*RB_DrawSurfs( const void *data ) {
+const void* RB_DrawSurfs( const void *data )
+{
 	const drawSurfsCommand_t	*cmd;
 
 	// finish any 2D drawing if needed
 	if ( tess.numIndexes ) {
-		RB_EndSurface();
+		RB_EndSurface(&tess);
 	}
 
 	cmd = (const drawSurfsCommand_t *)data;
@@ -877,19 +878,21 @@ RB_DrawBuffer
 
 =============
 */
-const void	*RB_DrawBuffer( const void *data ) {
-	const drawBufferCommand_t	*cmd;
-
-	cmd = (const drawBufferCommand_t *)data;
+const void * RB_DrawBuffer( const void *data )
+{
+	const drawBufferCommand_t * cmd = (const drawBufferCommand_t *)data;
 
 	qglDrawBuffer( cmd->buffer );
 
 
 	// DX12
-	dx_begin_frame();
+	if (dx.active) {
+		dx_begin_frame();
+	}
 
 	// clear screen for debugging
-	if ( r_clear->integer ) {
+	if ( r_clear->integer )
+	{
 		float color[4] = {1, 0, 0.5, 1};
 
 		qglClearColor( color[0], color[1], color[2], color[3] );
@@ -923,9 +926,6 @@ void RB_ShowImages( void )
 	image_t	*image;
 	float	x, y, w, h;
 	int		start, end;
-
-	if (!gl_active)
-		return;
 
 	if ( !backEnd.projection2D ) {
 		RB_SetGL2D();
@@ -976,10 +976,6 @@ void RB_ShowImages( void )
 // DX12
 void RB_Show_Vk_Dx_Images()
 {
-	if ( !dx.active)
-	{
-		return;
-	}
 
 	if ( !backEnd.projection2D ) {
 		RB_SetGL2D();
@@ -991,7 +987,8 @@ void RB_Show_Vk_Dx_Images()
 	dx_clear_attachments(false, true, black);
 
 
-	for (int i = 0 ; i < tr.numImages ; i++) {
+	for (int i = 0 ; i < tr.numImages ; ++i)
+	{
 		auto image = tr.images[i];
 
 		float w = glConfig.vidWidth / 20;
@@ -1056,22 +1053,28 @@ RB_SwapBuffers
 
 =============
 */
-const void	*RB_SwapBuffers( const void *data ) {
-	const swapBuffersCommand_t	*cmd;
-
+const void* RB_SwapBuffers( const void *data )
+{
 	// finish any 2D drawing if needed
 	if ( tess.numIndexes ) {
-		RB_EndSurface();
+		RB_EndSurface(&tess);
 	}
 
 	// texture swapping test
 	if ( r_showImages->integer )
 	{
-		RB_ShowImages();
-		RB_Show_Vk_Dx_Images();
+		if (gl_active)
+		{
+			RB_ShowImages();
+		}
+
+		if (dx.active)
+		{
+			RB_Show_Vk_Dx_Images();
+		}
 	}
 
-	cmd = (const swapBuffersCommand_t *)data;
+	const swapBuffersCommand_t* cmd = (const swapBuffersCommand_t *)data;
 
 	GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
 
@@ -1079,9 +1082,11 @@ const void	*RB_SwapBuffers( const void *data ) {
 
 	backEnd.projection2D = qfalse;
 
-
 	// DX12
-	dx_end_frame();
+	if (dx.active)
+	{
+		dx_end_frame();
+	}
 
 	return (const void *)(cmd + 1);
 }
@@ -1094,10 +1099,10 @@ This function will be called synchronously if running without
 smp extensions, or asynchronously by another thread.
 ====================
 */
-void RB_ExecuteRenderCommands( const void *data ) {
-	int		t1, t2;
+void RB_ExecuteRenderCommands( const void *data )
+{
 
-	t1 = ri.Milliseconds ();
+	int t1 = ri.Milliseconds();
 
 	if ( !r_smp->integer || data == backEndData[0]->commands.cmds ) {
 		backEnd.smpFrame = 0;
@@ -1108,8 +1113,10 @@ void RB_ExecuteRenderCommands( const void *data ) {
 	bool begin_frame_called = false;
 	bool end_frame_called = false;
 
-	while ( 1 ) {
-		switch ( *(const int *)data ) {
+	while ( 1 )
+	{
+		switch ( *(const int *)data )
+		{
 		case RC_SET_COLOR:
 			data = RB_SetColor( data );
 			break;
@@ -1134,8 +1141,7 @@ void RB_ExecuteRenderCommands( const void *data ) {
 		case RC_END_OF_LIST:
 		default:
 			// stop rendering on this thread
-			t2 = ri.Milliseconds ();
-			backEnd.pc.msec = t2 - t1;
+			backEnd.pc.msec = ri.Milliseconds() - t1;
 
 			// DX12
 			if (com_errorEntered && (begin_frame_called && !end_frame_called))

@@ -959,15 +959,13 @@ void RB_StageIteratorGeneric( void )
 /*
 ** RB_EndSurface
 */
-void RB_EndSurface( void ) {
-	shaderCommands_t *input;
-
-	input = &tess;
+void RB_EndSurface(shaderCommands_t * const input)
+{
 
 	if (input->numIndexes == 0) {
 		return;
 	}
-	if (tess.shader->isSky && r_fastsky->integer) {
+	if (input->shader->isSky && r_fastsky->integer) {
 		return;
 	}
 
@@ -978,7 +976,7 @@ void RB_EndSurface( void ) {
 		ri.Error (ERR_DROP, "RB_EndSurface() - SHADER_MAX_VERTEXES hit");
 	}
 
-	if ( tess.shader == tr.shadowShader ) {
+	if (input->shader == tr.shadowShader ) {
 		RB_ShadowTessEnd();
 		return;
 	}
@@ -999,7 +997,7 @@ void RB_EndSurface( void ) {
 	//
 	// call off to shader specific tess end function
 	//
-	if (tess.shader->isSky)
+	if (input->shader->isSky)
 		RB_StageIteratorSky();
 	else
 		RB_StageIteratorGeneric();
@@ -1014,9 +1012,9 @@ void RB_EndSurface( void ) {
 		DrawNormals (input);
 	}
 	// clear shader so we can tell we don't have any unclosed surfaces
-	tess.numIndexes = 0;
-    tess.numVertexes = 0;
+	input->numIndexes = 0;
+	input->numVertexes = 0;
 
-	GLimp_LogComment( "----------\n" );
+	GLimp_LogComment( "----- RB_EndSurface -----\n" );
 }
 
