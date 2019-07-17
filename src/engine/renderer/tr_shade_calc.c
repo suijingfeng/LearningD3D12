@@ -1016,20 +1016,6 @@ void RB_CalcRotateTexCoords( float degsPerSecond, float *st )
 
 
 
-
-
-
-#if id386 && !( (defined __linux__ || defined __FreeBSD__ ) && (defined __i386__ ) ) // rb010123
-
-long myftol( float f ) {
-	static int tmp;
-	__asm fld f
-	__asm fistp tmp
-	__asm mov eax, tmp
-}
-
-#endif
-
 /*
 ** RB_CalcSpecularAlpha
 **
@@ -1037,7 +1023,8 @@ long myftol( float f ) {
 */
 vec3_t lightOrigin = { -960, 1980, 96 };		// FIXME: track dynamically
 
-void RB_CalcSpecularAlpha( unsigned char *alphas ) {
+void RB_CalcSpecularAlpha( unsigned char *alphas )
+{
 	int			i;
 	float		*v, *normal;
 	vec3_t		viewer,  reflected;
@@ -1052,7 +1039,8 @@ void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 	alphas += 3;
 
 	numVertexes = tess.numVertexes;
-	for (i = 0 ; i < numVertexes ; i++, v += 4, normal += 4, alphas += 4) {
+	for (i = 0 ; i < numVertexes ; i++, v += 4, normal += 4, alphas += 4)
+	{
 		float ilength;
 
 		VectorSubtract( lightOrigin, v, lightDir );

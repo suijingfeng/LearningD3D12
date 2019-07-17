@@ -184,7 +184,6 @@ struct Dx_World
 	int num_pipelines = 0;
 	DX_Pipeline_Def pipeline_defs[MAX_VK_PIPELINES];
 	ID3D12PipelineState* pipelines[MAX_VK_PIPELINES];
-	float pipeline_create_time;
 
 	Dx_Image images[MAX_VK_IMAGES];
 

@@ -1,7 +1,6 @@
 #include "tr_local.h"
 #include "../../engine/platform/win_local.h"
 
-#include <chrono>
 #include <functional>
 
 
@@ -721,10 +720,10 @@ void dx_shutdown()
 	Com_Memset(&dx, 0, sizeof(dx));
 }
 
-void dx_release_resources() {
+void dx_release_resources()
+{
 	dx_wait_device_idle();
 
-	dx_world.pipeline_create_time = 0.0f;
 	for (int i = 0; i < dx_world.num_pipelines; ++i)
 	{
 		dx_world.pipelines[i]->Release();
@@ -1279,17 +1278,7 @@ static ID3D12PipelineState* create_pipeline(const DX_Pipeline_Def& def)
 	return pipeline;
 }
 
-struct Timer {
-	using Clock = std::chrono::high_resolution_clock;
-	using Second = std::chrono::duration<double, std::ratio<1>>;
 
-	Clock::time_point start = Clock::now();
-	double elapsed_seconds() const {
-		const auto duration = Clock::now() - start;
-		double seconds = std::chrono::duration_cast<Second>(duration).count();
-		return seconds;
-	}
-};
 
 void dx_create_sampler_descriptor(const DX_Sampler_Def& def, Dx_Sampler_Index sampler_index)
 {
@@ -1351,6 +1340,7 @@ void dx_create_sampler_descriptor(const DX_Sampler_Def& def, Dx_Sampler_Index sa
 	dx.device->CreateSampler(&sampler_desc, sampler_handle);
 }
 
+
 ID3D12PipelineState* dx_find_pipeline(const DX_Pipeline_Def& def)
 {
 	for (int i = 0; i < dx_world.num_pipelines; i++) {
@@ -1373,9 +1363,8 @@ ID3D12PipelineState* dx_find_pipeline(const DX_Pipeline_Def& def)
 		ri.Error(ERR_DROP, "dx_find_pipeline: MAX_VK_PIPELINES hit\n");
 	}
 
-	Timer t;
+
 	ID3D12PipelineState* pipeline = create_pipeline(def);
-	dx_world.pipeline_create_time += t.elapsed_seconds();
 
 	dx_world.pipeline_defs[dx_world.num_pipelines] = def;
 	dx_world.pipelines[dx_world.num_pipelines] = pipeline;
@@ -1462,7 +1451,8 @@ static D3D12_VIEWPORT get_viewport(DX_Depth_Range depth_range)
 	return viewport;
 }
 
-static D3D12_RECT get_scissor_rect() {
+static D3D12_RECT get_scissor_rect()
+{
 	D3D12_RECT r = get_viewport_rect();
 
 	if (r.left < 0)
@@ -1478,10 +1468,8 @@ static D3D12_RECT get_scissor_rect() {
 	return r;
 }
 
-void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, vec4_t color) {
-	if (!dx.active)
-		return;
-
+void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, vec4_t color)
+{
 	if (!clear_depth_stencil && !clear_color)
 		return;
 
@@ -1588,7 +1576,8 @@ void dx_bind_geometry()
 }
 
 
-void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Depth_Range depth_range, bool indexed, bool lines)
+void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, 
+	DX_Depth_Range depth_range, bool indexed, bool lines)
 {
 	// color
 	{
@@ -1726,7 +1715,7 @@ void dx_end_frame()
 	ID3D12CommandList* command_list = dx.command_list;
 	dx.command_queue->ExecuteCommandLists(1, &command_list);
 
-	dx.fence_value++;
+	++dx.fence_value;
 	DX_CHECK(dx.command_queue->Signal(dx.fence, dx.fence_value));
 
 	DX_CHECK(dx.swapchain->Present(0, 0));

@@ -385,12 +385,13 @@ static void RB_Hyperspace( void )
 	qglClearColor( c, c, c, 1 );
 	qglClear( GL_COLOR_BUFFER_BIT );
 
-	float color[4] = { c, c, c, 1 };
-
 
 	// DX12
-	dx_clear_attachments(false, true, color);
-
+	if( dx.active )
+	{
+		float color[4] = { c, c, c, 1 };
+		dx_clear_attachments(false, true, color);
+	}
 	backEnd.isHyperspace = qtrue;
 }
 
@@ -449,7 +450,10 @@ void RB_BeginDrawingView (void)
 
 
 	// DX12
-	dx_clear_attachments(true, fast_sky, fast_sky_color);
+	if( dx.active )
+	{
+		dx_clear_attachments(true, fast_sky, fast_sky_color);
+	}
 
 	if ( ( backEnd.refdef.rdflags & RDF_HYPERSPACE ) )
 	{
@@ -898,9 +902,8 @@ const void * RB_DrawBuffer( const void *data )
 		qglClearColor( color[0], color[1], color[2], color[3] );
 		qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-		// VULKAN
 		// DX12
-		if ( dx.active)
+		if( dx.active )
 		{
 			RB_SetGL2D(); // to ensure we have viewport that occupies entire window
 			dx_clear_attachments(false, true, color);
@@ -981,11 +984,11 @@ void RB_Show_Vk_Dx_Images()
 		RB_SetGL2D();
 	}
 
-	float black[4] = {0, 0, 0, 1};
-
-
-	dx_clear_attachments(false, true, black);
-
+	if( dx.active )
+	{
+		float black[4] = { 0, 0, 0, 1 };
+		dx_clear_attachments(false, true, black);
+	}
 
 	for (int i = 0 ; i < tr.numImages ; ++i)
 	{

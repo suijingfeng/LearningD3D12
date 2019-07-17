@@ -232,3 +232,14 @@ static HWND create_twin_window(int width, int height, RenderApi render_api)
     ri.Printf(PRINT_ALL, "...created twin window@%d,%d (%dx%d)\n", x, y, w, h);
     return hwnd;
 }
+
+#if id386 && !( (defined __linux__ || defined __FreeBSD__ ) && (defined __i386__ ) ) // rb010123
+
+long myftol( float f ) {
+	static int tmp;
+	__asm fld f
+	__asm fistp tmp
+	__asm mov eax, tmp
+}
+
+#endif

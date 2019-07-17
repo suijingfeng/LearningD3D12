@@ -971,33 +971,28 @@ void	Sys_StreamSeek( fileHandle_t f, int offset, int origin );
 
 
 
-void	Sys_SendPacket( int length, const void *data, netadr_t to );
+void Sys_SendPacket( int length, const void *data, netadr_t to );
 
-qboolean	Sys_StringToAdr( const char *s, netadr_t *a );
+qboolean Sys_StringToAdr( const char *s, netadr_t *a );
 //Does NOT parse port numbers, only base addresses.
 
-qboolean	Sys_IsLANAddress (netadr_t adr);
-void		Sys_ShowIP(void);
+qboolean Sys_IsLANAddress (netadr_t adr);
+void Sys_ShowIP(void);
 
-void	Sys_Mkdir( const char *path );
-char	*Sys_Cwd( void );
-void	Sys_SetDefaultCDPath(const char *path);
-char	*Sys_DefaultCDPath(void);
-void	Sys_SetDefaultInstallPath(const char *path);
-char	*Sys_DefaultInstallPath(void);
-void  Sys_SetDefaultHomePath(const char *path);
-char	*Sys_DefaultHomePath(void);
+void Sys_Mkdir( const char *path );
+char * Sys_Cwd( void );
 
-char **Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs );
+char * Sys_DefaultCDPath(void);
+char * Sys_DefaultInstallPath(void);
+char * Sys_DefaultHomePath(void);
+
+char ** Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs );
 void	Sys_FreeFileList( char **list );
 
-void	Sys_BeginProfiling( void );
-void	Sys_EndProfiling( void );
 
 qboolean Sys_LowPhysicalMemory();
-unsigned int Sys_ProcessorCount();
 
-int Sys_MonkeyShouldBeSpanked( void );
+
 
 /* This is based on the Adaptive Huffman algorithm described in Sayood's Data
  * Compression book.  The ranks are not actually stored, but implicitly defined

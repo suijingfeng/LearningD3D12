@@ -47,10 +47,9 @@ static	int			facing[SHADER_MAX_INDEXES/3];
 static vec4_t		extrudedEdges[SHADER_MAX_VERTEXES * 4];
 static int			numExtrudedEdges;
 
-static void R_AddEdgeDef( int i1, int i2, int facing ) {
-	int		c;
-
-	c = numEdgeDefs[ i1 ];
+static void R_AddEdgeDef( int i1, int i2, int facing )
+{
+	int	c = numEdgeDefs[ i1 ];
 	if ( c == MAX_EDGE_DEFS ) {
 		return;		// overflow
 	}
@@ -60,7 +59,8 @@ static void R_AddEdgeDef( int i1, int i2, int facing ) {
 	numEdgeDefs[ i1 ]++;
 }
 
-static void R_ExtrudeShadowEdges( void ) {
+static void R_ExtrudeShadowEdges( void )
+{
 	int		i;
 	int		c, c2;
 	int		j, k;
@@ -72,7 +72,8 @@ static void R_ExtrudeShadowEdges( void ) {
 	// or if it has a reverse paired edge that also faces the light.
 	// A well behaved polyhedron would have exactly two faces for each edge,
 	// but lots of models have dangling edges or overfanned edges
-	for ( i = 0 ; i < tess.numVertexes ; i++ ) {
+	for ( i = 0 ; i < tess.numVertexes ; i++ )
+	{
 		c = numEdgeDefs[ i ];
 		for ( j = 0 ; j < c ; j++ ) {
 			if ( !edgeDefs[ i ][ j ].facing ) {
@@ -102,9 +103,11 @@ static void R_ExtrudeShadowEdges( void ) {
 	}
 }
 
-static void R_GL_RenderShadowEdges() {
+static void R_GL_RenderShadowEdges()
+{
 	qglBegin( GL_QUADS);
-	for (int i = 0; i < numExtrudedEdges; i++) {
+	for (int i = 0; i < numExtrudedEdges; ++i)
+	{
 		qglVertex3fv(extrudedEdges[i*4 + 0]);
 		qglVertex3fv(extrudedEdges[i*4 + 1]);
 		qglVertex3fv(extrudedEdges[i*4 + 3]);
@@ -113,13 +116,10 @@ static void R_GL_RenderShadowEdges() {
 	qglEnd();
 }
 
-// VULKAN
+
 // DX12
 static void R_Vk_Dx_RenderShadowEdges( ID3D12PipelineState* dx_pipeline)
 {
-	if (!dx.active)
-		return;
-
 	int i = 0;
 	while (i < numExtrudedEdges) {
 		int count = numExtrudedEdges - i;
@@ -166,10 +166,8 @@ triangleFromEdge[ v1 ][ v2 ]
   }
 =================
 */
-void RB_ShadowTessEnd( void ) {
-	int		i;
-	int		numTris;
-	vec3_t	lightDir;
+void RB_ShadowTessEnd( void )
+{
 
 	// we can only do this if we have enough space in the vertex buffers
 	if ( tess.numVertexes >= SHADER_MAX_VERTEXES / 2 ) {
@@ -180,18 +178,21 @@ void RB_ShadowTessEnd( void ) {
 		return;
 	}
 
+	vec3_t lightDir;
 	VectorCopy( backEnd.currentEntity->lightDir, lightDir );
 
 	// project vertexes away from light direction
-	for ( i = 0 ; i < tess.numVertexes ; i++ ) {
+	for (int i = 0 ; i < tess.numVertexes ; ++i )
+	{
 		VectorMA( tess.xyz[i], -512, lightDir, tess.xyz[i+tess.numVertexes] );
 	}
 
 	// decide which triangles face the light
 	Com_Memset( numEdgeDefs, 0, 4 * tess.numVertexes );
 
-	numTris = tess.numIndexes / 3;
-	for ( i = 0 ; i < numTris ; i++ ) {
+	int numTris = tess.numIndexes / 3;
+	for (int i = 0 ; i < numTris ; ++i )
+	{
 		int		i1, i2, i3;
 		vec3_t	d1, d2, normal;
 		float	*v1, *v2, *v3;
@@ -238,7 +239,8 @@ void RB_ShadowTessEnd( void ) {
 	R_ExtrudeShadowEdges();
 
 	// mirrors have the culling order reversed
-	if ( backEnd.viewParms.isMirror ) {
+	if ( backEnd.viewParms.isMirror )
+	{
 		qglCullFace( GL_FRONT );
 		qglStencilOp( GL_KEEP, GL_KEEP, GL_INCR );
 		R_GL_RenderShadowEdges();
@@ -249,9 +251,14 @@ void RB_ShadowTessEnd( void ) {
 
 
 		// DX12
-		R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[0][1]);
-		R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[1][1]);
-	} else {
+		if (dx.active)
+		{
+			R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[0][1]);
+			R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[1][1]);
+		}
+	}
+	else
+	{
 		qglCullFace( GL_BACK );
 		qglStencilOp( GL_KEEP, GL_KEEP, GL_INCR );
 		R_GL_RenderShadowEdges();
@@ -260,10 +267,12 @@ void RB_ShadowTessEnd( void ) {
 		qglStencilOp( GL_KEEP, GL_KEEP, GL_DECR );
 		R_GL_RenderShadowEdges();
 
-
 		// DX12
-		R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[0][0]);
-		R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[1][0]);
+		if (dx.active)
+		{
+			R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[0][0]);
+			R_Vk_Dx_RenderShadowEdges(dx.shadow_volume_pipelines[1][0]);
+		}
 	}
 
 	qglDisable(GL_STENCIL_TEST);

@@ -1120,13 +1120,6 @@ Touch all images to make sure they are resident
 void RE_EndRegistration( void )
 {
 	R_SyncRenderThread();
-
-	// DX12
-	if (dx.active)
-	{
-		ri.Printf(PRINT_ALL, "DX12: pipelines create time %d msec\n", 
-			(int)(dx_world.pipeline_create_time * 1000));
-	}
 }
 
 

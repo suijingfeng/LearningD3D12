@@ -280,7 +280,7 @@ Perform dynamic lighting with another rendering pass
 ===================
 */
 static void ProjectDlightTexture( void ) {
-	int		i, l;
+	int		i;
 	vec3_t	origin;
 	float	*texCoords;
 	byte	*colors;
@@ -296,8 +296,8 @@ static void ProjectDlightTexture( void ) {
 		return;
 	}
 
-	for ( l = 0 ; l < backEnd.refdef.num_dlights ; l++ ) {
-		dlight_t	*dl;
+	for (int l = 0 ; l < backEnd.refdef.num_dlights ; ++l )
+	{
 
 		if ( !( tess.dlightBits & ( 1 << l ) ) ) {
 			continue;	// this surface definately doesn't have any of this light
@@ -305,7 +305,7 @@ static void ProjectDlightTexture( void ) {
 		texCoords = tess.svars.texcoords[0][0];
 		colors = tess.svars.colors[0];
 
-		dl = &backEnd.refdef.dlights[l];
+		dlight_t* const dl = &backEnd.refdef.dlights[l];
 		VectorCopy( dl->transformed, origin );
         radius = dl->radius;
 		scale = 1.0f / radius;

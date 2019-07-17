@@ -907,7 +907,6 @@ void CL_FirstSnapshot( void ) {
 		Cvar_Set( "activeAction", "" );
 	}
 	
-	Sys_BeginProfiling();
 }
 
 /*

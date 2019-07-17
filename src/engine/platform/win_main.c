@@ -127,14 +127,6 @@ qboolean Sys_LowPhysicalMemory()
 	return (stat.ullTotalPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
 }
 
-/*
-==================
-Sys_BeginProfiling
-==================
-*/
-void Sys_BeginProfiling( void ) {
-	// this is just used on the mac build
-}
 
 /*
 =============
@@ -771,7 +763,8 @@ Sys_StreamedRead
 
 ================
 */
-int Sys_StreamedRead( void *buffer, int size, int count, fileHandle_t f ) {
+int Sys_StreamedRead( void *buffer, int size, int count, fileHandle_t f )
+{
 	int		available;
 	int		remaining;
 	int		sleepCount;
