@@ -26,6 +26,9 @@ struct DX_Sampler_Def {
 	int gl_min_filter = 0; // GL_XXX min filter
 };
 
+constexpr int MAX_VK_IMAGES = 2048; // should be the same as MAX_DRAWIMAGES
+constexpr int MAX_VK_PIPELINES = 1024;
+constexpr int SWAPCHAIN_BUFFER_COUNT = 2;
 
 struct DX_Pipeline_Def {
 	DX_Shader_Type shader_type = DX_Shader_Type::single_texture;
@@ -49,7 +52,7 @@ struct ID3D12Resource;
 struct ID3D12RootSignature;
 struct IDXGISwapChain3;
 
-constexpr int SWAPCHAIN_BUFFER_COUNT = 2;
+
 
 enum Dx_Sampler_Index {
 	SAMPLER_MIP_REPEAT,
@@ -172,8 +175,7 @@ struct Dx_Instance {
 };
 
 
-const int MAX_VK_IMAGES = 2048; // should be the same as MAX_DRAWIMAGES
-const int MAX_VK_PIPELINES = 1024;
+
 
 
 struct Dx_World

@@ -942,7 +942,6 @@ extern Dx_World		dx_world;		// this data is cleared during ref re-init
 
 enum RenderApi {
 	RENDER_API_GL,
-	RENDER_API_VK,
 	RENDER_API_DX
 };
 
@@ -951,9 +950,6 @@ RenderApi get_render_api();
 //
 // cvars
 //
-extern cvar_t	*r_renderAPI;			// 3D API to use: 0 - OpenGL, 1 - Vulkan, 2 - DX12
-
-extern cvar_t	*r_twinMode;			// Debug feature to compare rendering output between OpenGL/Vulkan/DX12 APIs
 
 extern cvar_t	*r_railWidth;
 extern cvar_t	*r_railCoreWidth;
@@ -1033,8 +1029,7 @@ extern	cvar_t	*r_portalOnly;
 
 extern	cvar_t	*r_subdivisions;
 extern	cvar_t	*r_lodCurveError;
-extern	cvar_t	*r_smp;
-extern	cvar_t	*r_showSmp;
+
 extern	cvar_t	*r_skipBackEnd;
 
 extern	cvar_t	*r_ignoreGLErrors;
@@ -1156,6 +1151,7 @@ void	R_SkinList_f( void );
 // https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=516
 const void *RB_TakeScreenshotCmd( const void *data );
 void	R_ScreenShot_f( void );
+void	R_ScreenShotJPEG_f(void);
 
 void	R_InitFogTable( void );
 float	R_FogFactor( float s, float t );
@@ -1192,7 +1188,7 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 void		GLimp_Init( void );
 void		GLimp_Shutdown( void );
 void		GLimp_EndFrame( void );
-void		GLimp_LogComment( char *comment );
+void		GLimp_LogComment( char * const pComment );
 
 qboolean	GLimp_SpawnRenderThread( void (*function)( void ) );
 void		*GLimp_RendererSleep( void );

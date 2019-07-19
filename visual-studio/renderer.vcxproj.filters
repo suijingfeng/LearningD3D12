@@ -140,6 +140,9 @@
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\single_texture_lt80_ps.cpp">
       <Filter>Source Files\hlsl_compiled</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\engine\renderer\tr_screenshot.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\engine\qcommon\cm_public.h">

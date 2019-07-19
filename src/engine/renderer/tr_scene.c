@@ -42,16 +42,12 @@ R_ToggleSmpFrame
 
 ====================
 */
-void R_ToggleSmpFrame( void ) {
-	if ( r_smp->integer ) {
-		// use the other buffers next frame, because another CPU
-		// may still be rendering into the current ones
-		tr.smpFrame ^= 1;
-	} else {
-		tr.smpFrame = 0;
-	}
+void R_ToggleSmpFrame( void )
+{
 
-	backEndData[tr.smpFrame]->commands.used = 0;
+	tr.smpFrame = 0;
+
+	backEndData[0]->commands.used = 0;
 
 	r_firstSceneDrawSurf = 0;
 

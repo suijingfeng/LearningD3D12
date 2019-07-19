@@ -42,7 +42,6 @@ typedef struct
 	HWND			hWnd; // main window, refers to one of the hWnd_XXX listed below
 
     HWND            hWnd_opengl;
-    HWND            hWnd_vulkan;
 	HWND			hWnd_dx;
 
 	HINSTANCE		hInstance;

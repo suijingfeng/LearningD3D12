@@ -1104,14 +1104,9 @@ smp extensions, or asynchronously by another thread.
 */
 void RB_ExecuteRenderCommands( const void *data )
 {
-
 	int t1 = ri.Milliseconds();
 
-	if ( !r_smp->integer || data == backEndData[0]->commands.cmds ) {
-		backEnd.smpFrame = 0;
-	} else {
-		backEnd.smpFrame = 1;
-	}
+	backEnd.smpFrame = 0;
 
 	bool begin_frame_called = false;
 	bool end_frame_called = false;

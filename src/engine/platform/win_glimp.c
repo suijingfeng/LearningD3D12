@@ -32,19 +32,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ** GLimp_Shutdown
 **
 */
+#include <stdio.h>
 
 #include "../renderer/tr_local.h"
 #include "resource.h"
-
-#include <stdio.h>
-
 #include "win_local.h"
 
 #define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
-
 #define	TWIN_WINDOW_CLASS_NAME	"OpenArena [Twin]"
 
-extern	refimport_t	ri;
+extern refimport_t ri;
 
 static bool s_main_window_class_registered = false;
 static bool s_twin_window_class_registered = false;
@@ -223,7 +220,9 @@ static int GLW_ChoosePixelFormat(HDC hDC, const PIXELFORMATDESCRIPTOR *pPFD)
 	return bestMatch;
 }
 
-static bool GLW_SetPixelFormat(HDC hdc, PIXELFORMATDESCRIPTOR *pPFD, int colorbits, int depthbits, int stencilbits, qboolean stereo)
+
+static bool GLW_SetPixelFormat(HDC hdc, PIXELFORMATDESCRIPTOR *pPFD, 
+	int colorbits, int depthbits, int stencilbits, qboolean stereo )
 {
     const PIXELFORMATDESCRIPTOR pfd_base =
     {
@@ -341,6 +340,7 @@ static qboolean GLW_InitDriver(HWND hwnd)
 	return qtrue;
 }
 
+
 static HWND create_main_window(int width, int height, qboolean fullscreen)
 {
 	//
@@ -369,7 +369,7 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 
 		if ( !RegisterClass( &wc ) )
 		{
-			ri.Error( ERR_FATAL, "create_main_window: could not register window class" );
+			ri.Error( ERR_FATAL, "create main window: could not register window class" );
 		}
 		s_main_window_class_registered = true;
 		ri.Printf( PRINT_ALL, "...registered window class\n" );
@@ -387,7 +387,7 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
     int	stylebits;
 	if ( fullscreen )
 	{
-		stylebits = WS_POPUP|WS_VISIBLE|WS_SYSMENU;
+		stylebits = WS_POPUP | WS_VISIBLE | WS_SYSMENU;
 	}
 	else
 	{
@@ -431,24 +431,11 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 		}
 	}
 
-	char window_name[1024];
-	if (r_twinMode->integer == 0) {
-		strcpy(window_name, MAIN_WINDOW_CLASS_NAME);
-	}
-	else
-	{
-		const char* api_name = "invalid-render-api";
-		if (get_render_api() == RENDER_API_GL)
-			api_name = "OpenGL";
-		else if (get_render_api() == RENDER_API_DX)
-			api_name = "DX12";
-		sprintf(window_name, "%s [%s]", MAIN_WINDOW_CLASS_NAME, api_name);
-	}
 
 	HWND hwnd = CreateWindowEx(
 			0, 
 			MAIN_WINDOW_CLASS_NAME,
-			window_name,
+			MAIN_WINDOW_CLASS_NAME,
 			stylebits,
 			x, y, w, h,
 			NULL,
@@ -458,12 +445,12 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 
 	if (!hwnd)
 	{
-		ri.Error (ERR_FATAL, "create_main_window() - Couldn't create window");
+		ri.Error (ERR_FATAL, "create main window() - Couldn't create window");
 	}
 
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
-	ri.Printf(PRINT_ALL, "...created window@%d,%d (%dx%d)\n", x, y, w, h);
+	ri.Printf(PRINT_ALL, " %d x %d window created at (%d, %d). \n", w, h, x, y);
     return hwnd;
 }
 
@@ -774,7 +761,8 @@ void GLimp_Init( void )
 
 	SetMode(r_mode->integer, (qboolean)r_fullscreen->integer);
 
-	if (get_render_api() == RENDER_API_GL) {
+	if (get_render_api() == RENDER_API_GL)
+	{
 		g_wv.hWnd_opengl = create_main_window(glConfig.vidWidth, glConfig.vidHeight, (qboolean)r_fullscreen->integer);
 		g_wv.hWnd = g_wv.hWnd_opengl;
 		SetForegroundWindow(g_wv.hWnd);
@@ -854,7 +842,7 @@ void GLimp_Shutdown( void )
 	}
 }
 
-void GLimp_LogComment( char *comment ) 
+void GLimp_LogComment( char * const comment ) 
 {
 	if ( log_fp ) {
 		fprintf( log_fp, "%s", comment );
@@ -882,8 +870,18 @@ void dx_imp_init()
 	{
 		g_wv.hWnd_dx = create_main_window(glConfig.vidWidth, glConfig.vidHeight, (qboolean)r_fullscreen->integer);
 		g_wv.hWnd = g_wv.hWnd_dx;
-		SetForegroundWindow(g_wv.hWnd);
-		SetFocus(g_wv.hWnd);
+		// Brings the thread that created the specified window into the foreground 
+		// and activates the window. Keyboard input is directed to the window, and
+		// various visual cues are changed for the user. 
+		// The system assigns a slightly higher priority to the thread that created
+		// the foreground window than it does to other threads.
+		if( SetForegroundWindow(g_wv.hWnd) )
+			ri.Printf(PRINT_ALL, " Bring window into the foreground successed. \n");
+		
+		// Sets the keyboard focus to the specified window.
+		// A handle to the window that will receive the keyboard input.
+		// If this parameter is NULL, keystrokes are ignored.
+		SetFocus( g_wv.hWnd );
 		WG_CheckHardwareGamma();
 	}
 	else
@@ -891,6 +889,7 @@ void dx_imp_init()
 		g_wv.hWnd_dx = create_twin_window(glConfig.vidWidth, glConfig.vidHeight, RENDER_API_DX);
 	}
 }
+
 
 void dx_imp_shutdown()
 {
@@ -922,6 +921,7 @@ void dx_imp_shutdown()
 		log_fp = 0;
 	}
 }
+
 
 /*
 ===========================================================

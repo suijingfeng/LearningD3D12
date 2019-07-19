@@ -74,16 +74,6 @@ void R_PerformanceCounters( void ) {
 void R_InitCommandBuffers( void )
 {
 	glConfig.smpActive = qfalse;
-	if ( r_smp->integer )
-	{
-		ri.Printf( PRINT_ALL, "Trying SMP acceleration...\n" );
-		if ( GLimp_SpawnRenderThread( RB_RenderThread ) ) {
-			ri.Printf( PRINT_ALL, "...succeeded.\n" );
-			glConfig.smpActive = qtrue;
-		} else {
-			ri.Printf( PRINT_ALL, "...failed.\n" );
-		}
-	}
 }
 
 /*
@@ -118,23 +108,6 @@ void R_IssueRenderCommands( qboolean runPerformanceCounters ) {
 	// clear it out, in case this is a sync and not a buffer flip
 	cmdList->used = 0;
 
-	if ( glConfig.smpActive ) {
-		// if the render thread is not idle, wait for it
-		if ( renderThreadActive ) {
-			c_blockedOnRender++;
-			if ( r_showSmp->integer ) {
-				ri.Printf( PRINT_ALL, "R" );
-			}
-		} else {
-			c_blockedOnMain++;
-			if ( r_showSmp->integer ) {
-				ri.Printf( PRINT_ALL, "." );
-			}
-		}
-
-		// sleep until the renderer has completed
-		GLimp_FrontEndSleep();
-	}
 
 	// at this point, the back end thread is idle, so it is ok
 	// to look at it's performance counters
