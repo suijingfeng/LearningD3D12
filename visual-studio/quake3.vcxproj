@@ -135,6 +135,10 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\engine\platform\win_dll.c" />
+    <ClCompile Include="..\src\engine\platform\win_event.c" />
+    <ClCompile Include="..\src\engine\platform\win_fstream.c" />
+    <ClCompile Include="..\src\engine\platform\win_get_clipboard.c" />
     <ClCompile Include="..\src\engine\qcommon\md5.c" />
     <ClCompile Include="..\src\engine\server\sv_bot.c">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
@@ -432,6 +436,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\engine\platform\win_event.h" />
     <ClInclude Include="..\src\game\bg_public.h" />
     <ClInclude Include="..\src\cgame\cg_public.h" />
     <ClInclude Include="..\src\engine\client\client.h" />

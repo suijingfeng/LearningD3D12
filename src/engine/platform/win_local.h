@@ -26,13 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <windows.h>
 
-void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr );
-
-qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message );
-
-
-void SNDDMA_Activate( void );
-int  SNDDMA_InitDS ();
 
 typedef struct
 {

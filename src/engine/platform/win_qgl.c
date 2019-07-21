@@ -817,10 +817,7 @@ qboolean QGL_Init( const char *dllname )
 	qwglMakeCurrent              = (decltype(qwglMakeCurrent))GPA(wglMakeCurrent);
 
 	qwglSwapIntervalEXT = 0;
-	qglActiveTextureARB = 0;
-	qglClientActiveTextureARB = 0;
-	qglLockArraysEXT = 0;
-	qglUnlockArraysEXT = 0;
+
 
 	if (dllname != nullptr) {
 		// check logging

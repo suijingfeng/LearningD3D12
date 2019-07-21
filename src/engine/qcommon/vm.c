@@ -35,6 +35,8 @@ and one exported function: Perform
 
 #include "vm_local.h"
 
+#include "../platform/win_dll.h"
+
 vm_t	*currentVM = NULL; // bk001212
 vm_t	*lastVM    = NULL; // bk001212
 int		vm_debugLevel;

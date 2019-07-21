@@ -44,7 +44,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 extern refimport_t ri;
 
 static bool s_main_window_class_registered = false;
-static bool s_twin_window_class_registered = false;
+
 
 static HDC gl_hdc; // handle to device context
 static HGLRC gl_hglrc; // handle to GL rendering context
@@ -455,109 +455,6 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 }
 
 
-static HWND create_twin_window(int width, int height, RenderApi render_api)
-{
-    //
-    // register the window class if necessary
-    //
-    if (!s_twin_window_class_registered)
-    {
-        WNDCLASS wc;
-
-        memset( &wc, 0, sizeof( wc ) );
-
-        wc.style         = 0;
-        wc.lpfnWndProc   = DefWindowProc;
-        wc.cbClsExtra    = 0;
-        wc.cbWndExtra    = 0;
-        wc.hInstance     = g_wv.hInstance;
-        wc.hIcon         = LoadIcon( g_wv.hInstance, MAKEINTRESOURCE(IDI_ICON1));
-        wc.hCursor       = LoadCursor (NULL,IDC_ARROW);
-        wc.hbrBackground = (HBRUSH) (void *)COLOR_GRAYTEXT;
-        wc.lpszMenuName  = 0;
-        wc.lpszClassName = TWIN_WINDOW_CLASS_NAME;
-
-        if ( !RegisterClass( &wc ) )
-        {
-            ri.Error( ERR_FATAL, "create_twin_window: could not register window class" );
-        }
-		s_twin_window_class_registered = true;
-        ri.Printf( PRINT_ALL, "...registered twin window class\n" );
-    }
-
-    //
-    // compute width and height
-    //
-    RECT r;
-    r.left = 0;
-    r.top = 0;
-    r.right  = width;
-    r.bottom = height;
-
-    int stylebits = WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE | WS_SYSMENU;
-    AdjustWindowRect (&r, stylebits, FALSE);
-
-    int w = r.right - r.left;
-    int h = r.bottom - r.top;
-
-    cvar_t* vid_xpos = ri.Cvar_Get ("vid_xpos", "", 0);
-    cvar_t* vid_ypos = ri.Cvar_Get ("vid_ypos", "", 0);
-	int x, y;
-
-	bool first_twin_window =
-			(get_render_api() != RENDER_API_GL && render_api == RENDER_API_GL);
-
-	if (first_twin_window) {
-		x = vid_xpos->integer + width + 5;
-		y = vid_ypos->integer;
-	}  else {
-		x = vid_xpos->integer + 2*width + 10;
-		y = vid_ypos->integer;
-	}
-
-	int desktop_width = GetDesktopWidth();
-    int desktop_height = GetDesktopHeight();
-
-    if (x < 0)
-        x = 0;
-	else if (x >= desktop_width - 20)
-		x = desktop_width - 20;
-
-    if (y < 0)
-        y = 0;
-	else if (y >= desktop_height - 20)
-		y = desktop_height - 20;
-	
-	char window_name[1024];
-	const char* api_name = "invalid-render-api";
-	if (render_api == RENDER_API_GL)
-		api_name = "OpenGL";
-	else if (render_api == RENDER_API_DX)
-		api_name = "DX12";
-	
-	sprintf(window_name, "%s [%s]", MAIN_WINDOW_CLASS_NAME, api_name);
-
-    HWND hwnd = CreateWindowEx(
-        0, 
-        TWIN_WINDOW_CLASS_NAME,
-        window_name,
-        stylebits,
-        x, y, w, h,
-        NULL,
-        NULL,
-        g_wv.hInstance,
-        NULL);
-
-    if (!hwnd)
-    {
-        ri.Error (ERR_FATAL, "create_twin_window() - Couldn't create window");
-    }
-
-    ShowWindow(hwnd, SW_SHOW);
-    UpdateWindow(hwnd);
-    ri.Printf(PRINT_ALL, "...created twin window@%d,%d (%dx%d)\n", x, y, w, h);
-    return hwnd;
-}
 
 static void SetMode(int mode, qboolean fullscreen)
 {
@@ -663,11 +560,6 @@ static void GLW_InitExtensions( void )
         if (!strstr(glConfig.extensions_string, "GL_ARB_multitexture"))
             ri.Error(ERR_FATAL, "GL_ARB_multitexture not found");
 
-        qglActiveTextureARB = ( void (APIENTRY * ) (GLenum target) ) qwglGetProcAddress("glActiveTextureARB");
-        qglClientActiveTextureARB = ( void (APIENTRY * ) (GLenum target) ) qwglGetProcAddress("glClientActiveTextureARB");
-
-        if (!qglActiveTextureARB || !qglClientActiveTextureARB)
-            ri.Error(ERR_FATAL, "GL_ARB_multitexture: could not initialize function pointers");
 
         qglGetIntegerv(GL_MAX_ACTIVE_TEXTURES_ARB, &glConfig.maxActiveTextures);
 
@@ -677,19 +569,11 @@ static void GLW_InitExtensions( void )
         ri.Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
     }
 
-	// GL_EXT_compiled_vertex_array
-	qglLockArraysEXT = NULL;
-	qglUnlockArraysEXT = NULL;
 	if ( strstr( glConfig.extensions_string, "GL_EXT_compiled_vertex_array" ) )
 	{
 		if ( r_ext_compiled_vertex_array->integer )
 		{
 			ri.Printf( PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n" );
-			qglLockArraysEXT = ( void ( APIENTRY * )( int, int ) ) qwglGetProcAddress( "glLockArraysEXT" );
-			qglUnlockArraysEXT = ( void ( APIENTRY * )( void ) ) qwglGetProcAddress( "glUnlockArraysEXT" );
-			if (!qglLockArraysEXT || !qglUnlockArraysEXT) {
-				ri.Error (ERR_FATAL, "bad getprocaddress");
-			}
 		}
 		else
 		{
@@ -769,17 +653,14 @@ void GLimp_Init( void )
 		SetFocus(g_wv.hWnd);
 		WG_CheckHardwareGamma();
 	} 
-	else
-	{
-		g_wv.hWnd_opengl = create_twin_window(glConfig.vidWidth, glConfig.vidHeight, RENDER_API_GL);
-	}
+
 
 	if (!GLW_InitDriver(g_wv.hWnd_opengl)) {
 		ri.Error(ERR_FATAL, "GLW_InitDriver - could not initialize OpenGL subsystem\n");
 	}
 
 	// get our config strings
-	Q_strncpyz( glConfig.vendor_string, (const char*) qglGetString (GL_VENDOR), sizeof( glConfig.vendor_string ) );
+	Q_strncpyz(glConfig.vendor_string, (const char*) qglGetString (GL_VENDOR), sizeof( glConfig.vendor_string ) );
 	Q_strncpyz(glConfig.renderer_string, (const char*)qglGetString(GL_RENDERER), sizeof(glConfig.renderer_string));
 	Q_strncpyz(glConfig.version_string, (const char*)qglGetString(GL_VERSION), sizeof(glConfig.version_string));
 	Q_strncpyz(glConfig.extensions_string, (const char*)qglGetString(GL_EXTENSIONS), sizeof(glConfig.extensions_string));
@@ -851,7 +732,7 @@ void GLimp_LogComment( char * const comment )
 
 
 
-void dx_imp_init()
+void dx_imp_init(void)
 {
 	ri.Printf(PRINT_ALL, " Initializing DX12 subsystem \n");
 
@@ -859,8 +740,6 @@ void dx_imp_init()
 	if (!gl_active)
 	{
 		QGL_Init(nullptr);
-		qglActiveTextureARB = [](GLenum) {};
-		qglClientActiveTextureARB = [](GLenum) {};
 	}
 
 	// Create window.
@@ -883,10 +762,6 @@ void dx_imp_init()
 		// If this parameter is NULL, keystrokes are ignored.
 		SetFocus( g_wv.hWnd );
 		WG_CheckHardwareGamma();
-	}
-	else
-	{
-		g_wv.hWnd_dx = create_twin_window(glConfig.vidWidth, glConfig.vidHeight, RENDER_API_DX);
 	}
 }
 

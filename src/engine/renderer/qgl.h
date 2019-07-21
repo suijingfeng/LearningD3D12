@@ -53,12 +53,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // S3TC compression constants
 #define GL_RGB4_S3TC						0x83A1
 
-// extensions will be function pointers on all platforms
-extern	void ( APIENTRY * qglActiveTextureARB )( GLenum texture );
-extern	void ( APIENTRY * qglClientActiveTextureARB )( GLenum texture );
 
-extern	void ( APIENTRY * qglLockArraysEXT) (GLint, GLint);
-extern	void ( APIENTRY * qglUnlockArraysEXT) (void);
 
 //===========================================================================
 extern  void ( APIENTRY * qglAlphaFunc )(GLenum func, GLclampf ref);

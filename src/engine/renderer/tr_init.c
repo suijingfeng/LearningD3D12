@@ -135,11 +135,6 @@ int		max_polys;
 cvar_t	*r_maxpolyverts;
 int		max_polyverts;
 
-void ( APIENTRY * qglActiveTextureARB )( GLenum texture );
-void ( APIENTRY * qglClientActiveTextureARB )( GLenum texture );
-
-void ( APIENTRY * qglLockArraysEXT)( GLint, GLint);
-void ( APIENTRY * qglUnlockArraysEXT) ( void );
 
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
 {
@@ -187,7 +182,7 @@ static void InitRenderAPI( void )
 	//		- r_ignorehwgamma
 	//		- r_gamma
 	//
-	if ( glConfig.vidWidth == 0 )
+	if (dx.active != true )
 	{
 		// DX12
 		if (get_render_api() == RENDER_API_DX )
@@ -198,7 +193,7 @@ static void InitRenderAPI( void )
 	}
 
 	// init command buffers and SMP
-	R_InitCommandBuffers();
+	glConfig.smpActive = qfalse;
 
 	// print info
 	GfxInfo_f();
@@ -399,23 +394,6 @@ void GfxInfo_f( void )
 		"windowed",
 		"fullscreen"
 	};
-
-	if (gl_active) {
-		ri.Printf( PRINT_ALL, "\nActive 3D API: OpenGL\n" );
-		ri.Printf( PRINT_ALL, "GL_VENDOR: %s\n", glConfig.vendor_string );
-		ri.Printf( PRINT_ALL, "GL_RENDERER: %s\n", glConfig.renderer_string );
-		ri.Printf( PRINT_ALL, "GL_VERSION: %s\n", glConfig.version_string );
-		ri.Printf( PRINT_ALL, "GL_MAX_TEXTURE_SIZE: %d\n", glConfig.maxTextureSize );
-		ri.Printf( PRINT_ALL, "GL_MAX_ACTIVE_TEXTURES_ARB: %d\n", glConfig.maxActiveTextures );
-		ri.Printf( PRINT_ALL, "PIXELFORMAT: color(%d-bits) Z(%d-bit) stencil(%d-bits)\n", glConfig.colorBits, glConfig.depthBits, glConfig.stencilBits );
-		ri.Printf( PRINT_ALL, "compiled vertex arrays: %s\n", enablestrings[qglLockArraysEXT != 0 ] );
-		ri.Printf( PRINT_ALL, "texenv add: %s\n", enablestrings[glConfig.textureEnvAddAvailable != 0] );
-		ri.Printf( PRINT_ALL, "compressed textures: %s\n", enablestrings[glConfig.textureCompression!=TC_NONE] );
-
-		if (glConfig.smpActive) {
-			ri.Printf( PRINT_ALL, "Using dual processor acceleration\n" );
-		}
-	}
 
 
 	// DX12
@@ -669,8 +647,8 @@ void R_Init( void )
 RE_Shutdown
 ===============
 */
-void RE_Shutdown( qboolean destroyWindow ) {	
-
+void RE_Shutdown( qboolean destroyWindow )
+{	
 	ri.Printf( PRINT_ALL, "RE_Shutdown( %i )\n", destroyWindow );
 
 	ri.Cmd_RemoveCommand ("modellist");

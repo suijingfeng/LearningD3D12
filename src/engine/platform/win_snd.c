@@ -112,31 +112,7 @@ void SNDDMA_Shutdown( void ) {
 	CoUninitialize( );
 }
 
-/*
-==================
-SNDDMA_Init
 
-Initialize direct sound
-Returns false if failed
-==================
-*/
-qboolean SNDDMA_Init(void) {
-
-	memset ((void *)&dma, 0, sizeof (dma));
-	dsound_init = (qboolean) 0;
-
-	CoInitialize(NULL);
-
-	if ( !SNDDMA_InitDS () ) {
-		return qfalse;
-	}
-
-	dsound_init = qtrue;
-
-	Com_DPrintf("Completed successfully\n" );
-
-    return qtrue;
-}
 
 int SNDDMA_InitDS ()
 {
@@ -262,6 +238,35 @@ int SNDDMA_InitDS ()
 	SNDDMA_Submit ();
 	return 1;
 }
+
+
+/*
+==================
+SNDDMA_Init
+
+Initialize direct sound
+Returns false if failed
+==================
+*/
+qboolean SNDDMA_Init(void) {
+
+	memset((void *)&dma, 0, sizeof(dma));
+	dsound_init = (qboolean)0;
+
+	CoInitialize(NULL);
+
+	if (!SNDDMA_InitDS()) {
+		return qfalse;
+	}
+
+	dsound_init = qtrue;
+
+	Com_DPrintf("Completed successfully\n");
+
+	return qtrue;
+}
+
+
 /*
 ==============
 SNDDMA_GetDMAPos
@@ -271,7 +276,8 @@ inside the recirculating dma buffer, so the mixing code will know
 how many sample are required to fill it up.
 ===============
 */
-int SNDDMA_GetDMAPos( void ) {
+int SNDDMA_GetDMAPos( void )
+{
 	MMTIME	mmtime;
 	int		s;
 	DWORD	dwWrite;
@@ -299,7 +305,8 @@ SNDDMA_BeginPainting
 Makes sure dma.buffer is valid
 ===============
 */
-void SNDDMA_BeginPainting( void ) {
+void SNDDMA_BeginPainting( void )
+{
 	int		reps;
 	DWORD	dwSize2;
 	DWORD	*pbuf, *pbuf2;
@@ -354,7 +361,8 @@ Send sound to device if buffer isn't really the dma buffer
 Also unlocks the dsound buffer
 ===============
 */
-void SNDDMA_Submit( void ) {
+void SNDDMA_Submit( void )
+{
     // unlock the dsound buffer
 	if ( pDSBuf ) {
 		pDSBuf->lpVtbl->Unlock(pDSBuf, dma.buffer, locksize, NULL, 0);
@@ -369,12 +377,14 @@ SNDDMA_Activate
 When we change windows we need to do this
 =================
 */
-void SNDDMA_Activate( void ) {
+void SNDDMA_Activate( void )
+{
 	if ( !pDS ) {
 		return;
 	}
 
-	if ( DS_OK != pDS->lpVtbl->SetCooperativeLevel( pDS, g_wv.hWnd, DSSCL_PRIORITY ) )	{
+	if ( DS_OK != pDS->lpVtbl->SetCooperativeLevel( pDS, g_wv.hWnd, DSSCL_PRIORITY ) )
+	{
 		Com_Printf ("sound SetCooperativeLevel failed\n");
 		SNDDMA_Shutdown ();
 	}

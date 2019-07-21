@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/client.h"
 #include "win_local.h"
 #include "win_input.h"
+#include "win_event.h"
+#include "win_snd.h"
 
 WinVars_t	g_wv;
 

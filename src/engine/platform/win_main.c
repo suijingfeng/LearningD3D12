@@ -21,28 +21,30 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // win_main.c
 
+#include <stdio.h>
+#include <direct.h>
+#include <io.h>
+#include <conio.h>
+#include <windows.h>
+//#include <VersionHelpers.h>
+
 #include "../client/client.h"
 #include "../qcommon/qcommon.h"
 #include "win_local.h"
 #include "resource.h"
 #include "win_sysconsole.h"
 #include "win_input.h"
-#include <errno.h>
-#include <float.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <direct.h>
-#include <io.h>
-#include <conio.h>
+
 
 #define MEM_THRESHOLD 96*1024*1024
 
-static char	sys_cmdline[MAX_STRING_CHARS];
+
 
 // define this to use alternate spanking method
 // I found out that the regular way doesn't work on my box for some reason
 // see the associated spank.sh script
 // #define ALT_SPANK
+/*
 #ifdef ALT_SPANK
 #include <stdio.h>
 #include <sys\stat.h>
@@ -79,18 +81,20 @@ void Spk_Printf (const char *text, ...)
 
 };
 #endif
+*/
+
 
 /*
 ==================
-Sys_LowPhysicalMemory()
+ Retrieves information about the system's current
+ usage of both physical and virtual memory.
 ==================
 */
 
-qboolean Sys_LowPhysicalMemory()
+qboolean Sys_LowPhysicalMemory(void)
 {
 	MEMORYSTATUSEX stat;
-	// Retrieves information about the system's current 
-	// usage of both physical and virtual memory.
+
 	stat.dwLength = sizeof(stat);
 
 	// You can use the GlobalMemoryStatusEx function to 
@@ -135,7 +139,7 @@ Sys_Error
 Show the early console as an error dialog
 =============
 */
-void QDECL Sys_Error( const char *error, ... )
+void QDECL Sys_Error( const char * error, ... )
 {
 	va_list		argptr;
 	char		text[4096];
@@ -185,7 +189,6 @@ void Sys_Quit( void )
 
 
 
-
 /*
 ==============
 Sys_Mkdir
@@ -215,7 +218,7 @@ char * Sys_Cwd( void )
 Sys_DefaultCDPath
 ==============
 */
-char *Sys_DefaultCDPath( void )
+char * Sys_DefaultCDPath( void )
 {
 	return "";
 }
@@ -225,7 +228,7 @@ char *Sys_DefaultCDPath( void )
 Sys_DefaultBasePath
 ==============
 */
-char *Sys_DefaultBasePath( void ) {
+char * Sys_DefaultBasePath( void ) {
 	return Sys_Cwd();
 }
 
@@ -241,9 +244,9 @@ DIRECTORY SCANNING
 
 void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, char **list, int *numfiles )
 {
-	char		search[MAX_OSPATH], newsubdirs[MAX_OSPATH];
-	char		filename[MAX_OSPATH];
-	int			findhandle;
+	char search[MAX_OSPATH], newsubdirs[MAX_OSPATH];
+	char filename[MAX_OSPATH];
+	int	findhandle;
 	struct _finddata_t findinfo;
 
 	if ( *numfiles >= MAX_FOUND_FILES - 1 ) {
@@ -310,9 +313,10 @@ static qboolean strgtr(const char *s0, const char *s1)
 	return qfalse;
 }
 
-char **Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs ) {
-	char		search[MAX_OSPATH];
-	int			nfiles;
+char **Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs )
+{
+
+	int	nfiles = 0;
 	char		**listCopy;
 	char		*list[MAX_FOUND_FILES];
 	struct _finddata_t findinfo;
@@ -320,9 +324,8 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	int			flag;
 	int			i;
 
-	if (filter) {
-
-		nfiles = 0;
+	if (filter)
+	{
 		Sys_ListFilteredFiles( directory, "", filter, list, &nfiles );
 
 		list[ nfiles ] = 0;
@@ -332,7 +335,8 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 			return NULL;
 
 		listCopy = (char**) Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ) );
-		for ( i = 0 ; i < nfiles ; i++ ) {
+		for ( i = 0 ; i < nfiles ; ++i )
+		{
 			listCopy[i] = list[i];
 		}
 		listCopy[i] = NULL;
@@ -352,6 +356,8 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		flag = _A_SUBDIR;
 	}
 
+
+	char search[MAX_OSPATH];
 	Com_sprintf( search, sizeof(search), "%s\\*%s", directory, extension );
 
 	// search
@@ -385,14 +391,16 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	}
 
 	listCopy = (char**) Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ) );
-	for ( i = 0 ; i < nfiles ; i++ ) {
+	for ( i = 0 ; i < nfiles ; ++i )
+	{
 		listCopy[i] = list[i];
 	}
 	listCopy[i] = NULL;
 
 	do {
 		flag = 0;
-		for(i=1; i<nfiles; i++) {
+		for(i=1; i<nfiles; ++i)
+		{
 			if (strgtr(listCopy[i-1], listCopy[i])) {
 				char *temp = listCopy[i];
 				listCopy[i] = listCopy[i-1];
@@ -405,570 +413,22 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	return listCopy;
 }
 
-void	Sys_FreeFileList( char **list ) {
-	int		i;
 
+void Sys_FreeFileList( char ** const list )
+{
 	if ( !list ) {
 		return;
 	}
 
-	for ( i = 0 ; list[i] ; i++ ) {
+	for (int i = 0 ; list[i] ; ++i )
+	{
 		Z_Free( list[i] );
 	}
 
 	Z_Free( list );
 }
 
-//========================================================
 
-/*
-================
-Sys_GetClipboardData
-
-================
-*/
-char *Sys_GetClipboardData( void ) {
-	char *data = NULL;
-	char *cliptext;
-
-	if ( OpenClipboard( NULL ) != 0 ) {
-		HANDLE hClipboardData;
-
-		if ( ( hClipboardData = GetClipboardData( CF_TEXT ) ) != 0 ) {
-			if ( ( cliptext = (char*) GlobalLock( hClipboardData ) ) != 0 ) {
-				data = (char*) Z_Malloc( GlobalSize( hClipboardData ) + 1 );
-				Q_strncpyz( data, cliptext, GlobalSize( hClipboardData ) );
-				GlobalUnlock( hClipboardData );
-				
-				strtok( data, "\n\r\b" );
-			}
-		}
-		CloseClipboard();
-	}
-	return data;
-}
-
-
-/*
-========================================================================
-
-LOAD/UNLOAD DLL
-
-========================================================================
-*/
-
-/*
-=================
-Sys_UnloadDll
-
-=================
-*/
-void Sys_UnloadDll( void *dllHandle ) {
-	if ( !dllHandle ) {
-		return;
-	}
-	if ( !FreeLibrary( (HMODULE) dllHandle ) ) {
-		Com_Error (ERR_FATAL, "Sys_UnloadDll FreeLibrary failed");
-	}
-}
-
-/*
-=================
-Sys_LoadDll
-
-Used to load a development dll instead of a virtual machine
-
-TTimo: added some verbosity in debug
-=================
-*/
-extern char		*FS_BuildOSPath( const char *base, const char *game, const char *qpath );
-
-// fqpath param added 7/20/02 by T.Ray - Sys_LoadDll is only called in vm.c at this time
-// fqpath will be empty if dll not loaded, otherwise will hold fully qualified path of dll module loaded
-// fqpath buffersize must be at least MAX_QPATH+1 bytes long
-void * QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, ...),
-				  intptr_t (QDECL *systemcalls)(intptr_t, ...) ) {
-	static int	lastWarning = 0;
-	HINSTANCE	libHandle;
-	void	(QDECL *dllEntry)( intptr_t (QDECL *syscallptr)(intptr_t, ...) );
-	char	*basepath;
-	char	*cdpath;
-	char	*gamedir;
-	char	*fn;
-#ifdef NDEBUG
-	int		timestamp;
-  int   ret;
-#endif
-	char	filename[MAX_QPATH];
-
-	*fqpath = 0 ;		// added 7/20/02 by T.Ray
-
-	Com_sprintf( filename, sizeof( filename ), "%s.dll", name );
-
-#ifdef NDEBUG
-	timestamp = Sys_Milliseconds();
-	if( ((timestamp - lastWarning) > (5 * 60000)) && !Cvar_VariableIntegerValue( "dedicated" )
-		&& !Cvar_VariableIntegerValue( "com_blindlyLoadDLLs" ) ) {
-		if (FS_FileExists(filename)) {
-			lastWarning = timestamp;
-			ret = MessageBoxEx( NULL, "You are about to load a .DLL executable that\n"
-				  "has not been verified for use with Quake III Arena.\n"
-				  "This type of file can compromise the security of\n"
-				  "your computer.\n\n"
-				  "Select 'OK' if you choose to load it anyway.",
-				  "Security Warning", MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON2 | MB_TOPMOST | MB_SETFOREGROUND,
-				  MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ) );
-			if( ret != IDOK ) {
-				return NULL;
-			}
-		}
-	}
-#endif
-
-#ifndef NDEBUG
-	libHandle = LoadLibrary( filename );
-  if (libHandle)
-    Com_Printf("LoadLibrary '%s' ok\n", filename);
-  else
-    Com_Printf("LoadLibrary '%s' failed\n", filename);
-	if ( !libHandle ) {
-#endif
-	basepath = Cvar_VariableString( "fs_basepath" );
-	cdpath = Cvar_VariableString( "fs_cdpath" );
-	gamedir = Cvar_VariableString( "fs_game" );
-
-	fn = FS_BuildOSPath( basepath, gamedir, filename );
-	libHandle = LoadLibrary( fn );
-#ifndef NDEBUG
-  if (libHandle)
-    Com_Printf("LoadLibrary '%s' ok\n", fn);
-  else
-    Com_Printf("LoadLibrary '%s' failed\n", fn);
-#endif
-
-	if ( !libHandle ) {
-		if( cdpath[0] ) {
-			fn = FS_BuildOSPath( cdpath, gamedir, filename );
-			libHandle = LoadLibrary( fn );
-#ifndef NDEBUG
-      if (libHandle)
-        Com_Printf("LoadLibrary '%s' ok\n", fn);
-      else
-        Com_Printf("LoadLibrary '%s' failed\n", fn);
-#endif
-		}
-
-		if ( !libHandle ) {
-			return NULL;
-		}
-	}
-#ifndef NDEBUG
-	}
-#endif
-
-	dllEntry = ( void (QDECL *)( intptr_t (QDECL *)( intptr_t, ... ) ) )GetProcAddress( libHandle, "dllEntry" ); 
-	*entryPoint = (intptr_t (QDECL *)(int,...))GetProcAddress( libHandle, "vmMain" );
-	if ( !*entryPoint || !dllEntry ) {
-		FreeLibrary( libHandle );
-		return NULL;
-	}
-	dllEntry( systemcalls );
-
-	if ( libHandle )
-		Q_strncpyz ( fqpath , filename , MAX_QPATH ) ;		// added 7/20/02 by T.Ray
-	return libHandle;
-}
-
-
-/*
-========================================================================
-
-BACKGROUND FILE STREAMING
-
-========================================================================
-*/
-
-#if 1
-
-void Sys_InitStreamThread( void ) {
-}
-
-void Sys_ShutdownStreamThread( void ) {
-}
-
-void Sys_BeginStreamedFile( fileHandle_t f, int readAhead ) {
-}
-
-void Sys_EndStreamedFile( fileHandle_t f ) {
-}
-
-int Sys_StreamedRead( void *buffer, int size, int count, fileHandle_t f ) {
-   return FS_Read( buffer, size * count, f );
-}
-
-void Sys_StreamSeek( fileHandle_t f, int offset, int origin ) {
-   FS_Seek( f, offset, origin );
-}
-
-
-#else
-
-typedef struct {
-	fileHandle_t	file;
-	byte	*buffer;
-	qboolean	eof;
-	qboolean	active;
-	int		bufferSize;
-	int		streamPosition;	// next byte to be returned by Sys_StreamRead
-	int		threadPosition;	// next byte to be read from file
-} streamsIO_t;
-
-typedef struct {
-	HANDLE				threadHandle;
-	int					threadId;
-	CRITICAL_SECTION	crit;
-	streamsIO_t			sIO[MAX_FILE_HANDLES];
-} streamState_t;
-
-streamState_t	stream;
-
-/*
-===============
-Sys_StreamThread
-
-A thread will be sitting in this loop forever
-================
-*/
-void Sys_StreamThread( void ) {
-	int		buffer;
-	int		count;
-	int		readCount;
-	int		bufferPoint;
-	int		r, i;
-
-	while (1) {
-		Sleep( 10 );
-//		EnterCriticalSection (&stream.crit);
-
-		for (i=1;i<MAX_FILE_HANDLES;i++) {
-			// if there is any space left in the buffer, fill it up
-			if ( stream.sIO[i].active  && !stream.sIO[i].eof ) {
-				count = stream.sIO[i].bufferSize - (stream.sIO[i].threadPosition - stream.sIO[i].streamPosition);
-				if ( !count ) {
-					continue;
-				}
-
-				bufferPoint = stream.sIO[i].threadPosition % stream.sIO[i].bufferSize;
-				buffer = stream.sIO[i].bufferSize - bufferPoint;
-				readCount = buffer < count ? buffer : count;
-
-				r = FS_Read( stream.sIO[i].buffer + bufferPoint, readCount, stream.sIO[i].file );
-				stream.sIO[i].threadPosition += r;
-
-				if ( r != readCount ) {
-					stream.sIO[i].eof = qtrue;
-				}
-			}
-		}
-//		LeaveCriticalSection (&stream.crit);
-	}
-}
-
-/*
-===============
-Sys_InitStreamThread
-
-================
-*/
-void Sys_InitStreamThread( void ) {
-	int i;
-
-	InitializeCriticalSection ( &stream.crit );
-
-	// don't leave the critical section until there is a
-	// valid file to stream, which will cause the StreamThread
-	// to sleep without any overhead
-//	EnterCriticalSection( &stream.crit );
-
-	stream.threadHandle = CreateThread(
-	   NULL,	// LPSECURITY_ATTRIBUTES lpsa,
-	   0,		// DWORD cbStack,
-	   (LPTHREAD_START_ROUTINE)Sys_StreamThread,	// LPTHREAD_START_ROUTINE lpStartAddr,
-	   0,			// LPVOID lpvThreadParm,
-	   0,			//   DWORD fdwCreate,
-	   &stream.threadId);
-	for(i=0;i<MAX_FILE_HANDLES;i++) {
-		stream.sIO[i].active = qfalse;
-	}
-}
-
-/*
-===============
-Sys_ShutdownStreamThread
-
-================
-*/
-void Sys_ShutdownStreamThread( void ) {
-}
-
-
-/*
-===============
-Sys_BeginStreamedFile
-
-================
-*/
-void Sys_BeginStreamedFile( fileHandle_t f, int readAhead ) {
-	if ( stream.sIO[f].file ) {
-		Sys_EndStreamedFile( stream.sIO[f].file );
-	}
-
-	stream.sIO[f].file = f;
-	stream.sIO[f].buffer = Z_Malloc( readAhead );
-	stream.sIO[f].bufferSize = readAhead;
-	stream.sIO[f].streamPosition = 0;
-	stream.sIO[f].threadPosition = 0;
-	stream.sIO[f].eof = qfalse;
-	stream.sIO[f].active = qtrue;
-
-	// let the thread start running
-//	LeaveCriticalSection( &stream.crit );
-}
-
-/*
-===============
-Sys_EndStreamedFile
-
-================
-*/
-void Sys_EndStreamedFile( fileHandle_t f ) {
-	if ( f != stream.sIO[f].file ) {
-		Com_Error( ERR_FATAL, "Sys_EndStreamedFile: wrong file");
-	}
-	// don't leave critical section until another stream is started
-	EnterCriticalSection( &stream.crit );
-
-	stream.sIO[f].file = 0;
-	stream.sIO[f].active = qfalse;
-
-	Z_Free( stream.sIO[f].buffer );
-
-	LeaveCriticalSection( &stream.crit );
-}
-
-
-/*
-===============
-Sys_StreamedRead
-
-================
-*/
-int Sys_StreamedRead( void *buffer, int size, int count, fileHandle_t f )
-{
-	int		available;
-	int		remaining;
-	int		sleepCount;
-	int		copy;
-	int		bufferCount;
-	int		bufferPoint;
-	byte	*dest;
-
-	if (stream.sIO[f].active == qfalse) {
-		Com_Error( ERR_FATAL, "Streamed read with non-streaming file" );
-	}
-
-	dest = (byte *)buffer;
-	remaining = size * count;
-
-	if ( remaining <= 0 ) {
-		Com_Error( ERR_FATAL, "Streamed read with non-positive size" );
-	}
-
-	sleepCount = 0;
-	while ( remaining > 0 ) {
-		available = stream.sIO[f].threadPosition - stream.sIO[f].streamPosition;
-		if ( !available ) {
-			if ( stream.sIO[f].eof ) {
-				break;
-			}
-			if ( sleepCount == 1 ) {
-				Com_DPrintf( "Sys_StreamedRead: waiting\n" );
-			}
-			if ( ++sleepCount > 100 ) {
-				Com_Error( ERR_FATAL, "Sys_StreamedRead: thread has died");
-			}
-			Sleep( 10 );
-			continue;
-		}
-
-		EnterCriticalSection( &stream.crit );
-
-		bufferPoint = stream.sIO[f].streamPosition % stream.sIO[f].bufferSize;
-		bufferCount = stream.sIO[f].bufferSize - bufferPoint;
-
-		copy = available < bufferCount ? available : bufferCount;
-		if ( copy > remaining ) {
-			copy = remaining;
-		}
-		memcpy( dest, stream.sIO[f].buffer + bufferPoint, copy );
-		stream.sIO[f].streamPosition += copy;
-		dest += copy;
-		remaining -= copy;
-
-		LeaveCriticalSection( &stream.crit );
-	}
-
-	return (count * size - remaining) / size;
-}
-
-/*
-===============
-Sys_StreamSeek
-
-================
-*/
-void Sys_StreamSeek( fileHandle_t f, int offset, int origin ) {
-
-	// halt the thread
-	EnterCriticalSection( &stream.crit );
-
-	// clear to that point
-	FS_Seek( f, offset, origin );
-	stream.sIO[f].streamPosition = 0;
-	stream.sIO[f].threadPosition = 0;
-	stream.sIO[f].eof = qfalse;
-
-	// let the thread start running at the new position
-	LeaveCriticalSection( &stream.crit );
-}
-
-#endif
-
-/*
-========================================================================
-
-EVENT LOOP
-
-========================================================================
-*/
-
-#define	MAX_QUED_EVENTS		256
-#define	MASK_QUED_EVENTS	( MAX_QUED_EVENTS - 1 )
-
-sysEvent_t	eventQue[MAX_QUED_EVENTS];
-int			eventHead, eventTail;
-byte		sys_packetReceived[MAX_MSGLEN];
-
-/*
-================
-Sys_QueEvent
-
-A time of 0 will get the current time
-Ptr should either be null, or point to a block of data that can
-be freed by the game later.
-================
-*/
-void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
-{
-	sysEvent_t* const ev = &eventQue[ eventHead & MASK_QUED_EVENTS ];
-	
-	if ( eventHead - eventTail >= MAX_QUED_EVENTS ) {
-		Com_Printf("Sys_QueEvent: overflow\n");
-		// we are discarding an event, but don't leak memory
-		if ( ev->evPtr ) {
-			Z_Free( ev->evPtr );
-		}
-		eventTail++;
-	}
-
-	eventHead++;
-
-	if ( time == 0 ) {
-		time = Sys_Milliseconds();
-	}
-
-	ev->evTime = time;
-	ev->evType = type;
-	ev->evValue = value;
-	ev->evValue2 = value2;
-	ev->evPtrLength = ptrLength;
-	ev->evPtr = ptr;
-}
-
-/*
-================
-Sys_GetEvent
-
-================
-*/
-sysEvent_t Sys_GetEvent( void )
-{
-    MSG			msg;
-	sysEvent_t	ev;
-	msg_t		netmsg;
-	netadr_t	adr;
-
-	// return if we have data
-	if ( eventHead > eventTail ) {
-		eventTail++;
-		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
-	}
-
-	// pump the message loop
-	while (PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE))
-	{
-		if ( !GetMessage (&msg, NULL, 0, 0) ) {
-			Com_Quit_f();
-		}
-
-		// save the msg time, because wndprocs don't have access to the timestamp
-		g_wv.sysMsgTime = msg.time;
-
-		TranslateMessage (&msg);
-      	DispatchMessage (&msg);
-	}
-
-	// check for console commands
-	char* s = Sys_ConsoleInput();
-	if ( s )
-	{
-		int len = (int)strlen( s ) + 1;
-		char* b = (char*)Z_Malloc( len );
-		Q_strncpyz( b, s, len-1 );
-		Sys_QueEvent( 0, SE_CONSOLE, 0, 0, len, b );
-	}
-
-	// check for network packets
-	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
-	if ( Sys_GetPacket ( &adr, &netmsg ) )
-	{
-		netadr_t		*buf;
-		int				len;
-
-		// copy out to a seperate buffer for qeueing
-		// the readcount stepahead is for SOCKS support
-		len = sizeof( netadr_t ) + netmsg.cursize - netmsg.readcount;
-		buf = (netadr_t*) Z_Malloc( len );
-		*buf = adr;
-		memcpy( buf+1, &netmsg.data[netmsg.readcount], netmsg.cursize - netmsg.readcount );
-		Sys_QueEvent( 0, SE_PACKET, 0, 0, len, buf );
-	}
-
-	// return if we have data
-	if ( eventHead > eventTail ) {
-		eventTail++;
-		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
-	}
-
-	// create an empty event to return
-
-	memset( &ev, 0, sizeof( ev ) );
-	ev.evTime = timeGetTime();
-
-	return ev;
-}
-
-//================================================================
 
 /*
 =================
@@ -977,7 +437,8 @@ Sys_In_Restart_f
 Restart the input subsystem
 =================
 */
-void Sys_In_Restart_f( void ) {
+static void Sys_In_Restart_f( void )
+{
 	IN_Shutdown();
 	IN_Init();
 }
@@ -990,7 +451,8 @@ Sys_Net_Restart_f
 Restart the network subsystem
 =================
 */
-void Sys_Net_Restart_f( void ) {
+static void Sys_Net_Restart_f( void )
+{
 	NET_Restart();
 }
 
@@ -999,16 +461,26 @@ void Sys_Net_Restart_f( void ) {
 ================
 Sys_Init
 
-Called after the common systems (cvars, files, etc)
-are initialized
+Called after the common systems (cvars, files, etc) are initialized
 ================
 */
-#define OSR2_BUILD_NUMBER 1111
-#define WIN98_BUILD_NUMBER 1998
-
 
 void Sys_Init( void )
 {
+#define OSR2_BUILD_NUMBER 1111
+#define WIN98_BUILD_NUMBER 1998
+
+	// Applications not manifested for Windows 10 return false, 
+	// even if the current operating system version is Windows 10.
+	/*
+	
+	if( IsWindows10OrGreater() )
+		Com_Printf("Platform: Windows10. \n");
+	else
+		Com_Error(ERR_FATAL, "Direct12 not supported on your windows version. \n");
+	
+	*/
+
 	int cpuid;
 
 	// make sure the timer is high precision, otherwise
@@ -1093,22 +565,28 @@ void Sys_Init( void )
 		}
 	}
 	Cvar_SetValue( "sys_cpuid", cpuid );
+	
 	Com_Printf( "%s\n", Cvar_VariableString( "sys_cpustring" ) );
 
 	Cvar_Set( "username", Sys_GetCurrentUser() );
 
 	IN_Init();		// FIXME: not in dedicated?
+
+#undef OSR2_BUILD_NUMBER
+#undef WIN98_BUILD_NUMBER
 }
 
 
 //=======================================================================
 
-int	totalMsec, countMsec;
-
 
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	char cwd[MAX_OSPATH];
+	char sys_cmdline[MAX_STRING_CHARS];
+
+	int	totalMsec = 0;
+	int countMsec = 0;
 
     // should never get a previous instance in Win32
     if ( hPrevInstance ) {
@@ -1173,7 +651,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 		int endTime = Sys_Milliseconds();
 		totalMsec += endTime - startTime;
-		countMsec++;
+		++countMsec;
 	}
 	// never gets here
 }

@@ -635,6 +635,8 @@ qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring );
 
 void FS_Rename( const char *from, const char *to );
 
+char* FS_BuildOSPath(const char *base, const char *game, const char *qpath);
+
 /*
 ==============================================================
 
@@ -804,7 +806,7 @@ void Hunk_Trash( void );
 void Com_TouchMemory( void );
 
 // commandLine should not include the executable name (argv[0])
-void Com_Init( char *commandLine );
+void Com_Init( char * const commandLine );
 void Com_Frame( void );
 void Com_Shutdown( void );
 
@@ -927,36 +929,16 @@ typedef struct {
 	void			*evPtr;			// this must be manually freed if not NULL
 } sysEvent_t;
 
-sysEvent_t	Sys_GetEvent( void );
+
 
 void	Sys_Init (void);
 
-// general development dll loading for virtual machine testing
-// fqpath param added 7/20/02 by T.Ray - Sys_LoadDll is only called in vm.c at this time
-void	* QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, ...),
-				  intptr_t (QDECL *systemcalls)(intptr_t, ...) );
-void	Sys_UnloadDll( void *dllHandle );
-
-/*
-void	Sys_UnloadGame( void );
-void	*Sys_GetGameAPI( void *parms );
-
-void	Sys_UnloadCGame( void );
-void	*Sys_GetCGameAPI( void );
-
-void	Sys_UnloadUI( void );
-void	*Sys_GetUIAPI( void );
-
-//bot libraries
-void	Sys_UnloadBotLib( void );
-void	*Sys_GetBotLibAPI( void *parms );
-*/
 
 char	*Sys_GetCurrentUser( void );
 
 void	QDECL Sys_Error( const char *error, ...);
 void	Sys_Quit (void);
-char	*Sys_GetClipboardData( void );	// note that this isn't journaled...
+
 
 
 // Sys_Milliseconds should only be used for profiling purposes,

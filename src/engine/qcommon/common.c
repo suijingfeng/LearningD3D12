@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../../game/q_shared.h"
 #include "qcommon.h"
+
+
 #include <setjmp.h>
 
 #ifdef __linux__
@@ -32,11 +34,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <netinet/in.h>
 #else
 #include <winsock.h>
+// For Sys_Print
+#include "../platform/win_sysconsole.h" 
+// For Sys_GetEvent( void )
+#include "../platform/win_event.h"
 #endif
 #endif
 
-// For Sys_Print
-#include "../platform/win_sysconsole.h" 
+
+
+
 
 int demo_protocols[] = { 66, 67, 68, 69, 70, 71, 0 };
 
@@ -365,7 +372,7 @@ Com_ParseCommandLine
 Break it up into multiple console lines
 ==================
 */
-void Com_ParseCommandLine( char *commandLine )
+void Com_ParseCommandLine( char * commandLine )
 {
     int inq = 0;
     com_consoleLines[0] = commandLine;
@@ -1940,12 +1947,14 @@ void Com_InitJournaling( void ) {
 Com_GetRealEvent
 =================
 */
-sysEvent_t	Com_GetRealEvent( void ) {
+sysEvent_t Com_GetRealEvent( void )
+{
 	int			r;
 	sysEvent_t	ev;
 
 	// either get an event from the system or the journal file
-	if ( com_journal->integer == 2 ) {
+	if ( com_journal->integer == 2 )
+	{
 		r = FS_Read( &ev, sizeof(ev), com_journalFile );
 		if ( r != sizeof(ev) ) {
 			Com_Error( ERR_FATAL, "Error reading from journal file" );
@@ -1957,7 +1966,9 @@ sysEvent_t	Com_GetRealEvent( void ) {
 				Com_Error( ERR_FATAL, "Error reading from journal file" );
 			}
 		}
-	} else {
+	}
+	else
+	{
 		ev = Sys_GetEvent();
 
 		// write the journal value out if needed
@@ -2350,7 +2361,7 @@ static void Com_WriteCDKey( const char *filename, const char *ikey ) {
 #endif
 
 
-void Com_Init( char *commandLine )
+void Com_Init( char * const commandLine )
 {
 	char	*s;
 

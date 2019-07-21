@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "client.h"
-
+#include "../platform/win_get_clipboard.h"
 #include "../../game/botlib.h"
 
 extern	botlib_export_t	*botlib_export;
@@ -621,10 +621,9 @@ static void CL_GetGlconfig( glconfig_t *config ) {
 GetClipboardData
 ====================
 */
-static void GetClipboardData( char *buf, int buflen ) {
-	char	*cbd;
-
-	cbd = Sys_GetClipboardData();
+static void GetClipboardData( char *buf, int buflen )
+{
+	char* cbd = Sys_GetClipboardData();
 
 	if ( !cbd ) {
 		*buf = 0;
