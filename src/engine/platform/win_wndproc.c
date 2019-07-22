@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "win_input.h"
 #include "win_event.h"
 #include "win_snd.h"
+#include "resource.h"
 
 WinVars_t	g_wv;
 
@@ -268,7 +269,6 @@ MainWndProc
 main window procedure
 ====================
 */
-
 LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	switch (uMsg)
@@ -427,4 +427,146 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 	}
 
     return DefWindowProc( hWnd, uMsg, wParam, lParam );
+}
+
+
+static int GetDesktopColorDepth(void)
+{
+	HDC hdc = GetDC(GetDesktopWindow());
+	int value = GetDeviceCaps(hdc, BITSPIXEL);
+	ReleaseDC(GetDesktopWindow(), hdc);
+	return value;
+}
+
+static int GetDesktopWidth(void)
+{
+	HDC hdc = GetDC(GetDesktopWindow());
+	int value = GetDeviceCaps(hdc, HORZRES);
+	ReleaseDC(GetDesktopWindow(), hdc);
+	return value;
+}
+
+static int GetDesktopHeight(void)
+{
+	HDC hdc = GetDC(GetDesktopWindow());
+	int value = GetDeviceCaps(hdc, VERTRES);
+	ReleaseDC(GetDesktopWindow(), hdc);
+	return value;
+}
+
+
+
+HWND create_main_window(int width, int height, bool fullscreen)
+{
+	#define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
+	//
+	// register the window class if necessary
+	//
+
+	static bool isWinRegistered = false;
+
+	if (isWinRegistered != true)
+	{
+		WNDCLASS wc;
+
+		memset(&wc, 0, sizeof(wc));
+
+		wc.style = 0;
+		wc.lpfnWndProc = MainWndProc;
+		wc.cbClsExtra = 0;
+		wc.cbWndExtra = 0;
+		wc.hInstance = g_wv.hInstance;
+		wc.hIcon = LoadIcon(g_wv.hInstance, MAKEINTRESOURCE(IDI_ICON1));
+		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wc.hbrBackground = (HBRUSH)(void *)COLOR_GRAYTEXT;
+		wc.lpszMenuName = 0;
+		wc.lpszClassName = MAIN_WINDOW_CLASS_NAME;
+
+		if (!RegisterClass(&wc))
+		{
+			Com_Error(ERR_FATAL, "create main window: could not register window class");
+		}
+		isWinRegistered = true;
+	}
+	Com_Printf(" Window class registered.\n ");
+
+
+	//
+	// compute width and height
+	//
+	RECT r;
+	r.left = 0;
+	r.top = 0;
+	r.right = width;
+	r.bottom = height;
+
+	int	stylebits;
+	if (fullscreen)
+	{
+		stylebits = WS_POPUP | WS_VISIBLE | WS_SYSMENU;
+	}
+	else
+	{
+		stylebits = WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE | WS_SYSMENU;
+		AdjustWindowRect(&r, stylebits, FALSE);
+	}
+
+	int w = r.right - r.left;
+	int h = r.bottom - r.top;
+
+	int x, y;
+
+	if (fullscreen)
+	{
+		x = 0;
+		y = 0;
+	}
+	else
+	{
+		cvar_t* vid_xpos = Cvar_Get("vid_xpos", "", 0);
+		cvar_t* vid_ypos = Cvar_Get("vid_ypos", "", 0);
+		x = vid_xpos->integer;
+		y = vid_ypos->integer;
+
+		// adjust window coordinates if necessary 
+		// so that the window is completely on screen
+		if (x < 0)
+			x = 0;
+		if (y < 0)
+			y = 0;
+
+		int desktop_width = GetDesktopWidth();
+		int desktop_height = GetDesktopHeight();
+
+		if (w < desktop_width && h < desktop_height)
+		{
+			if (x + w > desktop_width)
+				x = (desktop_width - w);
+			if (y + h > desktop_height)
+				y = (desktop_height - h);
+		}
+	}
+
+
+	HWND hwnd = CreateWindowEx(
+		0,
+		MAIN_WINDOW_CLASS_NAME,
+		MAIN_WINDOW_CLASS_NAME,
+		stylebits,
+		x, y, w, h,
+		NULL,
+		NULL,
+		g_wv.hInstance,
+		NULL);
+
+	if (!hwnd)
+	{
+		Com_Error(ERR_FATAL, "create main window() - Couldn't create window");
+	}
+
+	ShowWindow(hwnd, SW_SHOW);
+	UpdateWindow(hwnd);
+	Com_Printf(" %d x %d window created at (%d, %d). \n", w, h, x, y);
+
+	return hwnd;
 }

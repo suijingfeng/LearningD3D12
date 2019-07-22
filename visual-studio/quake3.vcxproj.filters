@@ -189,6 +189,18 @@
     <ClCompile Include="..\src\engine\platform\win_get_clipboard.c">
       <Filter>Source Files\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\engine\platform\win_gamma.c">
+      <Filter>Source Files\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\engine\platform\win_dximp.c">
+      <Filter>Source Files\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\engine\platform\win_mode.c">
+      <Filter>Source Files\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\engine\platform\win_config.c">
+      <Filter>Source Files\platform</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\game\bg_public.h">

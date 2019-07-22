@@ -932,7 +932,6 @@ extern Dx_Instance	dx;				// shouldn't be cleared during ref re-init
 extern Dx_World		dx_world;		// this data is cleared during ref re-init
 
 enum RenderApi {
-	RENDER_API_GL,
 	RENDER_API_DX
 };
 
@@ -981,11 +980,7 @@ extern cvar_t	*r_mode;				// video mode
 extern cvar_t	*r_fullscreen;
 extern cvar_t	*r_gamma;
 
-extern cvar_t	*r_ext_compressed_textures;		// these control use of specific extensions
-extern cvar_t	*r_ext_gamma_control;
-extern cvar_t	*r_ext_texenv_op;
-extern cvar_t	*r_ext_compiled_vertex_array;
-extern cvar_t	*r_ext_texture_env_add;
+
 
 extern	cvar_t	*r_nobind;						// turns off binding to appropriate textures
 extern	cvar_t	*r_singleShader;				// make most world faces use default shader
@@ -993,8 +988,8 @@ extern	cvar_t	*r_roundImagesDown;
 extern	cvar_t	*r_colorMipLevels;				// development aid to see texture mip usage
 extern	cvar_t	*r_picmip;						// controls picmip values
 extern	cvar_t	*r_drawBuffer;
-extern  cvar_t  *r_glDriver;
-extern	cvar_t	*r_swapInterval;
+
+
 extern	cvar_t	*r_textureMode;
 extern	cvar_t	*r_offsetFactor;
 extern	cvar_t	*r_offsetUnits;
@@ -1023,7 +1018,6 @@ extern	cvar_t	*r_lodCurveError;
 
 extern	cvar_t	*r_skipBackEnd;
 
-extern	cvar_t	*r_ignoreGLErrors;
 
 extern	cvar_t	*r_overBrightBits;
 extern	cvar_t	*r_mapOverBrightBits;

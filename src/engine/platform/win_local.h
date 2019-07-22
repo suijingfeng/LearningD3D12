@@ -30,14 +30,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 typedef struct
 {
 	HINSTANCE		reflib_library;		// Handle to refresh DLL 
-	qboolean		reflib_active;
 
-	HWND			hWnd; // main window, refers to one of the hWnd_XXX listed below
-
-    HWND            hWnd_opengl;
-	HWND			hWnd_dx;
-
+	HWND			hWnd; // main window
 	HINSTANCE		hInstance;
+	int				winWidth;
+	int				winHeight;
+
+	bool			isFullScreen;
+
 	qboolean		activeApp;
 	qboolean		isMinimized;
 	OSVERSIONINFO	osversion;

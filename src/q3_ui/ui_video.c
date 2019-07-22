@@ -238,11 +238,6 @@ GRAPHICS OPTIONS MENU
 #define GRAPHICSOPTIONS_ACCEPT0	"menu/art/accept_0"
 #define GRAPHICSOPTIONS_ACCEPT1	"menu/art/accept_1"
 
-static const char *s_drivers[] =
-{
-	OPENGL_DRIVER_NAME,
-	0
-};
 
 #define ID_BACK2		101
 #define ID_FULLSCREEN	102
@@ -483,7 +478,7 @@ static void GraphicsOptions_ApplyChanges( void *unused, int notification )
 	trap_Cvar_SetValue( "r_allowExtensions", s_graphicsoptions.allow_extensions.curvalue );
 	trap_Cvar_SetValue( "r_mode", s_graphicsoptions.mode.curvalue );
 	trap_Cvar_SetValue( "r_fullscreen", s_graphicsoptions.fs.curvalue );
-	trap_Cvar_Set( "r_glDriver", ( char * ) s_drivers[s_graphicsoptions.driver.curvalue] );
+
 	switch ( s_graphicsoptions.colordepth.curvalue )
 	{
 	case 0:

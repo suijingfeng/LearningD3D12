@@ -80,9 +80,6 @@
     <ClCompile Include="..\src\engine\renderer\tr_world.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\engine\platform\win_gamma.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\engine\renderer\dx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -135,9 +132,6 @@
       <Filter>Source Files\hlsl_compiled</Filter>
     </ClCompile>
     <ClCompile Include="..\src\engine\renderer\tr_screenshot.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\engine\platform\win_dximp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

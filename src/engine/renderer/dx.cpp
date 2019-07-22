@@ -1,8 +1,7 @@
 #include "tr_local.h"
-#include "../../engine/platform/win_local.h"
+#include "../platform/win_local.h"
 
 #include <functional>
-
 
 #include "D3d12.h"
 #include "DXGI1_4.h"
@@ -57,7 +56,6 @@ const int INDEX_BUFFER_SIZE = 2 * 1024 * 1024;
 static DXGI_FORMAT get_depth_format()
 {
 	// allway enable stencil
-	glConfig.stencilBits = 8;
 	return DXGI_FORMAT_D24_UNORM_S8_UINT;
 }
 
@@ -110,7 +108,7 @@ static void get_hardware_adapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdap
 }
 
 
-static void record_and_run_commands(std::function<void(ID3D12GraphicsCommandList*)> recorder)
+static void record_and_run_commands(std::function<void ( ID3D12GraphicsCommandList* )> recorder)
 {
 	ID3D12GraphicsCommandList* command_list;
 	DX_CHECK(dx.device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, dx.helper_command_allocator,
@@ -142,6 +140,7 @@ static D3D12_RESOURCE_BARRIER get_transition_barrier(
 	barrier.Transition.StateAfter = state_after;
 	return barrier;
 }
+
 
 static D3D12_HEAP_PROPERTIES get_heap_properties(D3D12_HEAP_TYPE heap_type)
 {
@@ -234,6 +233,7 @@ void dx_initialize()
 			// Creates a device that represents the display adapter.
 			if ( SUCCEEDED( D3D12CreateDevice(pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dx.device) )))
 			{
+				ri.Printf(PRINT_ALL, "Create Device successed. \n");
 				ri.Printf(PRINT_ALL, "Adapter: ");
 
 				wchar_t *WStr = desc.Description;
@@ -255,17 +255,16 @@ void dx_initialize()
 			}
 		}
 	
-//		DX_CHECK( D3D12CreateDevice( 
-//			pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dx.device) ) 
-//		);
+
 		pHardwareAdapter->Release();
 	}
-
+	// allway enable stencil
 	// Create command queue.
 	{
-		D3D12_COMMAND_QUEUE_DESC queue_desc{};
-		queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		D3D12_COMMAND_QUEUE_DESC queue_desc = { 
+			D3D12_COMMAND_LIST_TYPE_DIRECT, 0, 
+			D3D12_COMMAND_QUEUE_FLAG_NONE, 0 };
+
 		DX_CHECK( dx.device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&dx.command_queue)) );
 	}
 
@@ -285,14 +284,14 @@ void dx_initialize()
 		IDXGISwapChain1* swapchain;
 		DX_CHECK(pFactory->CreateSwapChainForHwnd(
 			dx.command_queue,
-			g_wv.hWnd_dx,
+			g_wv.hWnd,
 			&swap_chain_desc,
 			nullptr,
 			nullptr,
 			&swapchain
 			));
 
-		DX_CHECK(pFactory->MakeWindowAssociation(g_wv.hWnd_dx, DXGI_MWA_NO_ALT_ENTER));
+		DX_CHECK(pFactory->MakeWindowAssociation(g_wv.hWnd, DXGI_MWA_NO_ALT_ENTER));
 		swapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&dx.swapchain);
 		swapchain->Release();
 

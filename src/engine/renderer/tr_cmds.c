@@ -275,15 +275,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 		R_SetColorMappings();
 	}
 
-    // check for errors
-    if ( !r_ignoreGLErrors->integer ) {
-        int	err;
 
-		R_SyncRenderThread();
-        if ( ( err = qglGetError() ) != GL_NO_ERROR ) {
-            ri.Error( ERR_FATAL, "RE_BeginFrame() - glGetError() failed (0x%x)!\n", err );
-        }
-    }
 
 	//
 	// draw buffer stuff

@@ -93,7 +93,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\engine\platform\win_dximp.c" />
     <ClCompile Include="..\src\engine\renderer\dx.cpp" />
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\multi_texture_add_ge80_ps.cpp" />
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\multi_texture_add_gt0_ps.cpp" />
@@ -134,7 +133,6 @@
     <ClCompile Include="..\src\engine\renderer\tr_sky.c" />
     <ClCompile Include="..\src\engine\renderer\tr_surface.c" />
     <ClCompile Include="..\src\engine\renderer\tr_world.c" />
-    <ClCompile Include="..\src\engine\platform\win_gamma.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\engine\qcommon\cm_public.h" />

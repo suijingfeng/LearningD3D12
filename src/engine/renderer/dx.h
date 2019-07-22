@@ -183,7 +183,7 @@ struct Dx_World
 	//
 	// Resources.
 	//
-	int num_pipelines = 0;
+	int num_pipelines;
 	DX_Pipeline_Def pipeline_defs[MAX_VK_PIPELINES];
 	ID3D12PipelineState* pipelines[MAX_VK_PIPELINES];
 

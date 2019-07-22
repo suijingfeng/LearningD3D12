@@ -33,8 +33,6 @@ glstate_t	glState;
 Dx_Instance dx;
 Dx_World	dx_world;
 
-static void GfxInfo_f( void );
-
 
 cvar_t	*r_railWidth;
 cvar_t	*r_railCoreWidth;
@@ -67,12 +65,7 @@ cvar_t	*r_facePlaneCull;
 cvar_t	*r_showcluster;
 cvar_t	*r_nocurves;
 
-cvar_t	*r_ext_compressed_textures;
-cvar_t	*r_ext_gamma_control;
-cvar_t	*r_ext_compiled_vertex_array;
-cvar_t	*r_ext_texture_env_add;
 
-cvar_t	*r_ignoreGLErrors;
 cvar_t	*r_logFile;
 
 
@@ -81,7 +74,6 @@ cvar_t	*r_stereo;
 cvar_t	*r_texturebits;
 
 cvar_t	*r_drawBuffer;
-cvar_t  *r_glDriver;
 cvar_t	*r_lightmap;
 cvar_t	*r_vertexLight;
 cvar_t	*r_uiFullScreen;
@@ -96,7 +88,7 @@ cvar_t	*r_showtris;
 cvar_t	*r_showsky;
 cvar_t	*r_shownormals;
 cvar_t	*r_clear;
-cvar_t	*r_swapInterval;
+
 cvar_t	*r_textureMode;
 cvar_t	*r_offsetFactor;
 cvar_t	*r_offsetUnits;
@@ -185,9 +177,9 @@ void GL_CheckErrors( void )
     if ( err == GL_NO_ERROR ) {
         return;
     }
-    if ( r_ignoreGLErrors->integer ) {
-        return;
-    }
+ 
+    return;
+   
     switch( err ) {
         case GL_INVALID_ENUM:
             strcpy( s, "GL_INVALID_ENUM" );
@@ -215,93 +207,6 @@ void GL_CheckErrors( void )
     ri.Error( ERR_FATAL, "GL_CheckErrors: %s", s );
 }
 
-
-/*
-** R_GetModeInfo
-*/
-typedef struct vidmode_s
-{
-    const char *description;
-    int         width, height;
-	float		pixelAspect;		// pixel width / height
-} vidmode_t;
-
-vidmode_t r_vidModes[] =
-{
-    { "Mode  0: 320x240",		320,	240,	1 },
-    { "Mode  1: 400x300",		400,	300,	1 },
-    { "Mode  2: 512x384",		512,	384,	1 },
-    { "Mode  3: 640x480",		640,	480,	1 },
-    { "Mode  4: 800x600",		800,	600,	1 },
-    { "Mode  5: 960x720",		960,	720,	1 },
-    { "Mode  6: 1024x768",		1024,	768,	1 },
-    { "Mode  7: 1152x864",		1152,	864,	1 },
-    { "Mode  8: 1280x1024",		1280,	1024,	1 },
-    { "Mode  9: 1600x1200",		1600,	1200,	1 },
-    { "Mode 10: 2048x1536",		2048,	1536,	1 },
-    { "Mode 11: 856x480 (wide)",856,	480,	1 },
-	{ "Mode 12: 1280x720",		1280,	720,	1 },
-	{ "Mode 13: 1280x768",		1280,	768,	1 },
-	{ "Mode 14: 1280x800",		1280,	800,	1 },
-	{ "Mode 15: 1280x960",		1280,	960,	1 },
-	{ "Mode 16: 1360x768",		1360,	768,	1 },
-	{ "Mode 17: 1366x768",		1366,	768,	1 }, // yes there are some out there on that extra 6
-	{ "Mode 18: 1360x1024",		1360,	1024,	1 },
-	{ "Mode 19: 1400x1050",		1400,	1050,	1 },
-	{ "Mode 20: 1400x900",		1400,	900,	1 },
-	{ "Mode 21: 1600x900",		1600,	900,	1 },
-	{ "Mode 22: 1680x1050",		1680,	1050,	1 },
-	{ "Mode 23: 1920x1080",		1920,	1080,	1 },
-	{ "Mode 24: 1920x1200",		1920,	1200,	1 },
-	{ "Mode 25: 1920x1440",		1920,	1440,	1 },
-	{ "Mode 26: 2560x1080",		2560,	1080,	1 },
-	{ "Mode 27: 2560x1600",		2560,	1600,	1 },
-	{ "Mode 28: 3840x2160 (4K)",3840,	2160,	1 }
-};
-
-const static int s_numVidModes = ( sizeof( r_vidModes ) / sizeof( r_vidModes[0] ) );
-
-qboolean R_GetModeInfo( int *width, int *height, float *windowAspect, int mode )
-{
-	vidmode_t * vm;
-
-    if ( mode < -1 ) {
-        return qfalse;
-	}
-	if ( mode >= s_numVidModes ) {
-		return qfalse;
-	}
-
-	if ( mode == -1 ) {
-		*width = r_customwidth->integer;
-		*height = r_customheight->integer;
-		*windowAspect = r_customaspect->value;
-		return qtrue;
-	}
-
-	vm = &r_vidModes[mode];
-
-    *width  = vm->width;
-    *height = vm->height;
-    *windowAspect = (float)vm->width / ( vm->height * vm->pixelAspect );
-
-    return qtrue;
-}
-
-/*
-** R_ModeList_f
-*/
-static void R_ModeList_f( void )
-{
-	int i;
-
-	ri.Printf( PRINT_ALL, "\n" );
-	for ( i = 0; i < s_numVidModes; i++ )
-	{
-		ri.Printf( PRINT_ALL, "%s\n", r_vidModes[i].description );
-	}
-	ri.Printf( PRINT_ALL, "\n" );
-}
 
 
 
@@ -346,11 +251,7 @@ void GL_SetDefaultState( void )
 }
 
 
-/*
-================
-GfxInfo_f
-================
-*/
+
 void GfxInfo_f( void ) 
 {
 	const char *enablestrings[] =
@@ -402,15 +303,7 @@ void R_Register( void )
 	// latched and archived variables
 	//
 
-	#if defined(_WIN32)
-		#define OPENGL_DRIVER_NAME	"opengl32"
-	#endif	// !defined _WIN32
 
-	r_glDriver = ri.Cvar_Get( "r_glDriver", OPENGL_DRIVER_NAME, CVAR_ARCHIVE | CVAR_LATCH );
-	r_ext_compressed_textures = ri.Cvar_Get( "r_ext_compressed_textures", "0", CVAR_ARCHIVE | CVAR_LATCH );
-	r_ext_gamma_control = ri.Cvar_Get( "r_ext_gamma_control", "1", CVAR_ARCHIVE | CVAR_LATCH );
-	r_ext_compiled_vertex_array = ri.Cvar_Get( "r_ext_compiled_vertex_array", "1", CVAR_ARCHIVE | CVAR_LATCH);
-	r_ext_texture_env_add = ri.Cvar_Get( "r_ext_texture_env_add", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_picmip = ri.Cvar_Get ("r_picmip", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_roundImagesDown = ri.Cvar_Get ("r_roundImagesDown", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_colorMipLevels = ri.Cvar_Get ("r_colorMipLevels", "0", CVAR_LATCH );
@@ -446,12 +339,12 @@ void R_Register( void )
 	r_lodbias = ri.Cvar_Get( "r_lodbias", "0", CVAR_ARCHIVE );
 	r_znear = ri.Cvar_Get( "r_znear", "4", CVAR_CHEAT );
 	AssertCvarRange( r_znear, 0.001f, 200, qtrue );
-	r_ignoreGLErrors = ri.Cvar_Get( "r_ignoreGLErrors", "1", CVAR_ARCHIVE );
+
 	r_fastsky = ri.Cvar_Get( "r_fastsky", "0", CVAR_ARCHIVE );
 	r_inGameVideo = ri.Cvar_Get( "r_inGameVideo", "1", CVAR_ARCHIVE );
 	r_dynamiclight = ri.Cvar_Get( "r_dynamiclight", "1", CVAR_ARCHIVE );
 	r_textureMode = ri.Cvar_Get( "r_textureMode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
-	r_swapInterval = ri.Cvar_Get( "r_swapInterval", "0", CVAR_ARCHIVE );
+
 	r_gamma = ri.Cvar_Get( "r_gamma", "1", CVAR_ARCHIVE );
 	r_facePlaneCull = ri.Cvar_Get ("r_facePlaneCull", "1", CVAR_ARCHIVE );
 
@@ -511,7 +404,7 @@ void R_Register( void )
 	ri.Cmd_AddCommand( "shaderlist", R_ShaderList_f );
 	ri.Cmd_AddCommand( "skinlist", R_SkinList_f );
 	ri.Cmd_AddCommand( "modellist", R_Modellist_f );
-	ri.Cmd_AddCommand( "modelist", R_ModeList_f );
+
 	ri.Cmd_AddCommand( "screenshot", R_ScreenShot_f );
 	ri.Cmd_AddCommand( "screenshotJPEG", R_ScreenShotJPEG_f );
 	ri.Cmd_AddCommand( "gfxinfo", GfxInfo_f );
@@ -538,6 +431,27 @@ void R_Init( void )
 		Com_Printf( "WARNING: tess.xyz not 16 byte aligned\n" );
 	}
 	Com_Memset( tess.constantColor255, 255, sizeof( tess.constantColor255 ) );
+
+	R_Register();
+	// initialize OS specific portions of the renderer
+	//
+	// directly or indirectly references the following cvars:
+	//		- r_fullscreen
+	//		- r_glDriver
+	//		- r_mode
+	//		- r_(depth|stencil)bits
+	//		- r_ignorehwgamma
+	//		- r_gamma
+	//
+	if (dx.active != true)
+	{
+		// DX12
+		if (get_render_api() == RENDER_API_DX)
+		{
+			dx_imp_init();
+			dx_initialize();
+		}
+	}
 
 	//
 	// init function tables
@@ -570,7 +484,6 @@ void R_Init( void )
 
 	R_NoiseInit();
 
-	R_Register();
 
 	max_polys = r_maxpolys->integer;
 	if (max_polys < MAX_POLYS)
@@ -592,25 +505,7 @@ void R_Init( void )
 	
 	R_ToggleSmpFrame();
 
-	// initialize OS specific portions of the renderer
-	//
-	// directly or indirectly references the following cvars:
-	//		- r_fullscreen
-	//		- r_glDriver
-	//		- r_mode
-	//		- r_(depth|stencil)bits
-	//		- r_ignorehwgamma
-	//		- r_gamma
-	//
-	if (dx.active != true)
-	{
-		// DX12
-		if (get_render_api() == RENDER_API_DX)
-		{
-			dx_imp_init();
-			dx_initialize();
-		}
-	}
+
 
 	// init command buffers and SMP
 	glConfig.smpActive = qfalse;
@@ -669,6 +564,9 @@ void RE_Shutdown( qboolean destroyWindow )
 		if (destroyWindow) {
 			dx_shutdown();
 			dx_imp_shutdown();
+
+			memset(&glConfig, 0, sizeof(glConfig));
+			memset(&glState, 0, sizeof(glState));
 		}
 	}
 

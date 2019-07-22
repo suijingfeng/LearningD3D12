@@ -135,10 +135,14 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\engine\platform\win_config.c" />
     <ClCompile Include="..\src\engine\platform\win_dll.c" />
+    <ClCompile Include="..\src\engine\platform\win_dximp.c" />
     <ClCompile Include="..\src\engine\platform\win_event.c" />
     <ClCompile Include="..\src\engine\platform\win_fstream.c" />
+    <ClCompile Include="..\src\engine\platform\win_gamma.c" />
     <ClCompile Include="..\src\engine\platform\win_get_clipboard.c" />
+    <ClCompile Include="..\src\engine\platform\win_mode.c" />
     <ClCompile Include="..\src\engine\qcommon\md5.c" />
     <ClCompile Include="..\src\engine\server\sv_bot.c">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>

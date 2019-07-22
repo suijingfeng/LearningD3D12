@@ -184,7 +184,8 @@ If the variable already exists, the value will not be set unless CVAR_ROM
 The flags will be or'ed in if the variable exists.
 ============
 */
-cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
+cvar_t * Cvar_Get( const char *var_name, const char *var_value, int flags )
+{
 	cvar_t	*var;
 	long	hash;
 
@@ -283,7 +284,8 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 Cvar_Set2
 ============
 */
-cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
+cvar_t * Cvar_Set2( const char *var_name, const char *value, qboolean force )
+{
 	cvar_t	*var;
 
 	Com_DPrintf( "Cvar_Set2: %s %s\n", var_name, value );
@@ -412,12 +414,16 @@ void Cvar_SetLatched( const char *var_name, const char *value) {
 Cvar_SetValue
 ============
 */
-void Cvar_SetValue( const char *var_name, float value) {
-	char	val[32];
+void Cvar_SetValue( const char * const var_name, float value)
+{
+	char val[32];
 
-	if ( value == (int)value ) {
+	if ( value == (int)value )
+	{
 		Com_sprintf (val, sizeof(val), "%i",(int)value);
-	} else {
+	}
+	else
+	{
 		Com_sprintf (val, sizeof(val), "%f",value);
 	}
 	Cvar_Set (var_name, val);

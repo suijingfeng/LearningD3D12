@@ -36,10 +36,7 @@ void RB_TakeScreenshot(int x, int y, int width, int height, char *fileName)
 	buffer[15] = height >> 8;
 	buffer[16] = 24;	// pixel size
 
-	if (get_render_api() == RENDER_API_GL) {
-		qglReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer + 18);
-	}
-	else if (get_render_api() == RENDER_API_DX) { // DX12
+	if (get_render_api() == RENDER_API_DX) { // DX12
 		ri.Printf(PRINT_WARNING, "RT_TakeScreenshot is not implemented for DX12");
 	}
 
@@ -70,10 +67,7 @@ void RB_TakeScreenshotJPEG(int x, int y, int width, int height, char *fileName)
 {
 	byte* buffer = (byte*)ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight * 4);;
 
-	if (get_render_api() == RENDER_API_GL) {
-		qglReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	}
-	else if (get_render_api() == RENDER_API_DX) { // DX12
+	if (get_render_api() == RENDER_API_DX) { // DX12
 		ri.Printf(PRINT_WARNING, "RT_TakeScreenshotJPEG is not implemented for DX12");
 	}
 
@@ -209,10 +203,7 @@ void R_LevelShot(void) {
 	buffer[14] = 128;
 	buffer[16] = 24;	// pixel size
 
-	if (get_render_api() == RENDER_API_GL) {
-		qglReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source);
-	}
-	else if (get_render_api() == RENDER_API_DX) { // DX12
+	if (get_render_api() == RENDER_API_DX) { // DX12
 		ri.Printf(PRINT_WARNING, "R_LevelShot is not implemented for DX12");
 	}
 
