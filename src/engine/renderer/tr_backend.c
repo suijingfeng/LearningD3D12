@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "d3d12.h"
 
 backEndData_t* backEndData[1];
-backEndState_t	backEnd;
+backEndState_t backEnd;
 
 static const float s_flipMatrix[16] =
 {
@@ -371,11 +371,12 @@ static void RB_Hyperspace( void )
 		float color[4] = { c, c, c, 1 };
 		dx_clear_attachments(false, true, color);
 	}
-	else // opengl
+	else if(gl_active)// opengl
 	{
 		qglClearColor(c, c, c, 1);
 		qglClear(GL_COLOR_BUFFER_BIT);
 	}
+
 	backEnd.isHyperspace = qtrue;
 }
 
@@ -491,10 +492,10 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 	int				i;
 	drawSurf_t		*drawSurf;
 	int				oldSort;
-	float			originalTime;
+
 
 	// save original time for entity shader offsets
-	originalTime = backEnd.refdef.floatTime;
+	float originalTime = backEnd.refdef.floatTime;
 
 	// clear the z buffer, set the modelview, etc
 	RB_BeginDrawingView ();
@@ -635,8 +636,6 @@ RB_SetGL2D
 */
 void RB_SetGL2D( void )
 {
-	backEnd.projection2D = qtrue;
-
 	// set 2D virtual screen size
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
@@ -653,6 +652,7 @@ void RB_SetGL2D( void )
 	qglDisable( GL_CULL_FACE );
 	qglDisable( GL_CLIP_PLANE0 );
 
+	backEnd.projection2D = qtrue;
 	// set time for 2D shaders
 	backEnd.refdef.time = ri.Milliseconds();
 	backEnd.refdef.floatTime = backEnd.refdef.time * 0.001f;
@@ -710,12 +710,6 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height ) {
 		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
 		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
-
 
 		// DX12
 		if (dx.active) {
@@ -725,17 +719,33 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 			image = dx_create_image(cols, rows, IMAGE_FORMAT_RGBA8, 1, false, image_index);
 			dx_upload_image_data(image.texture, cols, rows, 1, data, 4);
 		}
-	} else {
-		if (dirty) {
+		else if (gl_active)
+		{
+			qglTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		}
+	}
+	else
+	{
+		if (dirty)
+		{
 			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
 			// it and don't try and do a texture compression
-			qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
+
 
 			// DX12
 			if (dx.active) {
 				const Dx_Image& image = dx_world.images[tr.scratchImage[client]->index];
 				dx_upload_image_data(image.texture, cols, rows, 1, data, 4);
 			}
+			else if( gl_active )
+			{
+				qglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			}
+
 		}
 	}
 }
@@ -747,10 +757,9 @@ RB_SetColor
 
 =============
 */
-const void	*RB_SetColor( const void *data ) {
-	const setColorCommand_t	*cmd;
-
-	cmd = (const setColorCommand_t *)data;
+const void* RB_SetColor( const void *data )
+{
+	const setColorCommand_t	*cmd = (const setColorCommand_t *)data;
 
 	backEnd.color2D[0] = cmd->color[0] * 255;
 	backEnd.color2D[1] = cmd->color[1] * 255;
@@ -764,18 +773,15 @@ const void	*RB_SetColor( const void *data ) {
 RB_StretchPic
 =============
 */
-const void *RB_StretchPic ( const void *data ) {
-	const stretchPicCommand_t	*cmd;
-	shader_t *shader;
-	int		numVerts, numIndexes;
-
-	cmd = (const stretchPicCommand_t *)data;
+const void *RB_StretchPic ( const void *data )
+{
+	const stretchPicCommand_t* cmd = (const stretchPicCommand_t *)data;
 
 	if ( !backEnd.projection2D ) {
 		RB_SetGL2D();
 	}
 
-	shader = cmd->shader;
+	shader_t * shader = cmd->shader;
 	if ( shader != tess.shader ) {
 		if ( tess.numIndexes ) {
 			RB_EndSurface(&tess);
@@ -785,8 +791,8 @@ const void *RB_StretchPic ( const void *data ) {
 	}
 
 	RB_CHECKOVERFLOW( 4, 6 );
-	numVerts = tess.numVertexes;
-	numIndexes = tess.numIndexes;
+	int numVerts = tess.numVertexes;
+	int numIndexes = tess.numIndexes;
 
 	tess.numVertexes += 4;
 	tess.numIndexes += 6;
@@ -843,14 +849,12 @@ RB_DrawSurfs
 */
 const void* RB_DrawSurfs( const void *data )
 {
-	const drawSurfsCommand_t	*cmd;
-
 	// finish any 2D drawing if needed
 	if ( tess.numIndexes ) {
 		RB_EndSurface(&tess);
 	}
 
-	cmd = (const drawSurfsCommand_t *)data;
+	const drawSurfsCommand_t* cmd = (const drawSurfsCommand_t *)data;
 
 	backEnd.refdef = cmd->refdef;
 	backEnd.viewParms = cmd->viewParms;
@@ -1051,15 +1055,16 @@ const void* RB_SwapBuffers( const void *data )
 	// texture swapping test
 	if ( r_showImages->integer )
 	{
-		if (gl_active)
-		{
-			RB_ShowImages();
-		}
 
 		if (dx.active)
 		{
 			RB_Show_Vk_Dx_Images();
 		}
+		else if (gl_active)
+		{
+			RB_ShowImages();
+		}
+
 	}
 
 	const swapBuffersCommand_t* cmd = (const swapBuffersCommand_t *)data;
@@ -1090,7 +1095,6 @@ void RB_ExecuteRenderCommands( const void *data )
 {
 	int t1 = ri.Milliseconds();
 
-	backEnd.smpFrame = 0;
 
 	bool begin_frame_called = false;
 	bool end_frame_called = false;

@@ -56,9 +56,8 @@ R_BindAnimatedImage
 
 =================
 */
-static void R_BindAnimatedImage( textureBundle_t *bundle ) {
-	int		index;
-
+static void R_BindAnimatedImage( textureBundle_t *bundle )
+{
 	if ( bundle->isVideoMap ) {
 		ri.CIN_RunCinematic(bundle->videoMapHandle);
 		ri.CIN_UploadCinematic(bundle->videoMapHandle);
@@ -72,7 +71,7 @@ static void R_BindAnimatedImage( textureBundle_t *bundle ) {
 
 	// it is necessary to do this messy calc to make sure animations line up
 	// exactly with waveforms of the same frequency
-	index = myftol( tess.shaderTime * bundle->imageAnimationSpeed * FUNCTABLE_SIZE );
+	int index = myftol( tess.shaderTime * bundle->imageAnimationSpeed * FUNCTABLE_SIZE );
 	index >>= FUNCTABLE_SIZE2;
 
 	if ( index < 0 ) {
@@ -90,7 +89,8 @@ DrawTris
 Draws triangle outlines for debugging
 ================
 */
-static void DrawTris (shaderCommands_t *input) {
+static void DrawTris (shaderCommands_t *input)
+{
 	GL_Bind( tr.whiteImage );
 	qglColor3f (1,1,1);
 
@@ -102,19 +102,16 @@ static void DrawTris (shaderCommands_t *input) {
 
 	qglVertexPointer (3, GL_FLOAT, 16, input->xyz);	// padded for SIMD
 
-	R_DrawElements( input->numIndexes, input->indexes );
-
+	qglDrawElements(GL_TRIANGLES, input->numIndexes, GL_INDEX_TYPE, input->indexes);
 	qglDepthRange( 0, 1 );
-
-
-	// DX12
-	if (dx.active) {
-		Com_Memset(tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
-		auto pipeline = backEnd.viewParms.isMirror ? dx.tris_mirror_debug_pipeline : dx.tris_debug_pipeline;
-		dx_shade_geometry(pipeline, false, DX_Depth_Range::force_zero, true, false);
-	}
 }
 
+static void D3D12_DrawTris(shaderCommands_t * const input)
+{
+	Com_Memset(input->svars.colors, tr.identityLightByte, input->numVertexes * 4);
+	auto pipeline = backEnd.viewParms.isMirror ? dx.tris_mirror_debug_pipeline : dx.tris_debug_pipeline;
+	dx_shade_geometry(pipeline, false, DX_Depth_Range::force_zero, true, false);
+}
 
 /*
 ================
@@ -123,54 +120,60 @@ DrawNormals
 Draws vertex normals for debugging
 ================
 */
-static void DrawNormals (shaderCommands_t *input) {
-	int		i;
+static void DrawNormals (shaderCommands_t * const input)
+{
 	vec3_t	temp;
 
 	GL_Bind( tr.whiteImage );
 	qglColor3f (1,1,1);
 	qglDepthRange( 0, 0 );	// never occluded
+
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
 
 	qglBegin (GL_LINES);
-	for (i = 0 ; i < input->numVertexes ; i++) {
+
+	for (int i = 0 ; i < input->numVertexes ; ++i)
+	{
 		qglVertex3fv (input->xyz[i]);
 		VectorMA (input->xyz[i], 2, input->normal[i], temp);
 		qglVertex3fv (temp);
 	}
-	qglEnd ();
+
+	qglEnd();
 
 	qglDepthRange( 0, 1 );
 
-	// VULKAN
-	// DX12
-	if (dx.active)
+}
+
+static void D3D12_DrawNormals(shaderCommands_t * const input)
+{
+	vec4_t xyz[SHADER_MAX_VERTEXES];
+	Com_Memcpy(xyz, input->xyz, input->numVertexes * sizeof(vec4_t));
+	Com_Memset(input->svars.colors, tr.identityLightByte, SHADER_MAX_VERTEXES * sizeof(color4ub_t));
+
+	int numVertexes = input->numVertexes;
+	int i = 0;
+	while (i < numVertexes)
 	{
-		vec4_t xyz[SHADER_MAX_VERTEXES];
-		Com_Memcpy(xyz, tess.xyz, tess.numVertexes * sizeof(vec4_t));
-		Com_Memset(tess.svars.colors, tr.identityLightByte, SHADER_MAX_VERTEXES * sizeof(color4ub_t));
+		int count = numVertexes - i;
+		if (count >= SHADER_MAX_VERTEXES / 2 - 1)
+			count = SHADER_MAX_VERTEXES / 2 - 1;
 
-		int numVertexes = tess.numVertexes;
-		i = 0;
-		while (i < numVertexes) {
-			int count = numVertexes - i;
-			if (count >= SHADER_MAX_VERTEXES/2 - 1)
-				count = SHADER_MAX_VERTEXES/2 - 1;
-
-			for (int k = 0; k < count; k++) {
-				VectorCopy(xyz[i + k], tess.xyz[2*k]);
-				VectorMA(xyz[i + k], 2, input->normal[i + k], tess.xyz[2*k + 1]);
-			}
-			tess.numVertexes = 2 * count;
-			tess.numIndexes = 0;
-
-			if (dx.active) {
-				dx_bind_geometry();
-				dx_shade_geometry(dx.normals_debug_pipeline, false, DX_Depth_Range::force_zero, false, true);
-			}
-
-			i += count;
+		for (int k = 0; k < count; ++k)
+		{
+			VectorCopy(xyz[i + k], input->xyz[2 * k]);
+			VectorMA(xyz[i + k], 2, input->normal[i + k], input->xyz[2 * k + 1]);
 		}
+
+		input->numVertexes = 2 * count;
+		input->numIndexes = 0;
+
+	
+		dx_bind_geometry();
+		dx_shade_geometry(dx.normals_debug_pipeline, false, DX_Depth_Range::force_zero, false, true);
+	
+
+		i += count;
 	}
 }
 
@@ -214,9 +217,7 @@ t1 = most downstream according to spec
 ===================
 */
 static void DrawMultitextured( shaderCommands_t *input, int stage ) {
-	shaderStage_t	*pStage;
-
-	pStage = tess.xstages[stage];
+	shaderStage_t* pStage = tess.xstages[stage];
 
 	GL_State( pStage->stateBits );
 
@@ -419,7 +420,7 @@ static void RB_FogPass( void ) {
 
 	fog = tr.world->fogs + tess.fogNum;
 
-	for ( i = 0; i < tess.numVertexes; i++ ) {
+	for ( i = 0; i < tess.numVertexes; ++i ) {
 		* ( int * )&tess.svars.colors[i] = fog->colorInt;
 	}
 
@@ -748,7 +749,7 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 	if (dx.active)
 		dx_bind_geometry();
 
-	for ( int stage = 0; stage < MAX_SHADER_STAGES; stage++ )
+	for ( int stage = 0; stage < MAX_SHADER_STAGES; ++stage )
 	{
 		shaderStage_t *pStage = tess.xstages[stage];
 
@@ -980,11 +981,29 @@ void RB_EndSurface(shaderCommands_t * const input)
 	//
 	// draw debugging stuff
 	//
-	if ( r_showtris->integer ) {
-		DrawTris (input);
+	if ( r_showtris->integer )
+	{
+		// DX12
+		if ( dx.active )
+		{
+			D3D12_DrawTris(input);
+		}
+		else if ( gl_active )
+		{
+			DrawTris(input);
+		}
 	}
-	if ( r_shownormals->integer ) {
-		DrawNormals (input);
+
+	if ( r_shownormals->integer )
+	{
+		if ( dx.active )
+		{
+			D3D12_DrawNormals(input);
+		}
+		else if ( gl_active )
+		{
+			DrawNormals(input);
+		}
 	}
 	// clear shader so we can tell we don't have any unclosed surfaces
 	input->numIndexes = 0;

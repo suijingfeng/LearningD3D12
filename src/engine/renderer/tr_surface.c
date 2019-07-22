@@ -228,7 +228,7 @@ void RB_SurfaceTriangles( srfTriangles_t *srf ) {
 	int			dlightBits;
 	qboolean	needsNormal;
 
-	dlightBits = srf->dlightBits[backEnd.smpFrame];
+	dlightBits = srf->dlightBits[0];
 	tess.dlightBits |= dlightBits;
 
 	RB_CHECKOVERFLOW( srf->numVerts, srf->numIndexes );
@@ -712,7 +712,9 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 			outNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
 		}
 #endif
-	} else {
+	} 
+	else
+	{
 		//
 		// interpolate and copy the vertex and normal
 		//
@@ -826,7 +828,7 @@ void RB_SurfaceFace( srfSurfaceFace_t *surf ) {
 
 	RB_CHECKOVERFLOW( surf->numPoints, surf->numIndices );
 
-	dlightBits = surf->dlightBits[backEnd.smpFrame];
+	dlightBits = surf->dlightBits[0];
 	tess.dlightBits |= dlightBits;
 
 	indices = ( unsigned * ) ( ( ( char  * ) surf ) + surf->ofsIndices );
@@ -867,7 +869,7 @@ void RB_SurfaceFace( srfSurfaceFace_t *surf ) {
 }
 
 
-static float	LodErrorForVolume( vec3_t local, float radius ) {
+static float LodErrorForVolume( vec3_t local, float radius ) {
 	vec3_t		world;
 	float		d;
 
@@ -915,23 +917,23 @@ void RB_SurfaceGrid( srfGridMesh_t *cv ) {
 	int		used;
 	int		widthTable[MAX_GRID_SIZE];
 	int		heightTable[MAX_GRID_SIZE];
-	float	lodError;
-	int		lodWidth, lodHeight;
-	int		numVertexes;
-	int		dlightBits;
-	int		*vDlightBits;
-	qboolean	needsNormal;
 
-	dlightBits = cv->dlightBits[backEnd.smpFrame];
+	int		lodHeight;
+	int		numVertexes;
+
+	int		*vDlightBits;
+
+
+	int dlightBits = cv->dlightBits[0];
 	tess.dlightBits |= dlightBits;
 
 	// determine the allowable discrepance
-	lodError = LodErrorForVolume( cv->lodOrigin, cv->lodRadius );
+	float lodError = LodErrorForVolume( cv->lodOrigin, cv->lodRadius );
 
 	// determine which rows and columns of the subdivision
 	// we are actually going to use
 	widthTable[0] = 0;
-	lodWidth = 1;
+	int lodWidth = 1;
 	for ( i = 1 ; i < cv->width-1 ; i++ ) {
 		if ( cv->widthLodError[i] <= lodError ) {
 			widthTable[lodWidth] = i;
@@ -939,7 +941,7 @@ void RB_SurfaceGrid( srfGridMesh_t *cv ) {
 		}
 	}
 	widthTable[lodWidth] = cv->width-1;
-	lodWidth++;
+	++lodWidth;
 
 	heightTable[0] = 0;
 	lodHeight = 1;
@@ -988,10 +990,11 @@ void RB_SurfaceGrid( srfGridMesh_t *cv ) {
 		texCoords = tess.texCoords[numVertexes][0];
 		color = ( unsigned char * ) &tess.vertexColors[numVertexes];
 		vDlightBits = &tess.vertexDlightBits[numVertexes];
-		needsNormal = tess.shader->needsNormal;
+		qboolean needsNormal = tess.shader->needsNormal;
 
-		for ( i = 0 ; i < rows ; i++ ) {
-			for ( j = 0 ; j < lodWidth ; j++ ) {
+		for ( i = 0 ; i < rows ; ++i ) {
+			for ( j = 0 ; j < lodWidth ; ++j )
+			{
 				dv = cv->verts + heightTable[ used + i ] * cv->width
 					+ widthTable[ j ];
 
@@ -1019,21 +1022,19 @@ void RB_SurfaceGrid( srfGridMesh_t *cv ) {
 
 		// add the indexes
 		{
-			int		numIndexes;
-			int		w, h;
+			int h = rows - 1;
+			int w = lodWidth - 1;
+			int numIndexes = tess.numIndexes;
 
-			h = rows - 1;
-			w = lodWidth - 1;
-			numIndexes = tess.numIndexes;
-			for (i = 0 ; i < h ; i++) {
-				for (j = 0 ; j < w ; j++) {
-					int		v1, v2, v3, v4;
-			
+			for (i = 0 ; i < h ; ++i)
+			{
+				for (j = 0 ; j < w ; ++j)
+				{
 					// vertex order to be reckognized as tristrips
-					v1 = numVertexes + i*lodWidth + j + 1;
-					v2 = v1 - 1;
-					v3 = v2 + lodWidth;
-					v4 = v3 + 1;
+					int v1 = numVertexes + i*lodWidth + j + 1;
+					int v2 = v1 - 1;
+					int v3 = v2 + lodWidth;
+					int v4 = v3 + 1;
 
 					tess.indexes[numIndexes] = v2;
 					tess.indexes[numIndexes+1] = v3;
@@ -1071,7 +1072,8 @@ RB_SurfaceAxis
 Draws x/y/z lines from the origin for orientation debugging
 ===================
 */
-void RB_SurfaceAxis( void ) {
+void RB_SurfaceAxis( void )
+{
 	GL_Bind( tr.whiteImage );
 	qglLineWidth( 3 );
 	qglBegin( GL_LINES );
@@ -1097,7 +1099,8 @@ RB_SurfaceEntity
 Entities that have a single procedurally generated surface
 ====================
 */
-void RB_SurfaceEntity( surfaceType_t *surfType ) {
+void RB_SurfaceEntity( surfaceType_t *surfType )
+{
 	switch( backEnd.currentEntity->e.reType ) {
 	case RT_SPRITE:
 		RB_SurfaceSprite();

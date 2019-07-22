@@ -819,7 +819,6 @@ typedef struct {
 // all state modified by the back end is seperated
 // from the front end state
 typedef struct {
-	int			smpFrame;
 	trRefdef_t	refdef;
 	viewParms_t	viewParms;
 	orientationr_t	or;
@@ -1498,7 +1497,6 @@ extern	backEndData_t * backEndData[1];	// the second one may not be allocated
 void *R_GetCommandBuffer( int bytes );
 void RB_ExecuteRenderCommands( const void *data );
 
-void R_ShutdownCommandBuffers( void );
 
 void R_SyncRenderThread( void );
 

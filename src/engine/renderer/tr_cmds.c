@@ -28,7 +28,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 R_PerformanceCounters
 =====================
 */
-void R_PerformanceCounters( void ) {
+void R_PerformanceCounters( void )
+{
 	if ( !r_speeds->integer ) {
 		// clear the counters even if we aren't printing
 		Com_Memset( &tr.pc, 0, sizeof( tr.pc ) );
@@ -66,17 +67,6 @@ void R_PerformanceCounters( void ) {
 	Com_Memset( &backEnd.pc, 0, sizeof( backEnd.pc ) );
 }
 
-
-
-/*
-====================
-R_ShutdownCommandBuffers
-====================
-*/
-void R_ShutdownCommandBuffers( void ) {
-	// kill the rendering thread
-
-}
 
 /*
 ====================
@@ -260,7 +250,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 	// texturemode stuff
 	//
 	if ( r_textureMode->modified ) {
-		R_SyncRenderThread();
+		R_IssueRenderCommands(qfalse);
 		GL_TextureMode( r_textureMode->string );
 		r_textureMode->modified = qfalse;
 	}
@@ -268,10 +258,11 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 	//
 	// gamma stuff
 	//
-	if ( r_gamma->modified ) {
+	if ( r_gamma->modified )
+	{
 		r_gamma->modified = qfalse;
 
-		R_SyncRenderThread();
+		R_IssueRenderCommands(qfalse);
 		R_SetColorMappings();
 	}
 
@@ -287,24 +278,18 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 	}
 	cmd->commandId = RC_DRAW_BUFFER;
 
-	if ( glConfig.stereoEnabled ) {
-		if ( stereoFrame == STEREO_LEFT ) {
-			cmd->buffer = (int)GL_BACK_LEFT;
-		} else if ( stereoFrame == STEREO_RIGHT ) {
-			cmd->buffer = (int)GL_BACK_RIGHT;
-		} else {
-			ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is enabled, but stereoFrame was %i", stereoFrame );
-		}
-	} else {
-		if ( stereoFrame != STEREO_CENTER ) {
-			ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is disabled, but stereoFrame was %i", stereoFrame );
-		}
-		if ( !Q_stricmp( r_drawBuffer->string, "GL_FRONT" ) ) {
-			cmd->buffer = (int)GL_FRONT;
-		} else {
-			cmd->buffer = (int)GL_BACK;
-		}
+
+	if ( stereoFrame != STEREO_CENTER ) {
+		ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is disabled, but stereoFrame was %i", stereoFrame );
 	}
+
+	if ( !Q_stricmp( r_drawBuffer->string, "GL_FRONT" ) ) {
+		cmd->buffer = (int)GL_FRONT;
+	} 
+	else {
+		cmd->buffer = (int)GL_BACK;
+	}
+
 }
 
 

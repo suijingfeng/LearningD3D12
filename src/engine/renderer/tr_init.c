@@ -550,7 +550,6 @@ void RE_Shutdown( qboolean destroyWindow )
 
 	if ( tr.registered ) {
 		R_SyncRenderThread();
-		R_ShutdownCommandBuffers();
 		R_DeleteTextures();
 	}
 
