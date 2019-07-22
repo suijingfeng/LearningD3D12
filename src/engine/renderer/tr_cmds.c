@@ -21,9 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 
-volatile renderCommandList_t	*renderCommandList;
-
-volatile qboolean	renderThreadActive;
 
 
 /*
@@ -78,10 +75,7 @@ R_ShutdownCommandBuffers
 */
 void R_ShutdownCommandBuffers( void ) {
 	// kill the rendering thread
-	if ( glConfig.smpActive ) {
-		GLimp_WakeRenderer( NULL );
-		glConfig.smpActive = qfalse;
-	}
+
 }
 
 /*
@@ -113,11 +107,7 @@ void R_IssueRenderCommands( qboolean runPerformanceCounters ) {
 	// actually start the commands going
 	if ( !r_skipBackEnd->integer ) {
 		// let it start on the new batch
-		if ( !glConfig.smpActive ) {
-			RB_ExecuteRenderCommands( cmdList->cmds );
-		} else {
-			GLimp_WakeRenderer( cmdList );
-		}
+		RB_ExecuteRenderCommands( cmdList->cmds );
 	}
 }
 
@@ -138,10 +128,7 @@ void R_SyncRenderThread( void ) {
 	}
 	R_IssueRenderCommands( qfalse );
 
-	if ( !glConfig.smpActive ) {
-		return;
-	}
-	GLimp_FrontEndSleep();
+
 }
 
 /*
@@ -152,10 +139,9 @@ make sure there is enough command space, waiting on the
 render thread if needed.
 ============
 */
-void *R_GetCommandBuffer( int bytes ) {
-	renderCommandList_t	*cmdList;
-
-	cmdList = &backEndData[tr.smpFrame]->commands;
+void *R_GetCommandBuffer( int bytes )
+{
+	renderCommandList_t	*cmdList = &backEndData[tr.smpFrame]->commands;
 
 	// always leave room for the end of list command
 	if ( cmdList->used + bytes + 4 > MAX_RENDER_COMMANDS ) {
@@ -178,10 +164,9 @@ R_AddDrawSurfCmd
 
 =============
 */
-void	R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs ) {
-	drawSurfsCommand_t	*cmd;
-
-	cmd = (drawSurfsCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
+void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs )
+{
+	drawSurfsCommand_t * cmd = (drawSurfsCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
 	if ( !cmd ) {
 		return;
 	}
@@ -202,13 +187,13 @@ RE_SetColor
 Passing NULL will set the color to white
 =============
 */
-void	RE_SetColor( const float *rgba ) {
-	setColorCommand_t	*cmd;
+void RE_SetColor( const float *rgba )
+{
+	if ( !tr.registered ) {
+		return;
+	}
 
-  if ( !tr.registered ) {
-    return;
-  }
-  cmd = (setColorCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
+	setColorCommand_t	* cmd = (setColorCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
 	if ( !cmd ) {
 		return;
 	}
@@ -233,12 +218,12 @@ RE_StretchPic
 */
 void RE_StretchPic ( float x, float y, float w, float h, 
 					  float s1, float t1, float s2, float t2, qhandle_t hShader ) {
-	stretchPicCommand_t	*cmd;
+	if (!tr.registered)
+	{
+		return;
+	}
 
-  if (!tr.registered) {
-    return;
-  }
-  cmd = (stretchPicCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
+	stretchPicCommand_t	* cmd = (stretchPicCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
 	if ( !cmd ) {
 		return;
 	}

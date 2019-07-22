@@ -1185,17 +1185,11 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
-void		GLimp_Init( void );
-void		GLimp_Shutdown( void );
-void		GLimp_EndFrame( void );
-void		GLimp_LogComment( char * const pComment );
+// void		GLimp_Init( void );
+// void		GLimp_Shutdown( void );
+// void		GLimp_EndFrame( void );
 
-qboolean	GLimp_SpawnRenderThread( void (*function)( void ) );
-void		*GLimp_RendererSleep( void );
-void		GLimp_FrontEndSleep( void );
-void		GLimp_WakeRenderer( void *data );
-
-
+void GLimp_LogComment( char * const pComment );
 
 void dx_imp_init();
 void dx_imp_shutdown();
@@ -1408,7 +1402,7 @@ RENDERER BACK END FUNCTIONS
 =============================================================
 */
 
-void RB_RenderThread( void );
+
 void RB_ExecuteRenderCommands( const void *data );
 
 /*
@@ -1513,11 +1507,7 @@ typedef struct {
 extern	int		max_polys;
 extern	int		max_polyverts;
 
-extern	backEndData_t	*backEndData[SMP_FRAMES];	// the second one may not be allocated
-
-extern	volatile renderCommandList_t	*renderCommandList;
-
-extern	volatile qboolean	renderThreadActive;
+extern	backEndData_t * backEndData[SMP_FRAMES];	// the second one may not be allocated
 
 
 void *R_GetCommandBuffer( int bytes );

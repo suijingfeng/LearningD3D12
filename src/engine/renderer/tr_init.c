@@ -670,12 +670,6 @@ void RE_Shutdown( qboolean destroyWindow )
 	R_DoneFreeType();
 
 	// shut down platform specific OpenGL stuff
-	if ( gl_active ) {
-		if (destroyWindow)
-			GLimp_Shutdown();
-	}
-
-
 	// DX12
 	if (dx.active) {
 		dx_release_resources();
