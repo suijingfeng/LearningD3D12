@@ -61,6 +61,8 @@ cvar_t	*cl_forceavidemo;
 
 cvar_t	*cl_freelook;
 cvar_t	*cl_sensitivity;
+// widescreen fov fix
+cvar_t	*cl_scaleSensWithFov;
 
 cvar_t	*cl_mouseAccel;
 cvar_t	*cl_showMouseRate;
@@ -107,9 +109,6 @@ typedef struct serverStatus_s
 serverStatus_t cl_serverStatusList[MAX_SERVERSTATUSREQUESTS];
 int serverStatusCount;
 
-#if defined __USEA3D && defined __A3D_GEOM
-	void hA3Dg_ExportRenderGeom (refexport_t *incoming_re);
-#endif
 
 extern void SV_BotFrame( int time );
 void CL_CheckForResend( void );
@@ -2369,9 +2368,6 @@ void CL_InitRef( void ) {
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 
-#if defined __USEA3D && defined __A3D_GEOM
-	hA3Dg_ExportRenderGeom (ret);
-#endif
 
 	Com_Printf( "-------------------------------\n");
 
@@ -2534,6 +2530,8 @@ void CL_Init( void ) {
 
 	cl_run = Cvar_Get ("cl_run", "1", CVAR_ARCHIVE);
 	cl_sensitivity = Cvar_Get ("sensitivity", "5", CVAR_ARCHIVE);
+	// widescreen fov fix, suijingfeng
+	cl_scaleSensWithFov = Cvar_Get("cl_scaleSensWithFov", "1", CVAR_ARCHIVE);
 	cl_mouseAccel = Cvar_Get ("cl_mouseAccel", "0", CVAR_ARCHIVE);
 	cl_freelook = Cvar_Get( "cl_freelook", "1", CVAR_ARCHIVE );
 
@@ -2543,13 +2541,14 @@ void CL_Init( void ) {
 
 	cl_conXOffset = Cvar_Get ("cl_conXOffset", "0", 0);
 #ifdef MACOS_X
-        // In game video is REALLY slow in Mac OS X right now due to driver slowness
+    // In game video is REALLY slow in Mac OS X right now due to driver slowness
 	cl_inGameVideo = Cvar_Get ("r_inGameVideo", "0", CVAR_ARCHIVE);
 #else
 	cl_inGameVideo = Cvar_Get ("r_inGameVideo", "1", CVAR_ARCHIVE);
 #endif
 
 	cl_serverStatusResendTime = Cvar_Get ("cl_serverStatusResendTime", "750", 0);
+
 
 	// init autoswitch so the ui will have it correctly even
 	// if the cgame hasn't been started

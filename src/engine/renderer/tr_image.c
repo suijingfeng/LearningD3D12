@@ -1881,15 +1881,13 @@ void R_SetColorMappings( void ) {
 	}
 
 	// allow 2 overbright bits in 24 bit, but only 1 in 16 bit
-	if ( glConfig.colorBits > 16 ) {
-		if ( tr.overbrightBits > 2 ) {
-			tr.overbrightBits = 2;
-		}
-	} else {
-		if ( tr.overbrightBits > 1 ) {
-			tr.overbrightBits = 1;
-		}
+	// glConfig.colorBits = 32;
+
+	if ( tr.overbrightBits > 2 )
+	{
+		tr.overbrightBits = 2;
 	}
+
 	if ( tr.overbrightBits < 0 ) {
 		tr.overbrightBits = 0;
 	}

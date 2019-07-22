@@ -12,9 +12,11 @@ void setWinConfig(int w, int h, bool isFullScreen, int mode, int hz)
 	glConfig.isFullscreen = isFullScreen ? qtrue : qfalse;
 	glConfig.stereoEnabled = qfalse;
 	glConfig.smpActive = qfalse;
-	glConfig.UNUSED_displayFrequency = 60;
+	glConfig.UNUSED_displayFrequency = 120;
 	glConfig.deviceSupportsGamma = qtrue;
 
 	// allways enable stencil
 	glConfig.stencilBits = 8;
+	glConfig.depthBits = 24;
+	glConfig.colorBits = 32;
 }
