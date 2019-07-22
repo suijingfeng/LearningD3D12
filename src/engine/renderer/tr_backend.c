@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // DX12
 #include "d3d12.h"
 
-backEndData_t	*backEndData[SMP_FRAMES];
+backEndData_t* backEndData[1];
 backEndState_t	backEnd;
 
 static const float s_flipMatrix[16] =
@@ -364,15 +364,17 @@ A player has predicted a teleport, but hasn't arrived yet
 static void RB_Hyperspace( void )
 {
 	float c = ( backEnd.refdef.time & 255 ) / 255.0f;
-	qglClearColor( c, c, c, 1 );
-	qglClear( GL_COLOR_BUFFER_BIT );
-
 
 	// DX12
 	if( dx.active )
 	{
 		float color[4] = { c, c, c, 1 };
 		dx_clear_attachments(false, true, color);
+	}
+	else // opengl
+	{
+		qglClearColor(c, c, c, 1);
+		qglClear(GL_COLOR_BUFFER_BIT);
 	}
 	backEnd.isHyperspace = qtrue;
 }
@@ -631,7 +633,8 @@ RB_SetGL2D
 
 ================
 */
-void	RB_SetGL2D (void) {
+void RB_SetGL2D( void )
+{
 	backEnd.projection2D = qtrue;
 
 	// set 2D virtual screen size
@@ -665,7 +668,7 @@ Stretches a raw 32 bit power of 2 bitmap image over the given screen rectangle.
 Used for cinematics.
 =============
 */
-void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty) {
+void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty) {
 	int			i, j;
 	int			start, end;
 

@@ -135,7 +135,6 @@
     <ClCompile Include="..\src\engine\renderer\tr_surface.c" />
     <ClCompile Include="..\src\engine\renderer\tr_world.c" />
     <ClCompile Include="..\src\engine\platform\win_gamma.c" />
-    <ClCompile Include="..\src\engine\platform\win_qgl.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\engine\qcommon\cm_public.h" />

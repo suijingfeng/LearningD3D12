@@ -837,12 +837,8 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 /*
 ** RB_StageIteratorGeneric
 */
-void RB_StageIteratorGeneric( void )
+void RB_StageIteratorGeneric(shaderCommands_t * const input)
 {
-	shaderCommands_t *input;
-
-	input = &tess;
-
 	RB_DeformTessGeometry();
 
 	//
@@ -852,7 +848,7 @@ void RB_StageIteratorGeneric( void )
 	{
 		// don't just call LogComment, or we will get
 		// a call to va() every frame!
-		GLimp_LogComment( va("--- RB_StageIteratorGeneric( %s ) ---\n", tess.shader->name) );
+		GLimp_LogComment( va("--- RB_StageIteratorGeneric( %s ) ---\n", input->shader->name) );
 	}
 
 	//
@@ -873,7 +869,7 @@ void RB_StageIteratorGeneric( void )
 	// to avoid compiling those arrays since they will change
 	// during multipass rendering
 	//
-	if ( tess.numPasses > 1 || input->shader->multitextureEnv )
+	if (input->numPasses > 1 || input->shader->multitextureEnv )
 	{
 		setArraysOnce = qfalse;
 		qglDisableClientState (GL_COLOR_ARRAY);
@@ -884,10 +880,10 @@ void RB_StageIteratorGeneric( void )
 		setArraysOnce = qtrue;
 
 		qglEnableClientState( GL_COLOR_ARRAY);
-		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
+		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, input->svars.colors );
 
 		qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
-		qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoords[0] );
+		qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[0] );
 	}
 
 	//
@@ -913,15 +909,15 @@ void RB_StageIteratorGeneric( void )
 	// 
 	// now do any dynamic lighting needed
 	//
-	if ( tess.dlightBits && tess.shader->sort <= SS_OPAQUE
-		&& !(tess.shader->surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) ) {
+	if (input->dlightBits && input->shader->sort <= SS_OPAQUE
+		&& !(input->shader->surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) ) {
 		ProjectDlightTexture();
 	}
 
 	//
 	// now do fog
 	//
-	if ( tess.fogNum && tess.shader->fogPass ) {
+	if (input->fogNum && input->shader->fogPass ) {
 		RB_FogPass();
 	}
 
@@ -979,7 +975,7 @@ void RB_EndSurface(shaderCommands_t * const input)
 	if (input->shader->isSky)
 		RB_StageIteratorSky();
 	else
-		RB_StageIteratorGeneric();
+		RB_StageIteratorGeneric(input);
 
 	//
 	// draw debugging stuff

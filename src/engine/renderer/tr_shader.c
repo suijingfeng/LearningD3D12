@@ -1766,7 +1766,7 @@ sortedIndex.
 ==============
 */
 static void FixRenderCommandList( int newShader ) {
-	renderCommandList_t	*cmdList = &backEndData[tr.smpFrame]->commands;
+	renderCommandList_t	*cmdList = &backEndData[0]->commands;
 
 	if( cmdList ) {
 		const void *curCmd = cmdList->cmds;

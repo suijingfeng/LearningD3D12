@@ -169,38 +169,7 @@ RenderApi get_render_api()
 /*
 ** This function is responsible for initializing a valid OpenGL/Vulkan subsystem.
 */
-static void InitRenderAPI( void )
-{
-	//
-	// initialize OS specific portions of the renderer
-	//
-	// GLimp_Init directly or indirectly references the following cvars:
-	//		- r_fullscreen
-	//		- r_glDriver
-	//		- r_mode
-	//		- r_(depth|stencil)bits
-	//		- r_ignorehwgamma
-	//		- r_gamma
-	//
-	if (dx.active != true )
-	{
-		// DX12
-		if (get_render_api() == RENDER_API_DX )
-		{
-			dx_imp_init();
-			dx_initialize();
-		}
-	}
 
-	// init command buffers and SMP
-	glConfig.smpActive = qfalse;
-
-	// print info
-	GfxInfo_f();
-
-	// set default state
-	GL_SetDefaultState();
-}
 
 /*
 ==================
@@ -555,8 +524,6 @@ R_Init
 */
 void R_Init( void )
 {	
-	int	err;
-	byte *ptr;
 
 	ri.Printf( PRINT_ALL, "----- R_Init -----\n" );
 
@@ -613,17 +580,46 @@ void R_Init( void )
 	if (max_polyverts < MAX_POLYVERTS)
 		max_polyverts = MAX_POLYVERTS;
 
-	ptr = (byte*) ri.Hunk_Alloc( sizeof( *backEndData[0] ) + sizeof(srfPoly_t) * max_polys + sizeof(polyVert_t) * max_polyverts, h_low);
+	byte * ptr = (byte*) ri.Hunk_Alloc( 
+		sizeof( *backEndData[0] ) + 
+		sizeof(srfPoly_t) * max_polys + 
+		sizeof(polyVert_t) * max_polyverts, h_low);
 	backEndData[0] = (backEndData_t *) ptr;
 	backEndData[0]->polys = (srfPoly_t *) ((char *) ptr + sizeof( *backEndData[0] ));
 	backEndData[0]->polyVerts = (polyVert_t *) ((char *) ptr + sizeof( *backEndData[0] ) + sizeof(srfPoly_t) * max_polys);
 
-	//
-	backEndData[1] = NULL;
+
 	
 	R_ToggleSmpFrame();
 
-	InitRenderAPI();
+	// initialize OS specific portions of the renderer
+	//
+	// directly or indirectly references the following cvars:
+	//		- r_fullscreen
+	//		- r_glDriver
+	//		- r_mode
+	//		- r_(depth|stencil)bits
+	//		- r_ignorehwgamma
+	//		- r_gamma
+	//
+	if (dx.active != true)
+	{
+		// DX12
+		if (get_render_api() == RENDER_API_DX)
+		{
+			dx_imp_init();
+			dx_initialize();
+		}
+	}
+
+	// init command buffers and SMP
+	glConfig.smpActive = qfalse;
+
+	// print info
+	GfxInfo_f();
+
+	// set default state
+	GL_SetDefaultState();
 
 	R_InitImages();
 
@@ -634,10 +630,6 @@ void R_Init( void )
 	R_ModelInit();
 
 	R_InitFreeType();
-
-	err = qglGetError();
-	if ( err != GL_NO_ERROR )
-		ri.Printf (PRINT_ALL, "glGetError() = 0x%x\n", err);
 
 	ri.Printf( PRINT_ALL, "----- finished R_Init -----\n" );
 }
@@ -671,7 +663,8 @@ void RE_Shutdown( qboolean destroyWindow )
 
 	// shut down platform specific OpenGL stuff
 	// DX12
-	if (dx.active) {
+	if (dx.active)
+	{
 		dx_release_resources();
 		if (destroyWindow) {
 			dx_shutdown();

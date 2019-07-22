@@ -646,7 +646,6 @@ void R_BuildCloudData( shaderCommands_t *input )
 #define SQR( a ) ((a)*(a))
 void R_InitSkyTexCoords( float heightCloud )
 {
-	int i, s, t;
 	float radiusWorld = 4096;
 	float p;
 	float sRad, tRad;
@@ -657,11 +656,11 @@ void R_InitSkyTexCoords( float heightCloud )
 	// a world hasn't been bounded
 	backEnd.viewParms.zFar = 1024;
 
-	for ( i = 0; i < 6; i++ )
+	for (int i = 0; i < 6; ++i )
 	{
-		for ( t = 0; t <= SKY_SUBDIVISIONS; t++ )
+		for (int t = 0; t <= SKY_SUBDIVISIONS; ++t )
 		{
-			for ( s = 0; s <= SKY_SUBDIVISIONS; s++ )
+			for (int s = 0; s <= SKY_SUBDIVISIONS; ++s )
 			{
 				// compute vector from view origin to sky side integral point
 				MakeSkyVec( ( s - HALF_SKY_SUBDIVISIONS ) / ( float ) HALF_SKY_SUBDIVISIONS, 
@@ -754,7 +753,7 @@ void RB_StageIteratorSky( void )
 	// by the generic shader routine
 	R_BuildCloudData( &tess );
 
-	RB_StageIteratorGeneric();
+	RB_StageIteratorGeneric( &tess );
 
 	// draw the inner skybox
 

@@ -43,17 +43,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 typedef unsigned int glIndex_t;
 
 // fast float to int conversion
-#if id386 && !( (defined __linux__ || defined __FreeBSD__ ) && (defined __i386__ ) ) // rb010123
-long myftol( float f );
-#else
+
 #define	myftol(x) ((int)(x))
-#endif
 
 
-// everything that is needed by the backend needs
-// to be double buffered to allow it to run in
-// parallel on a dual cpu machine
-#define	SMP_FRAMES		2
 
 // 12 bits
 // see QSORT_SHADERNUM_SHIFT
@@ -554,7 +547,7 @@ typedef struct srfGridMesh_s {
 	surfaceType_t	surfaceType;
 
 	// dynamic lighting information
-	int				dlightBits[SMP_FRAMES];
+	int				dlightBits[1];
 
 	// culling information
 	vec3_t			meshBounds[2];
@@ -584,7 +577,7 @@ typedef struct {
 	cplane_t	plane;
 
 	// dynamic lighting information
-	int			dlightBits[SMP_FRAMES];
+	int			dlightBits[1];
 
 	// triangle definitions (no normals at points)
 	int			numPoints;
@@ -600,7 +593,7 @@ typedef struct {
 	surfaceType_t	surfaceType;
 
 	// dynamic lighting information
-	int				dlightBits[SMP_FRAMES];
+	int				dlightBits[1];
 
 	// culling information (FIXME: use this!)
 	vec3_t			bounds[2];
@@ -854,8 +847,6 @@ typedef struct {
 	int						frameCount;		// incremented every frame
 	int						viewCount;		// incremented every view (twice a scene if portaled)
 											// and every R_MarkFragments call
-
-	int						smpFrame;		// toggles from 0 to 1 every endFrame
 
 	qboolean				worldMapLoaded;
 	world_t					*world;
@@ -1191,12 +1182,12 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 
 void GLimp_LogComment( char * const pComment );
 
-void dx_imp_init();
-void dx_imp_shutdown();
+void dx_imp_init( void );
+void dx_imp_shutdown( void );
 
 // NOTE TTimo linux works with float gamma value, not the gamma table
 //   the params won't be used, getting the r_gamma cvar directly
-void		GLimp_SetGamma( unsigned char red[256], 
+void GLimp_SetGamma( unsigned char red[256], 
 						    unsigned char green[256],
 							unsigned char blue[256] );
 
@@ -1250,7 +1241,7 @@ void RB_EndSurface(shaderCommands_t * const input);
 void RB_CheckOverflow( int verts, int indexes );
 #define RB_CHECKOVERFLOW(v,i) if (tess.numVertexes + (v) >= SHADER_MAX_VERTEXES || tess.numIndexes + (i) >= SHADER_MAX_INDEXES ) {RB_CheckOverflow(v,i);}
 
-void RB_StageIteratorGeneric( void );
+void RB_StageIteratorGeneric(shaderCommands_t * const input);
 void RB_StageIteratorSky( void );
 
 void RB_AddQuadStamp( vec3_t origin, vec3_t left, vec3_t up, byte *color );
@@ -1507,7 +1498,7 @@ typedef struct {
 extern	int		max_polys;
 extern	int		max_polyverts;
 
-extern	backEndData_t * backEndData[SMP_FRAMES];	// the second one may not be allocated
+extern	backEndData_t * backEndData[1];	// the second one may not be allocated
 
 
 void *R_GetCommandBuffer( int bytes );

@@ -450,7 +450,6 @@
     <ClInclude Include="..\src\game\q_shared.h" />
     <ClInclude Include="..\src\engine\qcommon\qcommon.h" />
     <ClInclude Include="..\src\engine\qcommon\qfiles.h" />
-    <ClInclude Include="..\src\engine\renderer\qgl.h" />
     <ClInclude Include="..\src\engine\platform\resource.h" />
     <ClInclude Include="..\src\engine\server\server.h" />
     <ClInclude Include="..\src\engine\client\snd_local.h" />

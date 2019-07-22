@@ -41,7 +41,7 @@ HGLRC ( WINAPI * qwglCreateContext)(HDC);
 BOOL  ( WINAPI * qwglDeleteContext)(HGLRC);
 PROC  ( WINAPI * qwglGetProcAddress)(LPCSTR);
 BOOL  ( WINAPI * qwglMakeCurrent)(HDC, HGLRC);
-int   ( WINAPI * qwglSwapIntervalEXT)( int interval );
+
 
 void ( APIENTRY * qglAlphaFunc )(GLenum func, GLclampf ref);
 void ( APIENTRY * qglBegin )(GLenum mode);
@@ -815,8 +815,6 @@ qboolean QGL_Init( const char *dllname )
 	qwglDeleteContext            = (decltype(qwglDeleteContext))GPA(wglDeleteContext);
 	qwglGetProcAddress           = (decltype(qwglGetProcAddress))GPA(wglGetProcAddress);
 	qwglMakeCurrent              = (decltype(qwglMakeCurrent))GPA(wglMakeCurrent);
-
-	qwglSwapIntervalEXT = 0;
 
 
 	if (dllname != nullptr) {

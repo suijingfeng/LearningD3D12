@@ -86,10 +86,9 @@ R_IssueRenderCommands
 int	c_blockedOnRender;
 int	c_blockedOnMain;
 
-void R_IssueRenderCommands( qboolean runPerformanceCounters ) {
-	renderCommandList_t	*cmdList;
-
-	cmdList = &backEndData[tr.smpFrame]->commands;
+void R_IssueRenderCommands( qboolean runPerformanceCounters )
+{
+	renderCommandList_t	* cmdList = &backEndData[0]->commands;
 	assert(cmdList); // bk001205
 	// add an end-of-list command
 	*(int *)(cmdList->cmds + cmdList->used) = RC_END_OF_LIST;
@@ -122,13 +121,12 @@ and will remain idle and the main thread is free to issue
 OpenGL calls until R_IssueRenderCommands is called.
 ====================
 */
-void R_SyncRenderThread( void ) {
+void R_SyncRenderThread( void )
+{
 	if ( !tr.registered ) {
 		return;
 	}
 	R_IssueRenderCommands( qfalse );
-
-
 }
 
 /*
@@ -141,7 +139,7 @@ render thread if needed.
 */
 void *R_GetCommandBuffer( int bytes )
 {
-	renderCommandList_t	*cmdList = &backEndData[tr.smpFrame]->commands;
+	renderCommandList_t	*cmdList = &backEndData[0]->commands;
 
 	// always leave room for the end of list command
 	if ( cmdList->used + bytes + 4 > MAX_RENDER_COMMANDS ) {
@@ -248,14 +246,15 @@ If running in stereo, RE_BeginFrame will be called twice
 for each RE_EndFrame
 ====================
 */
-void RE_BeginFrame( stereoFrame_t stereoFrame ) {
-	drawBufferCommand_t	*cmd;
+void RE_BeginFrame( stereoFrame_t stereoFrame )
+{
 
-	if ( !tr.registered ) {
+	if ( !tr.registered )
+	{
 		return;
 	}
 
-	tr.frameCount++;
+	++tr.frameCount;
 
 	//
 	// texturemode stuff
@@ -289,7 +288,8 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	//
 	// draw buffer stuff
 	//
-	cmd = (drawBufferCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
+	drawBufferCommand_t	* cmd = (drawBufferCommand_t*) 
+		R_GetCommandBuffer( sizeof(drawBufferCommand_t) );
 	if ( !cmd ) {
 		return;
 	}
@@ -323,13 +323,12 @@ RE_EndFrame
 Returns the number of msec spent in the back end
 =============
 */
-void RE_EndFrame( int *frontEndMsec, int *backEndMsec ) {
-	swapBuffersCommand_t	*cmd;
-
+void RE_EndFrame( int *frontEndMsec, int *backEndMsec )
+{
 	if ( !tr.registered ) {
 		return;
 	}
-	cmd = (swapBuffersCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
+	swapBuffersCommand_t* cmd = (swapBuffersCommand_t*) R_GetCommandBuffer(sizeof(*cmd));
 	if ( !cmd ) {
 		return;
 	}
@@ -350,4 +349,3 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec ) {
 	}
 	backEnd.pc.msec = 0;
 }
-

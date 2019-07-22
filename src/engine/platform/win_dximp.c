@@ -19,13 +19,11 @@
 #include "win_local.h"
 
 #define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
+const char APP_MANIFEST_TABLE[32] = {"Learning DirectX 12"};
 
 extern refimport_t ri;
 
-extern qboolean QGL_Init(const char * dllname);
 extern void WG_CheckHardwareGamma( void );
-
-extern void QGL_Shutdown( void );
 extern void WG_RestoreGamma( void );
 
 FILE* log_fp;
@@ -211,15 +209,9 @@ static HWND create_main_window(int width, int height, qboolean fullscreen)
 
 
 
-void dx_imp_init(void)
+void dx_imp_init( void )
 {
 	ri.Printf(PRINT_ALL, " Initializing DX12 subsystem \n");
-
-	// This will set qgl pointers to no-op placeholders.
-	if (!gl_active)
-	{
-		QGL_Init(nullptr);
-	}
 
 	// Create window.
 	SetMode(r_mode->integer, (qboolean)r_fullscreen->integer);
@@ -245,7 +237,7 @@ void dx_imp_init(void)
 }
 
 
-void dx_imp_shutdown()
+void dx_imp_shutdown(void)
 {
 	ri.Printf(PRINT_ALL, "Shutting down DX12 subsystem\n");
 
@@ -262,7 +254,6 @@ void dx_imp_shutdown()
 
 	// For DX12 mode we still have qgl pointers initialized with placeholder values.
 	// Reset them the same way as we do in opengl mode.
-	QGL_Shutdown();
 
 	WG_RestoreGamma();
 
@@ -285,4 +276,3 @@ void GLimp_LogComment(char * const comment)
 		fprintf(log_fp, "%s", comment);
 	}
 }
-

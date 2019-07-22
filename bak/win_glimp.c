@@ -48,16 +48,6 @@ static HDC gl_hdc; // handle to device context
 static HGLRC gl_hglrc; // handle to GL rendering context
 
 
-
-
-
-void QGL_Shutdown();
-void QGL_EnableLogging(qboolean enable);
-
-
-
-
-
 /*
 ** ChoosePFD
 **
@@ -364,17 +354,7 @@ static void GLW_InitExtensions( void )
 		ri.Printf( PRINT_ALL, "...GL_EXT_texture_env_add not found\n" );
 	}
 
-	// WGL_EXT_swap_control
-	qwglSwapIntervalEXT = ( BOOL (WINAPI *)(int)) qwglGetProcAddress( "wglSwapIntervalEXT" );
-	if ( qwglSwapIntervalEXT )
-	{
-		ri.Printf( PRINT_ALL, "...using WGL_EXT_swap_control\n" );
-		r_swapInterval->modified = qtrue;	// force a set next frame
-	}
-	else
-	{
-		ri.Printf( PRINT_ALL, "...WGL_EXT_swap_control not found\n" );
-	}
+
 
     // GL_ARB_multitexture
     {
@@ -414,28 +394,6 @@ void GLimp_EndFrame (void)
 {
 	if (!gl_active)
 		return;
-
-	//
-	// swapinterval stuff
-	//
-	if ( r_swapInterval->modified )
-	{
-		r_swapInterval->modified = qfalse;
-
-		if ( !glConfig.stereoEnabled )
-		{	// why?
-			if ( qwglSwapIntervalEXT ) {
-				qwglSwapIntervalEXT( r_swapInterval->integer );
-			}
-		}
-	}
-
-
-	// don't flip if drawing to front buffer
-	if ( Q_stricmp( r_drawBuffer->string, "GL_FRONT" ) != 0 )
-	{
-			SwapBuffers( gl_hdc );
-	}
 
 	// check logging
 	QGL_EnableLogging( (qboolean) r_logFile->integer );

@@ -221,9 +221,6 @@ void R_ImageList_f( void ) {
 		case GL_RGB8:
 			ri.Printf( PRINT_ALL, "RGB8" );
 			break;
-		case GL_RGB4_S3TC:
-			ri.Printf( PRINT_ALL, "S3TC " );
-			break;
 		case GL_RGBA4:
 			ri.Printf( PRINT_ALL, "RGBA4" );
 			break;
@@ -657,11 +654,6 @@ static int upload_gl_image(const Image_Upload_Data& upload_data, int texture_add
 		}
 	}
 	int internal_format = GL_RGBA8;
-	if (glConfig.textureCompression && !has_alpha) {
-		internal_format = GL_RGB4_S3TC;
-	} else if (r_texturebits->integer <= 16) {
-		internal_format = has_alpha ? GL_RGBA4 : GL_RGB5;
-	}
 
 	auto buffer = upload_data.buffer;
 	for (int i = 0; i < upload_data.mip_levels; i++) {
@@ -1969,8 +1961,10 @@ void	R_InitImages( void ) {
 R_DeleteTextures
 ===============
 */
-void R_DeleteTextures( void ) {
-	for ( int i=0; i<tr.numImages ; i++ ) {
+void R_DeleteTextures( void )
+{
+	for ( int i=0; i<tr.numImages ; ++i )
+	{
 		qglDeleteTextures( 1, &tr.images[i]->texnum );
 	}
 	Com_Memset( tr.images, 0, sizeof( tr.images ) );
@@ -1979,12 +1973,10 @@ void R_DeleteTextures( void ) {
 
 	Com_Memset( glState.currenttextures, 0, sizeof( glState.currenttextures ) );
 
-	if ( qglBindTexture ) {
-		GL_SelectTexture( 1 );
-		qglBindTexture( GL_TEXTURE_2D, 0 );
-		GL_SelectTexture( 0 );
-		qglBindTexture( GL_TEXTURE_2D, 0 );
-	}
+	GL_SelectTexture( 1 );
+	qglBindTexture( GL_TEXTURE_2D, 0 );
+	GL_SelectTexture( 0 );
+	qglBindTexture( GL_TEXTURE_2D, 0 );
 }
 
 /*
