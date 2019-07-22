@@ -1269,7 +1269,8 @@ A view may be either the actual camera view,
 or a mirror / remote location
 ================
 */
-void R_RenderView (viewParms_t *parms) {
+void R_RenderView (viewParms_t *parms)
+{
 	int		firstDrawSurf;
 
 	if ( parms->viewportWidth <= 0 || parms->viewportHeight <= 0 ) {

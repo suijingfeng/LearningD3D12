@@ -320,13 +320,11 @@ void R_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only
 	{
 		if ( !glConfig.deviceSupportsGamma )
 		{
-			int		i, c;
-			byte	*p;
 
-			p = (byte *)in;
+			byte* p = (byte *)in;
 
-			c = inwidth*inheight;
-			for (i=0 ; i<c ; i++, p+=4)
+			int c = inwidth*inheight;
+			for (int i=0 ; i<c ; i++, p+=4)
 			{
 				p[0] = s_gammatable[p[0]];
 				p[1] = s_gammatable[p[1]];
@@ -337,9 +335,7 @@ void R_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only
 	else
 	{
 		int		i, c;
-		byte	*p;
-
-		p = (byte *)in;
+		byte	*p = (byte *)in;
 
 		c = inwidth*inheight;
 
@@ -1870,15 +1866,19 @@ void R_SetColorMappings( void ) {
 
 	// setup the overbright lighting
 	tr.overbrightBits = r_overBrightBits->integer;
-	if ( !glConfig.deviceSupportsGamma ) {
-		tr.overbrightBits = 0;		// need hardware gamma for overbright
-	}
-
-	// never overbright in windowed mode
-	if ( !glConfig.isFullscreen ) 
+	
+	if ( ( qfalse == glConfig.deviceSupportsGamma ) || 
+		( r_fullscreen->integer == 0 ) )
 	{
+		// 1) need hardware gamma for overbright
+		
+		// never overbright in windowed mode
+		// why ? suijingfeng
+		// because the gamma ramp turn the entire window gamma ...
+		// dont do this in non fullscreen mode.
 		tr.overbrightBits = 0;
 	}
+
 
 	// allow 2 overbright bits in 24 bit, but only 1 in 16 bit
 	// glConfig.colorBits = 32;
@@ -1887,8 +1887,8 @@ void R_SetColorMappings( void ) {
 	{
 		tr.overbrightBits = 2;
 	}
-
-	if ( tr.overbrightBits < 0 ) {
+	else if ( tr.overbrightBits < 0 )
+	{
 		tr.overbrightBits = 0;
 	}
 
@@ -1926,7 +1926,8 @@ void R_SetColorMappings( void ) {
 		s_gammatable[i] = inf;
 	}
 
-	for (i=0 ; i<256 ; i++) {
+	for (i=0 ; i<256 ; ++i)
+	{
 		j = i * r_intensity->value;
 		if (j > 255) {
 			j = 255;
@@ -1945,7 +1946,8 @@ void R_SetColorMappings( void ) {
 R_InitImages
 ===============
 */
-void	R_InitImages( void ) {
+void R_InitImages( void )
+{
 	Com_Memset(hashTable, 0, sizeof(hashTable));
 	// build brightness translation tables
 	R_SetColorMappings();

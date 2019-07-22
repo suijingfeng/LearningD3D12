@@ -261,19 +261,19 @@ void R_SortDrawSurfs(drawSurf_t * const drawSurfs, int numDrawSurfs)
 	// qsortFast (drawSurfs, numDrawSurfs, sizeof(drawSurf_t) );
 
 
-	uint64_t start = R_GetTimeMicroSeconds();
+//	uint64_t start = R_GetTimeMicroSeconds();
 	
 	// RadixSort two time faster than QuickSort
 	// typically  40us vs 80 us AND 2700x
  	Algo_RadixSort(drawSurfs, numDrawSurfs);
-	// Algo_QuickSort(drawSurfs, 0, numDrawSurfs - 1);
-
+	// Algo_QuickSort2(drawSurfs, 0, numDrawSurfs - 1);
+/*
 	if(numDrawSurfs > 10)
     {
         ri.Printf(PRINT_WARNING, " numDrawSurfs: %ld us \n",
 			R_GetTimeMicroSeconds() - start);
     }
-
+*/
 	// check for any pass through drawing, which
 	// may cause another view to be rendered first
 	for (i = 0; i < numDrawSurfs; ++i)
