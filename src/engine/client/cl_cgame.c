@@ -447,8 +447,6 @@ static void VertmToHorpFov(float *fov_x, float *fov_y, float aspect) {
 }
 
 
-
-
 /*
 ====================
 CL_CgameSystemCalls
@@ -665,16 +663,15 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return 0;
 	case CG_MEMORY_REMAINING:
 		return Hunk_MemoryRemaining();
-  case CG_KEY_ISDOWN:
+	case CG_KEY_ISDOWN:
 		return Key_IsDown( args[1] );
-  case CG_KEY_GETCATCHER:
+	case CG_KEY_GETCATCHER:
 		return Key_GetCatcher();
-  case CG_KEY_SETCATCHER:
+	case CG_KEY_SETCATCHER:
 		Key_SetCatcher( args[1] );
-    return 0;
-  case CG_KEY_GETKEY:
+		return 0;
+	case CG_KEY_GETKEY:
 		return Key_GetKey( (const char*) VMA(1) );
-
 
 
 	case CG_MEMSET:

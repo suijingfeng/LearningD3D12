@@ -417,7 +417,8 @@ void CL_JoystickMove( usercmd_t *cmd ) {
 CL_MouseMove
 =================
 */
-void CL_MouseMove( usercmd_t *cmd ) {
+void CL_MouseMove( usercmd_t *cmd )
+{
 	float	mx, my;
 	float	accelSensitivity;
 	float	rate;
@@ -447,7 +448,8 @@ void CL_MouseMove( usercmd_t *cmd ) {
 	// mx *= accelSensitivity;
 	// my *= accelSensitivity;
 	// widescreen fov fix
-	if (cl_scaleSensWithFov->integer) {
+	if (cl_scaleSensWithFov->integer)
+	{
 		// Scale the mouse sensitivity value according FOV
 		//
 		// The sensitivity value in `cl_sensitivity` is the sensitivity

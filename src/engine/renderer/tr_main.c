@@ -1247,7 +1247,8 @@ R_DebugGraphics
 Visualization aid for movement clipping debugging
 ====================
 */
-void R_DebugGraphics( void ) {
+void R_DebugGraphics( void )
+{
 	if ( !r_debugSurface->integer ) {
 		return;
 	}

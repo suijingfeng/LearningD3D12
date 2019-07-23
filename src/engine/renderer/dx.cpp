@@ -331,6 +331,7 @@ void dx_initialize()
 		// swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 		IDXGISwapChain1* swapchain;
+
 		DX_CHECK(pFactory->CreateSwapChainForHwnd(
 			dx.command_queue,
 			g_wv.hWnd,
@@ -342,6 +343,7 @@ void dx_initialize()
 
 		DX_CHECK(pFactory->MakeWindowAssociation(g_wv.hWnd, DXGI_MWA_NO_ALT_ENTER));
 		swapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&dx.swapchain);
+		
 		swapchain->Release();
 
 		for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; ++i)

@@ -314,7 +314,7 @@ Scale up the pixel values in a texture to increase the
 lighting range
 ================
 */
-void R_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only_gamma )
+void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only_gamma )
 {
 	if ( only_gamma )
 	{
@@ -324,7 +324,7 @@ void R_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only
 			byte* p = (byte *)in;
 
 			int c = inwidth*inheight;
-			for (int i=0 ; i<c ; i++, p+=4)
+			for (int i=0; i<c; ++i, p+=4)
 			{
 				p[0] = s_gammatable[p[0]];
 				p[1] = s_gammatable[p[1]];
@@ -334,14 +334,14 @@ void R_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only
 	}
 	else
 	{
-		int		i, c;
-		byte	*p = (byte *)in;
 
-		c = inwidth*inheight;
+		byte* p = (byte *)in;
+
+		int c = inwidth*inheight;
 
 		if ( glConfig.deviceSupportsGamma )
 		{
-			for (i=0 ; i<c ; i++, p+=4)
+			for (int i=0 ; i<c ; ++i, p+=4)
 			{
 				p[0] = s_intensitytable[p[0]];
 				p[1] = s_intensitytable[p[1]];
@@ -350,7 +350,7 @@ void R_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only
 		}
 		else
 		{
-			for (i=0 ; i<c ; i++, p+=4)
+			for (int i=0 ; i<c ; ++i, p+=4)
 			{
 				p[0] = s_gammatable[s_intensitytable[p[0]]];
 				p[1] = s_gammatable[s_intensitytable[p[1]]];
@@ -598,7 +598,8 @@ static Image_Upload_Data generate_image_upload_data(const byte* data, int width,
 
 	// At this point width == scaled_width and height == scaled_height.
 
-	unsigned* scaled_buffer = (unsigned int*) ri.Hunk_AllocateTempMemory( sizeof( unsigned ) * scaled_width * scaled_height );
+	unsigned* scaled_buffer = (unsigned int*) 
+		ri.Hunk_AllocateTempMemory( sizeof( unsigned ) * scaled_width * scaled_height );
 	Com_Memcpy(scaled_buffer, data, scaled_width * scaled_height * 4);
 	R_LightScaleTexture(scaled_buffer, scaled_width, scaled_height, (qboolean) !mipmap);
 
@@ -638,7 +639,8 @@ static Image_Upload_Data generate_image_upload_data(const byte* data, int width,
 	return upload_data;
 }
 
-static int upload_gl_image(const Image_Upload_Data& upload_data, int texture_address_mode) {
+static int upload_gl_image(const Image_Upload_Data& upload_data, int texture_address_mode)
+{
 	int w = upload_data.base_level_width;
 	int h = upload_data.base_level_height;
 
@@ -786,13 +788,13 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	
 	Image_Upload_Data upload_data = generate_image_upload_data(pic, width, height, mipmap, allowPicmip);
 
-	if (gl_active) {
-		image->internalFormat = upload_gl_image(upload_data, glWrapClampMode);
-	}
-
 	// DX12
 	if (dx.active) {
 		dx_world.images[image->index] = upload_dx_image(upload_data, glWrapClampMode == GL_REPEAT, image->index);
+	}
+	else if (gl_active)
+	{
+		image->internalFormat = upload_gl_image(upload_data, glWrapClampMode);
 	}
 
 	if (isLightmap) {
