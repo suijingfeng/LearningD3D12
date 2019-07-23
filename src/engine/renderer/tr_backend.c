@@ -966,7 +966,7 @@ void RB_ShowImages( void )
 
 // VULKAN
 // DX12
-void RB_Show_Vk_Dx_Images()
+void DX_Show_Images(void)
 {
 
 	if ( !backEnd.projection2D ) {
@@ -1058,7 +1058,7 @@ const void* RB_SwapBuffers( const void *data )
 
 		if (dx.active)
 		{
-			RB_Show_Vk_Dx_Images();
+			DX_Show_Images();
 		}
 		else if (gl_active)
 		{

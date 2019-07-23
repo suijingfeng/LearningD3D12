@@ -295,9 +295,33 @@ void dx_initialize()
 		// When you create a full-screen swap chain, you typically include
 		// the front buffer in this value.
 		swap_chain_desc.BufferCount = SWAPCHAIN_BUFFER_COUNT;
+		
 		// A DXGI_SCALING-typed value that identifies resize behavior 
 		// if the size of the back buffer is not equal to the target output.
-		// swap_chain_desc.Scaling =
+		//
+		// DXGI_SCALING_STRETCH: 
+		// Directs DXGI to make the back-buffer contents scale to fit the presentation target size. 
+		// This is the implicit behavior of DXGI when you call the IDXGIFactory::CreateSwapChain method.
+		//
+		// DXGI_SCALING_NONE
+		// Directs DXGI to make the back-buffer contents appear without any scaling 
+		// when the presentation target size is not equal to the back-buffer size. 
+		// The top edges of the back buffer and presentation target are aligned together.
+		// If the WS_EX_LAYOUTRTL style is associated with the HWND handle to the target
+		// output window, the right edges of the back buffer and presentation target are 
+		// aligned together; otherwise, the left edges are aligned together. 
+		// All target area outside the back buffer is filled with window background color. 
+		// This value specifies that all target areas outside the back buffer of a swap chain 
+		// are filled with the background color that you specify in a call to
+		// IDXGISwapChain1::SetBackgroundColor.
+		//
+		// DXGI_SCALING_ASPECT_RATIO_STRETCH:
+		// Directs DXGI to make the back-buffer contents scale to fit the presentation target size,
+		// while preserving the aspect ratio of the back-buffer. If the scaled back-buffer does not
+		// fill the presentation area, it will be centered with black borders. 
+		// This constant is supported on Windows Phone 8 and Windows 10.
+		// Note that with legacy Win32 window swapchains, this works the same as DXGI_SCALING_STRETCH.
+		swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
 		// A DXGI_SWAP_EFFECT-typed value that describes the presentation model
 		// that is used by the swap chain and options for handling the contents
 		// of the presentation buffer after presenting a surface. 
