@@ -26,16 +26,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderer/tr_local.h"
 #include "../qcommon/qcommon.h"
 #include "win_local.h"
-
+#include "I_PlatformDependent.h"
 static unsigned short s_oldHardwareGamma[3][256];
 
 /*
 ** Determines if the underlying hardware supports the Win32 gamma correction API.
 */
-void win_checkHardwareGamma( void )
+qboolean win_checkHardwareGamma( void )
 {
 
-	glConfig.deviceSupportsGamma = qfalse;
+	qboolean deviceSupportsGamma = qfalse;
 	
 	HDC hDC = GetDC( GetDesktopWindow() );
 	
@@ -43,11 +43,11 @@ void win_checkHardwareGamma( void )
 	// on direct color display boards having drivers 
 	// that support downloadable gamma ramps in hardware.
 
-	glConfig.deviceSupportsGamma = (qboolean) GetDeviceGammaRamp( hDC, s_oldHardwareGamma );
+	deviceSupportsGamma = (qboolean) GetDeviceGammaRamp( hDC, s_oldHardwareGamma );
 	
 	ReleaseDC( GetDesktopWindow(), hDC );
 
-	if ( glConfig.deviceSupportsGamma )
+	if ( deviceSupportsGamma )
 	{
 		Com_Printf(" Device support gamma ramp. \n");
 		//
@@ -57,7 +57,7 @@ void win_checkHardwareGamma( void )
 				( HIBYTE( s_oldHardwareGamma[1][255] ) <= HIBYTE( s_oldHardwareGamma[1][0] ) ) ||
 				( HIBYTE( s_oldHardwareGamma[2][255] ) <= HIBYTE( s_oldHardwareGamma[2][0] ) ) )
 		{
-			glConfig.deviceSupportsGamma = qfalse;
+			deviceSupportsGamma = qfalse;
 			Com_Printf( "WARNING: device has broken gamma support, generated gamma.dat\n" );
 		}
 
@@ -79,6 +79,7 @@ void win_checkHardwareGamma( void )
 			}
 		}
 	}
+	return deviceSupportsGamma;
 }
 
 /*
@@ -86,7 +87,8 @@ void win_checkHardwareGamma( void )
 **
 ** This routine should only be called if glConfig.deviceSupportsGamma is TRUE
 */
-void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] ) {
+void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] )
+{
 	unsigned short table[3][256];
 	int		ret;
 

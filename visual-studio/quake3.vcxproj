@@ -135,9 +135,8 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\engine\platform\win_config.c" />
+    <ClCompile Include="..\src\engine\platform\win_create_window.c" />
     <ClCompile Include="..\src\engine\platform\win_dll.c" />
-    <ClCompile Include="..\src\engine\platform\win_dximp.c" />
     <ClCompile Include="..\src\engine\platform\win_event.c" />
     <ClCompile Include="..\src\engine\platform\win_fstream.c" />
     <ClCompile Include="..\src\engine\platform\win_gamma.c" />

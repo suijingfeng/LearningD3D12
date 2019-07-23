@@ -849,7 +849,7 @@ void RB_StageIteratorGeneric(shaderCommands_t * const input)
 	{
 		// don't just call LogComment, or we will get
 		// a call to va() every frame!
-		GLimp_LogComment( va("--- RB_StageIteratorGeneric( %s ) ---\n", input->shader->name) );
+		ri.pfnLog( va("--- RB_StageIteratorGeneric( %s ) ---\n", input->shader->name) );
 	}
 
 	//
@@ -1009,6 +1009,6 @@ void RB_EndSurface(shaderCommands_t * const input)
 	input->numIndexes = 0;
 	input->numVertexes = 0;
 
-	GLimp_LogComment( "----- RB_EndSurface -----\n" );
+	ri.pfnLog( "----- RB_EndSurface -----\n" );
 }
 

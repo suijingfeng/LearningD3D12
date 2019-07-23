@@ -1161,28 +1161,7 @@ void		R_InitShaders( void );
 void		R_ShaderList_f( void );
 void    R_RemapShader(const char *oldShader, const char *newShader, const char *timeOffset);
 
-/*
-====================================================================
 
-IMPLEMENTATION SPECIFIC FUNCTIONS
-
-====================================================================
-*/
-
-// void		GLimp_Init( void );
-// void		GLimp_Shutdown( void );
-// void		GLimp_EndFrame( void );
-
-void GLimp_LogComment( char * const pComment );
-
-void dx_imp_init( void );
-void dx_imp_shutdown( void );
-
-// NOTE TTimo linux works with float gamma value, not the gamma table
-//   the params won't be used, getting the r_gamma cvar directly
-void GLimp_SetGamma( unsigned char red[256], 
-						    unsigned char green[256],
-							unsigned char blue[256] );
 
 
 /*

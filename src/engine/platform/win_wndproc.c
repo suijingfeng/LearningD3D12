@@ -350,8 +350,9 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 			Cvar_SetValue( "vid_xpos", xPos + r.left);
 			Cvar_SetValue( "vid_ypos", yPos + r.top);
-			// vid_xpos->modified = qfalse;
-			// vid_ypos->modified = qfalse;
+			vid_xpos->modified = qfalse;
+			vid_ypos->modified = qfalse;
+			
 			if ( g_wv.activeApp )
 			{
 				IN_Activate (qtrue);

@@ -17,8 +17,12 @@
 #include "../client/client.h"
 #include "win_local.h"
 #include "win_mode.h"
-#include "win_config.h"
 #include "win_gamma.h"
+#include "I_PlatformDependent.h"
+
+
+
+
 
 extern HWND create_main_window(int width, int height, bool fullscreen);
 
@@ -52,7 +56,7 @@ static int GetDesktopHeight(void)
 
 
 
-void dx_imp_init( void )
+static void win_createWindowImpl( void )
 {
 	Com_Printf( " Initializing DX12 subsystem \n" );
 
@@ -97,14 +101,10 @@ void dx_imp_init( void )
 	// A handle to the window that will receive the keyboard input.
 	// If this parameter is NULL, keystrokes are ignored.
 	SetFocus(g_wv.hWnd);
-
-	win_checkHardwareGamma();
-
-	setWinConfig(g_wv.winWidth, g_wv.winHeight, g_wv.isFullScreen, 3, 60);
 }
 
 
-void dx_imp_shutdown(void)
+static void win_destroyWindowImpl(void)
 {
 	Com_Printf( " Shutting down DX12 subsystem. \n");
 
@@ -116,6 +116,44 @@ void dx_imp_shutdown(void)
 
 		g_wv.hWnd = NULL;
 	}
+
+}
+
+
+void FNimp_Log(char * const comment)
+{
+	if (log_fp) {
+		fprintf(log_fp, "%s", comment);
+	}
+}
+
+
+void GLimp_Init(glconfig_t * const pConfig, void * pContext)
+{
+	win_createWindowImpl();
+	
+	//setWinConfig(g_wv.winWidth, g_wv.winHeight, g_wv.isFullScreen, 3, 60);
+
+	pConfig->vidWidth = g_wv.winWidth;
+	pConfig->vidHeight = g_wv.winHeight;
+	pConfig->windowAspect = (float)g_wv.winWidth / (float)g_wv.winHeight;
+	pConfig->isFullscreen = g_wv.isFullScreen ? qtrue : qfalse;
+	pConfig->stereoEnabled = qfalse;
+	pConfig->smpActive = qfalse;
+	pConfig->UNUSED_displayFrequency = 60;
+	pConfig->deviceSupportsGamma = qtrue;
+
+	// allways enable stencil
+	pConfig->stencilBits = 8;
+	pConfig->depthBits = 24;
+	pConfig->colorBits = 32;
+	pConfig->deviceSupportsGamma = win_checkHardwareGamma();
+
+}
+
+void GLimp_Shutdown(void)
+{
+	win_destroyWindowImpl();
 
 	// For DX12 mode we still have qgl pointers initialized with placeholder values.
 	// Reset them the same way as we do in opengl mode.
@@ -130,9 +168,7 @@ void dx_imp_shutdown(void)
 }
 
 
-void GLimp_LogComment(char * const comment)
+void GLimp_EndFrame(void)
 {
-	if (log_fp) {
-		fprintf(log_fp, "%s", comment);
-	}
+	;
 }

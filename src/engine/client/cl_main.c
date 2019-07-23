@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // cl_main.c  -- client main loop
 
-#include "client.h"
 #include <limits.h>
-
+#include "client.h"
+#include "../platform/I_PlatformDependent.h"
 
 #ifdef _WIN32
 	#include <winsock2.h>
@@ -2326,7 +2326,8 @@ int CL_ScaledMilliseconds(void) {
 CL_InitRef
 ============
 */
-void CL_InitRef( void ) {
+void CL_InitRef( void )
+{
 	refimport_t	ri;
 	refexport_t	*ret;
 
@@ -2365,6 +2366,12 @@ void CL_InitRef( void ) {
 	ri.CIN_UploadCinematic = CIN_UploadCinematic;
 	ri.CIN_PlayCinematic = CIN_PlayCinematic;
 	ri.CIN_RunCinematic = CIN_RunCinematic;
+
+	ri.GLimpInit = GLimp_Init;
+	ri.GLimpShutdown = GLimp_Shutdown;
+	ri.GLimpEndFrame = GLimp_EndFrame;
+	ri.GLimpSetGamma = GLimp_SetGamma;
+	ri.pfnLog = FNimp_Log;
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 
@@ -2619,6 +2626,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("fs_openedList", CL_OpenedPK3List_f );
 	Cmd_AddCommand ("fs_referencedList", CL_ReferencedPK3List_f );
 	Cmd_AddCommand ("model", CL_SetModel_f );
+	
 	CL_InitRef();
 
 	SCR_Init ();
@@ -2629,9 +2637,8 @@ void CL_Init( void ) {
 
 	CL_GenerateQKey();
 	Cvar_Get("cl_guid", "", CVAR_USERINFO | CVAR_ROM);
+
 	CL_UpdateGUID(NULL, 0);
-
-
 
 	Com_Printf( "----- Client Initialization Complete -----\n" );
 }
@@ -2643,7 +2650,8 @@ CL_Shutdown
 
 ===============
 */
-void CL_Shutdown( void ) {
+void CL_Shutdown( void )
+{
 	static qboolean recursive = qfalse;
 	
 	Com_Printf( "----- CL_Shutdown -----\n" );
@@ -3309,10 +3317,11 @@ ping_t* CL_GetFreePing( void )
 CL_Ping_f
 ==================
 */
-void CL_Ping_f( void ) {
+void CL_Ping_f( void )
+{
 	netadr_t	to;
 	ping_t*		pingptr;
-	char*		server;
+
 
 	if ( Cmd_Argc() != 2 ) {
 		Com_Printf( "usage: ping [server]\n");
@@ -3321,7 +3330,7 @@ void CL_Ping_f( void ) {
 
 	Com_Memset( &to, 0, sizeof(netadr_t) );
 
-	server = Cmd_Argv(1);
+	char* server = Cmd_Argv(1);
 
 	if ( !NET_StringToAdr( server, &to ) ) {
 		return;

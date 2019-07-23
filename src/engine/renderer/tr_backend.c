@@ -1069,7 +1069,7 @@ const void* RB_SwapBuffers( const void *data )
 
 	const swapBuffersCommand_t* cmd = (const swapBuffersCommand_t *)data;
 
-	GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
+	ri.pfnLog( "***************** RB_SwapBuffers *****************\n\n\n" );
 
 
 	backEnd.projection2D = qfalse;

@@ -47,3 +47,34 @@ two mode changes. After calling SetFullscreenState, it is advisable to call
 ResizeTarget again with the RefreshRate member of DXGI_MODE_DESC zeroed out. 
 This amounts to a no-operation instruction in DXGI, but it can avoid issues 
 with the refresh rate, which are discussed next.
+
+When in full-screen mode, the Desktop Window Manager (DWM) is disabled. 
+DXGI can perform a flip to present the back buffer contents instead of doing 
+a blit, which it would do in windowed mode. This performance gain can be undone, 
+however, if certain requirements are not met. To ensure that DXGI does a flip 
+instead of a blit, the front buffer and back buffer must be sized identically. 
+If the application correctly handles its WM_SIZE messages, this should not be 
+a problem. Also, the formats must be identical.
+
+The problem for most applications is the refresh rate. The refresh rate that 
+is specified in the call to ResizeTarget must be a refresh rate that is 
+enumerated by the IDXGIOutput object that the swap chain is using. DXGI can 
+automatically calculate this value if the application zeroes out the RefreshRate 
+member of DXGI_MODE_DESC that is passed into ResizeTarget. It is important 
+not to assume that certain refresh rates will always be supported and to simply 
+hard-code a value. Often, developers choose 60 Hz as the refresh rate, not 
+knowing that the enumerated refresh rate from the monitor is approximately 
+60,000 / 1,001 Hz from the monitor. If the refresh rate does not match the 
+expected refresh rate of 60, DXGI is forced to perform a blit in full-screen 
+mode instead of a flip.
+
+
+
+
+
+
+
+
+
+
+

@@ -192,13 +192,10 @@
     <ClCompile Include="..\src\engine\platform\win_gamma.c">
       <Filter>Source Files\platform</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\engine\platform\win_dximp.c">
-      <Filter>Source Files\platform</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\engine\platform\win_mode.c">
       <Filter>Source Files\platform</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\engine\platform\win_config.c">
+    <ClCompile Include="..\src\engine\platform\win_create_window.c">
       <Filter>Source Files\platform</Filter>
     </ClCompile>
   </ItemGroup>

@@ -23,10 +23,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 
+
+// As win_local belong to platform, we want the render to be platform independent,
+// platform belong to client side, it should merely created a window, 
+// which is shared by GL, vulkan, directX and event software renderer... 
+// How to implement this ? pass a pointer of window system to renderer side ?
+// let me think about a while before remove this dependency!
+
+
 bool		gl_active;
 glconfig_t	glConfig;
 glstate_t	glState;
-
 
 
 // DX12
@@ -433,6 +440,7 @@ void R_Init( void )
 	Com_Memset( tess.constantColor255, 255, sizeof( tess.constantColor255 ) );
 
 	R_Register();
+
 	// initialize OS specific portions of the renderer
 	//
 	// directly or indirectly references the following cvars:
@@ -446,13 +454,13 @@ void R_Init( void )
 	if (dx.active != true)
 	{
 		// DX12
-		if (get_render_api() == RENDER_API_DX)
-		{
-			dx_imp_init();
-			dx_initialize();
-		}
+		ri.GLimpInit(&glConfig, NULL);
+
+		dx_initialize();
 	}
 
+
+	
 	//
 	// init function tables
 	//
@@ -562,7 +570,7 @@ void RE_Shutdown( qboolean destroyWindow )
 		dx_release_resources();
 		if (destroyWindow) {
 			dx_shutdown();
-			dx_imp_shutdown();
+			ri.GLimpShutdown();
 
 			memset(&glConfig, 0, sizeof(glConfig));
 			memset(&glState, 0, sizeof(glState));
