@@ -21,13 +21,10 @@
 #include "I_PlatformDependent.h"
 
 
-
-
-
 extern HWND create_main_window(int width, int height, bool fullscreen);
 
-
-FILE* log_fp;
+// need to complete ...
+static FILE* log_fp;
 
 
 static int GetDesktopColorDepth(void)
@@ -58,10 +55,8 @@ static int GetDesktopHeight(void)
 
 static void win_createWindowImpl( void )
 {
-	Com_Printf( " Initializing DX12 subsystem \n" );
+	Com_Printf( " Initializing window subsystem. \n" );
 
-	// Create window.
-	// SetMode(r_mode->integer, (qboolean)r_fullscreen->integer);
 
 	cvar_t* win_fullscreen = Cvar_Get("r_fullscreen", "1", 0);
 
@@ -110,7 +105,7 @@ static void win_destroyWindowImpl(void)
 
 	if (g_wv.hWnd)
 	{
-		Com_Printf( " ...destroying DX12 window. \n");
+		Com_Printf( " Destroying window system. \n");
 		
 		DestroyWindow( g_wv.hWnd );
 
@@ -127,12 +122,56 @@ void FNimp_Log(char * const comment)
 	}
 }
 
+void fnToggleLogging_f(void)
+{
+	static qboolean isEnabled;
+
+	// return if we're already active
+	if (isEnabled)
+	{
+
+		// toggled
+		isEnabled = qfalse;
+
+		if (log_fp) {
+			fprintf(log_fp, "*** CLOSING LOG ***\n");
+			fclose(log_fp);
+			log_fp = NULL;
+		}
+
+		Com_Printf(" Logging Disabled! \n");
+		return;
+	}
+
+	// return if we're already disabled
+
+	isEnabled = qtrue;
+
+	if (!log_fp)
+	{
+		time_t aclock;
+		time(&aclock);
+		struct tm *newtime = localtime(&aclock);
+		asctime(newtime);
+
+		char buffer[1024];
+		Com_sprintf(buffer, sizeof(buffer), "%s/debug.log", "./");
+
+		log_fp = fopen(buffer, "wt");
+
+		fprintf(log_fp, "%s\n", asctime(newtime));
+	}
+
+	Com_Printf(" Logging Enabled! \n");
+}
+
 
 void GLimp_Init(glconfig_t * const pConfig, void * pContext)
 {
 	win_createWindowImpl();
 	
-	//setWinConfig(g_wv.winWidth, g_wv.winHeight, g_wv.isFullScreen, 3, 60);
+	Cmd_AddCommand("listDisplayModes", R_ListDisplayMode_f);
+	Cmd_AddCommand("toggleLogging", fnToggleLogging_f);
 
 	pConfig->vidWidth = g_wv.winWidth;
 	pConfig->vidHeight = g_wv.winHeight;
@@ -159,6 +198,9 @@ void GLimp_Shutdown(void)
 	// Reset them the same way as we do in opengl mode.
 
 	win_restoreGamma();
+
+	Cmd_RemoveCommand("listDisplayModes");
+	Cmd_RemoveCommand("toggleLogging");
 
 	if (log_fp)
 	{

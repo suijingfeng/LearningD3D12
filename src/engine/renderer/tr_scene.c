@@ -277,7 +277,10 @@ void RE_RenderScene( const refdef_t *fd )
 	if ( !tr.registered ) {
 		return;
 	}
-	ri.pfnLog( "====== RE_RenderScene =====\n" );
+
+#ifndef NDEBUG
+	ri.pfnLog( " ====== RE_RenderScene ===== \n" );
+#endif
 
 	if ( r_norefresh->integer ) {
 		return;
@@ -310,12 +313,12 @@ void RE_RenderScene( const refdef_t *fd )
 	// will force a reset of the visible leafs even if the view hasn't moved
 	tr.refdef.areamaskModified = qfalse;
 	if ( ! (tr.refdef.rdflags & RDF_NOWORLDMODEL) ) {
-		int		areaDiff;
-		int		i;
+		int	areaDiff = 0;
 
 		// compare the area bits
-		areaDiff = 0;
-		for (i = 0 ; i < MAX_MAP_AREA_BYTES/4 ; i++) {
+
+		for (int i = 0 ; i < MAX_MAP_AREA_BYTES/4; ++i)
+		{
 			areaDiff |= ((int *)tr.refdef.areamask)[i] ^ ((int *)fd->areamask)[i];
 			((int *)tr.refdef.areamask)[i] = ((int *)fd->areamask)[i];
 		}
@@ -325,7 +328,6 @@ void RE_RenderScene( const refdef_t *fd )
 			tr.refdef.areamaskModified = qtrue;
 		}
 	}
-
 
 	// derived info
 

@@ -271,15 +271,40 @@ void dx_initialize()
 	//
 	// Create swap chain.
 	//
+	// Note: 
+	// You cannot cast a DXGI_SWAP_CHAIN_DESC1 to a DXGI_SWAP_CHAIN_DESC and vice versa. 
+	// An application must explicitly use the IDXGISwapChain1::GetDesc1 method 
+	// to retrieve the newer version of the swap-chain description structure.
+	// In full-screen mode, there is a dedicated front buffer; in windowed mode, 
+	// the desktop is the front buffer. 
 	{
 		DXGI_SWAP_CHAIN_DESC1 swap_chain_desc{};
-		swap_chain_desc.BufferCount = SWAPCHAIN_BUFFER_COUNT;
+		
 		swap_chain_desc.Width = glConfig.vidWidth;
 		swap_chain_desc.Height = glConfig.vidHeight;
 		swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swap_chain_desc.Stereo = false;
+		// A DXGI_SAMPLE_DESC structure that describes multi-sampling parameters.
+		// This member is valid only with bit-block transfer (bitblt) model swap chains.
+		swap_chain_desc.SampleDesc = { 0 };
+		// A DXGI_USAGE-typed value that describes the surface usage and CPU access 
+		// options for the back buffer. The back buffer can be used for shader input
+		// or render-target output
 		swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		// A value that describes the number of buffers in the swap chain.
+		// When you create a full-screen swap chain, you typically include
+		// the front buffer in this value.
+		swap_chain_desc.BufferCount = SWAPCHAIN_BUFFER_COUNT;
+		// A DXGI_SCALING-typed value that identifies resize behavior 
+		// if the size of the back buffer is not equal to the target output.
+		// swap_chain_desc.Scaling =
+		// A DXGI_SWAP_EFFECT-typed value that describes the presentation model
+		// that is used by the swap chain and options for handling the contents
+		// of the presentation buffer after presenting a surface. 
 		swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
 		swap_chain_desc.SampleDesc.Count = 1;
+		// swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 		IDXGISwapChain1* swapchain;
 		DX_CHECK(pFactory->CreateSwapChainForHwnd(

@@ -68,7 +68,19 @@ knowing that the enumerated refresh rate from the monitor is approximately
 expected refresh rate of 60, DXGI is forced to perform a blit in full-screen 
 mode instead of a flip.
 
+The last issue that developers often face is how to change full-screen 
+resolutions while remaining in full-screen mode. Calling ResizeTarget and 
+SetFullscreenState sometimes succeeds, but the full-screen resolution remains 
+the desktop resolution. Also, developers may create a full-screen swap chain 
+and give a specific resolution, only to find that DXGI defaults to the desktop 
+resolution regardless of the numbers passed in. Unless otherwise instructed, 
+DXGI defaults to the desktop resolution for full-screen swap chains. 
 
+When creating a full-screen swap chain, the Flags member of the 
+DXGI_SWAP_CHAIN_DESC structure must be set to 
+DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH to override DXGI's default behavior. 
+This flag also can be passed to ResizeTarget to enable or disable this 
+functionality dynamically.
 
 
 

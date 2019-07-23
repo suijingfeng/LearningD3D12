@@ -825,6 +825,7 @@ qboolean QGL_Init( const char *dllname )
 	return qtrue;
 }
 
+
 void QGL_EnableLogging( qboolean enable )
 {
 	static qboolean isEnabled;

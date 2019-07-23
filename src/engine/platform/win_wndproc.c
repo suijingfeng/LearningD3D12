@@ -1,25 +1,3 @@
-/*
-===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
-
-This file is part of Quake III Arena source code.
-
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
-
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-===========================================================================
-*/
-
 #include "../client/client.h"
 #include "win_local.h"
 #include "win_input.h"
@@ -27,7 +5,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "win_snd.h"
 #include "resource.h"
 
-WinVars_t	g_wv;
+WinVars_t g_wv;
 
 // Console variables that we need to access from this module
 cvar_t* vid_xpos;	// X coordinate of window position
@@ -39,7 +17,7 @@ static void VID_AppActivate(BOOL fActive, BOOL minimize)
 {
 	g_wv.isMinimized = (qboolean) minimize;
 
-	Com_DPrintf("VID_AppActivate: %i\n", fActive );
+	Com_DPrintf(" App Activate: %i\n", fActive );
 
 	Key_ClearStates();	// FIXME!!!
 
@@ -394,11 +372,11 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 	{
 		if (wParam == VK_RETURN)
 		{
-			//if (r_fullscreen)
-			{
-				// Cvar_SetValue("r_fullscreen", !r_fullscreen->integer);
-				// Cbuf_AddText("vid_restart\n");
-			}
+			g_wv.isFullScreen = !g_wv.isFullScreen;
+
+			Cvar_SetValue("r_fullscreen", g_wv.isFullScreen);
+			Cbuf_AddText("vid_restart\n");
+
 			return 0;
 		} 
 		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( wParam, lParam ), qtrue, 0, NULL );

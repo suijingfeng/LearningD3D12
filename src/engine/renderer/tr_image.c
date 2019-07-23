@@ -1858,11 +1858,8 @@ void R_CreateBuiltinImages( void ) {
 R_SetColorMappings
 ===============
 */
-void R_SetColorMappings( void ) {
-	int		i, j;
-	float	g;
-	int		inf;
-	int		shift;
+void R_SetColorMappings( void )
+{
 
 	// setup the overbright lighting
 	tr.overbrightBits = r_overBrightBits->integer;
@@ -1906,29 +1903,23 @@ void R_SetColorMappings( void ) {
 		ri.Cvar_Set( "r_gamma", "3.0" );
 	}
 
-	g = r_gamma->value;
+	float g = r_gamma->value;
 
-	shift = tr.overbrightBits;
+	int shift = tr.overbrightBits;
 
-	for ( i = 0; i < 256; i++ ) {
-		if ( g == 1 ) {
-			inf = i;
-		} else {
-			inf = 255 * pow ( i/255.0f, 1.0f / g ) + 0.5f;
-		}
+	for (int i = 0; i < 256; ++i )
+	{
+		int inf = ((g == 1.0f) ? i : (255 * pow(i / 255.0f, 1.0f / g) + 0.5f));
+
 		inf <<= shift;
-		if (inf < 0) {
-			inf = 0;
-		}
-		if (inf > 255) {
-			inf = 255;
-		}
-		s_gammatable[i] = inf;
+	
+		
+		s_gammatable[i] = inf > 255 ? 255 : inf;
 	}
 
-	for (i=0 ; i<256 ; ++i)
+	for (int i=0 ; i<256 ; ++i)
 	{
-		j = i * r_intensity->value;
+		int j = i * r_intensity->value;
 		if (j > 255) {
 			j = 255;
 		}
