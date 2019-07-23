@@ -1,0 +1,49 @@
+DirectX Graphics Infrastructure (DXGI): Best Practices
+
+Microsoft DirectX Graphics Infrastructure (DXGI) is a new subsystem that was 
+introduced with Windows Vista that encapsulates some of the low-level tasks 
+that are needed by Direct3D 10, 10.1, 11, and 11.1. From the perspective of 
+a Direct3D 9 programmer, DXGI encompasses most of the code for enumeration, 
+swap-chain creation, and presentation that previously was packed into the 
+Direct3D 9 APIs. When you port an app to DXGI and Direct3D 10.x and Direct3D 
+11.x, you need to take some considerations into account to ensure that the 
+process runs smoothly. 
+
+1)  Full-Screen Issues
+In porting from Direct3D 9 to DXGI and to Direct3D 10.x or Direct3D 11.x, 
+issues associated with moving from windowing to full-screen mode often may 
+cause headaches for developers. The main problems arise because Direct3D 9 
+applications, unlike DXGI applications, require a more hands-on approach to 
+tracking window styles and window states. When the mode-changing code is 
+ported to run on DXGI, it often causes unexpected behavior.
+Often, Direct3D 9 applications handled the transition into full-screen mode 
+by setting the resolution of the front buffer, forcing the device into 
+full-screen exclusive mode, and then setting the back buffer resolutions to 
+match. A separate path was used for changes to window size because they had 
+to be managed from the window process whenever the application received a 
+WM_SIZE message. 
+
+DXGI attempts to simplify this approach by combining the two cases. For example, 
+when the window border is dragged in windowed mode, the application receives a 
+WM_SIZE message. DXGI intercepts this message and automatically resizes the 
+front buffer. All that the application needs to do is call 
+IDXGISwapChain::ResizeBuffers to resize the back buffer to the size that was 
+passed as parameters in WM_SIZE. Similarly, when the application needs to switch 
+between full-screen and windowed mode, the application can simply call 
+IDXGISwapChain::SetFullscreenState. DXGI resizes the front buffer to match the 
+newly selected full-screen mode, and it sends a WM_SIZE message to the 
+application. The application again calls ResizeBuffers, just as it would if 
+the window border was dragged.
+
+The methodology of the preceding explanation follows a very particular path. 
+DXGI set the full-screen resolution to the desktop resolution by default. 
+Many applications, however, switch to a preferred full-screen resolution. 
+In such a case, DXGI provides IDXGISwapChain::ResizeTarget. This should be 
+called before calling SetFullscreenState. Although these methods can be called 
+in the opposite order (SetFullscreenState first, followed by ResizeTarget), 
+doing so causes an extra WM_SIZE message to be sent to the application. 
+Doing so can also cause flickering, since DXGI could be forced to perform 
+two mode changes. After calling SetFullscreenState, it is advisable to call 
+ResizeTarget again with the RefreshRate member of DXGI_MODE_DESC zeroed out. 
+This amounts to a no-operation instruction in DXGI, but it can avoid issues 
+with the refresh rate, which are discussed next.

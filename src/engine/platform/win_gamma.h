@@ -1,4 +1,4 @@
 #pragma once
 
-extern void WG_CheckHardwareGamma( void );
-extern void WG_RestoreGamma( void );
+void win_checkHardwareGamma( void );
+void win_restoreGamma( void );

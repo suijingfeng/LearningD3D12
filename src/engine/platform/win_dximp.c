@@ -98,7 +98,7 @@ void dx_imp_init( void )
 	// If this parameter is NULL, keystrokes are ignored.
 	SetFocus(g_wv.hWnd);
 
-	WG_CheckHardwareGamma();
+	win_checkHardwareGamma();
 
 	setWinConfig(g_wv.winWidth, g_wv.winHeight, g_wv.isFullScreen, 3, 60);
 }
@@ -120,7 +120,7 @@ void dx_imp_shutdown(void)
 	// For DX12 mode we still have qgl pointers initialized with placeholder values.
 	// Reset them the same way as we do in opengl mode.
 
-	WG_RestoreGamma();
+	win_restoreGamma();
 
 	if (log_fp)
 	{

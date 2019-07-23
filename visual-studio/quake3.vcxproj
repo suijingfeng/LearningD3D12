@@ -55,7 +55,7 @@
     <TargetName>$(ProjectName)-ke</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>$(ProjectName)-ke</TargetName>
+    <TargetName>OpenArena-D3D12-Edition</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -468,9 +468,6 @@
     <ClInclude Include="..\src\engine\platform\win_local.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\engine\platform\qe3.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="..\src\engine\platform\winquake.rc">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">platform;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -487,6 +484,9 @@
       <Project>{ab424155-fbed-4d8d-b007-5b6cf93ea395}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\engine\platform\oa3.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

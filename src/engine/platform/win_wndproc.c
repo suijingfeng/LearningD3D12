@@ -29,15 +29,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 WinVars_t	g_wv;
 
-
 // Console variables that we need to access from this module
 cvar_t* vid_xpos;	// X coordinate of window position
 cvar_t* vid_ypos;	// Y coordinate of window position
 cvar_t* in_forceCharset;// 
-
-extern cvar_t *r_fullscreen;
-extern cvar_t *in_mouse;
-
 
 
 static void VID_AppActivate(BOOL fActive, BOOL minimize)
@@ -277,17 +272,20 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		// Windows 98/Me, Windows NT 4.0 and later - uses WM_MOUSEWHEEL
 		// only relevant for non-DI input and when console is toggled in window mode
 		// if console is toggled in window mode (KEYCATCH_CONSOLE) then mouse is released 
-		// and DI doesn't see any mouse wheel
-		if (!r_fullscreen->integer && ( Key_GetCatcher() & KEYCATCH_CONSOLE))
+		// and DI doesn't see any mouse wheel.
+		// comments this allow pull-down console receive mousewheel message,
+		// but I don't know does this doing the right thing.
+		// !r_fullscreen->integer &&
+		if ( ( Key_GetCatcher() & KEYCATCH_CONSOLE))
 		{
 			// 120 increments, might be 240 and multiples if wheel goes too fast
 			// NOTE Logitech: logitech drivers are screwed and send the message twice?
 			//   could add a cvar to interpret the message as successive press/release events
 			int zDelta = ( short ) HIWORD( wParam ) / WHEEL_DELTA;
-			int i;
+	
 			if ( zDelta > 0 )
 			{
-				for(i=0; i<zDelta; ++i)
+				for(int i=0; i<zDelta; ++i)
 				{
 					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qtrue, 0, NULL );
 					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qfalse, 0, NULL );
@@ -295,7 +293,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			}
 			else
 			{
-				for(i=0; i<-zDelta; ++i)
+				for(int i=0; i<-zDelta; ++i)
 				{
 					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qtrue, 0, NULL );
 					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qfalse, 0, NULL );
@@ -312,7 +310,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 		vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
 		vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
-		r_fullscreen = Cvar_Get ("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
+		
 		in_forceCharset = Cvar_Get( "in_forceCharset", "1", CVAR_ARCHIVE );
 		break;
 
@@ -337,7 +335,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 	case WM_MOVE:
 	{
-		if (!r_fullscreen->integer )
+		if (!g_wv.isFullScreen)
 		{
 			int xPos = (short) LOWORD(lParam);    // horizontal position 
 			int yPos = (short) HIWORD(lParam);    // vertical position 
@@ -350,8 +348,8 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			int style = GetWindowLong( hWnd, GWL_STYLE );
 			AdjustWindowRect( &r, style, FALSE );
 
-			// Cvar_SetValue( "vid_xpos", xPos + r.left);
-			// Cvar_SetValue( "vid_ypos", yPos + r.top);
+			Cvar_SetValue( "vid_xpos", xPos + r.left);
+			Cvar_SetValue( "vid_ypos", yPos + r.top);
 			// vid_xpos->modified = qfalse;
 			// vid_ypos->modified = qfalse;
 			if ( g_wv.activeApp )
@@ -397,8 +395,8 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		{
 			//if (r_fullscreen)
 			{
-				Cvar_SetValue("r_fullscreen", !r_fullscreen->integer);
-				Cbuf_AddText("vid_restart\n");
+				// Cvar_SetValue("r_fullscreen", !r_fullscreen->integer);
+				// Cbuf_AddText("vid_restart\n");
 			}
 			return 0;
 		} 

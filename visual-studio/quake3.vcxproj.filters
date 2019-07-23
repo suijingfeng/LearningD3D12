@@ -283,13 +283,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\engine\platform\qe3.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="..\src\engine\platform\winquake.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\engine\platform\oa3.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
