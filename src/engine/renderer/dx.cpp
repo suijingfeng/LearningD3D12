@@ -191,7 +191,7 @@ static void DX_CreateCommandQueue(ID3D12CommandQueue** ppCmdQueue)
 // In full-screen mode, there is a dedicated front buffer; in windowed mode, 
 // the desktop is the front buffer.
 static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT numTargetBuf,
-	void* pContext, IDXGIFactory4* pFactory, IDXGISwapChain3 ** ppWwapchain)
+	void* pContext, IDXGIFactory2* pFactory, IDXGISwapChain3 ** ppWwapchain)
 {
 	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
 	swap_chain_desc.Width = width;
@@ -246,6 +246,9 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 	// DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swap_chain_desc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+	// The DXGI swap chain might change the display mode of an output when
+	// making a full-screen transition. 
+	// To enable the automatic display mode change:
 	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	IDXGISwapChain1* pTmpSwapchain;
@@ -277,7 +280,7 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 void dx_initialize(void * pWinContext)
 {
 	// enable validation in debug configuration
-#if defined(_DEBUG)
+#ifndef NDEBUG
 	ID3D12Debug* debug_controller;
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller)))) {
 		debug_controller->EnableDebugLayer();
@@ -296,11 +299,25 @@ void dx_initialize(void * pWinContext)
 	// To avoid a memory leak, when you finish using the interface,
 	// call the IDXGIFactory1::Release method to release the interface.
 
-	IDXGIFactory4* pFactory;
+	// To create a Microsoft DirectX Graphics Infrastructure (DXGI) 1.2 factory interface,
+	// pass IDXGIFactory2 into either the CreateDXGIFactory or CreateDXGIFactory1 function
+	// or call QueryInterface from a factory object that either CreateDXGIFactory or
+	// CreateDXGIFactory1 returns.
+	// IDXGIFactory4 Enables creating Microsoft DirectX Graphics Infrastructure (DXGI) objects.
+	IDXGIFactory2* pFactory;
 	// Creates a DXGI 1.1 factory that can be used to generate other DXGI objects.
-	DX_CHECK( CreateDXGIFactory1(IID_PPV_ARGS(&pFactory)) );
+	// Use IDXGIFactory or IDXGIFactory1, but not both in an application.
+	// The CreateDXGIFactory function does not exist for Windows Store apps. 
+	// Instead, Windows Store apps use the CreateDXGIFactory1 function. 
+#ifndef NDEBUG
+	// This function accepts a flag indicating whether DXGIDebug.dll is loaded.
+	// The function otherwise behaves identically to CreateDXGIFactory1.
+	DX_CHECK(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&pFactory))); 
+#else
+	DX_CHECK(CreateDXGIFactory2(0, IID_PPV_ARGS(&pFactory)));
+#endif
 
-	// Create device.
+	// Create device.`
 	{
 		// A pointer to the video adapter to use when creating a device. 
 		// Pass NULL to use the default adapter, which is the first adapter
@@ -375,6 +392,11 @@ void dx_initialize(void * pWinContext)
 	}
 	
 
+	// If the CreateDXGIFactory1 function succeeds, the reference count 
+	// on the IDXGIFactory1 interface is incremented. To avoid a memory leak, 
+	// when you finish using the interface, call the IDXGIFactory1::Release 
+	// method to release the interface.
+	// DXGI 1.1 support is required, which is available on Windows 7.
 	pFactory->Release();
 	pFactory = nullptr;
 

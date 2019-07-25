@@ -950,7 +950,6 @@ extern cvar_t	*r_znear;				// near Z clip plane
 
 
 extern cvar_t	*r_depthbits;			// number of desired depth bits
-extern cvar_t	*r_stereo;				// desired pixelformat stereo flag
 extern cvar_t	*r_texturebits;			// number of desired texture bits
 										// 0 = use framebuffer depth
 										// 16 = use 16-bit textures
