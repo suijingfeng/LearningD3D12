@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_init.c -- functions that are not called every frame
 
 #include "tr_local.h"
-
+#include "dx_utils.h"
 
 // As win_local belong to platform, we want the render to be platform independent,
 // platform belong to client side, it should merely created a window, 
@@ -410,6 +410,7 @@ void R_Register( void )
 	ri.Cmd_AddCommand( "screenshot", R_ScreenShot_f );
 	ri.Cmd_AddCommand( "screenshotJPEG", R_ScreenShotJPEG_f );
 	ri.Cmd_AddCommand( "gfxinfo", GfxInfo_f );
+	ri.Cmd_AddCommand( "printAvailableAdapters", printAvailableAdapters_f);
 }
 
 /*
@@ -542,16 +543,16 @@ void RE_Shutdown( qboolean destroyWindow )
 {	
 	ri.Printf( PRINT_ALL, "RE_Shutdown( %i )\n", destroyWindow );
 
-	ri.Cmd_RemoveCommand ("modellist");
-	ri.Cmd_RemoveCommand ("screenshotJPEG");
-	ri.Cmd_RemoveCommand ("screenshot");
-	ri.Cmd_RemoveCommand ("imagelist");
-	ri.Cmd_RemoveCommand ("shaderlist");
-	ri.Cmd_RemoveCommand ("skinlist");
-	ri.Cmd_RemoveCommand ("gfxinfo");
-	ri.Cmd_RemoveCommand( "modelist" );
-	ri.Cmd_RemoveCommand( "shaderstate" );
-
+	ri.Cmd_RemoveCommand("modellist");
+	ri.Cmd_RemoveCommand("screenshotJPEG");
+	ri.Cmd_RemoveCommand("screenshot");
+	ri.Cmd_RemoveCommand("imagelist");
+	ri.Cmd_RemoveCommand("shaderlist");
+	ri.Cmd_RemoveCommand("skinlist");
+	ri.Cmd_RemoveCommand("gfxinfo");
+	ri.Cmd_RemoveCommand("modelist" );
+	ri.Cmd_RemoveCommand("shaderstate" );
+	ri.Cmd_RemoveCommand("printAvailableAdapters");
 	if ( tr.registered ) {
 		R_SyncRenderThread();
 		R_DeleteTextures();

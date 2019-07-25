@@ -875,29 +875,32 @@ const void * RB_DrawBuffer( const void *data )
 {
 	const drawBufferCommand_t * cmd = (const drawBufferCommand_t *)data;
 
-	qglDrawBuffer( cmd->buffer );
-
 
 	// DX12
-	if (dx.active) {
-		dx_begin_frame();
-	}
-
-	// clear screen for debugging
-	if ( r_clear->integer )
+	if (dx.active)
 	{
-		float color[4] = {1, 0, 0.5, 1};
-
-		qglClearColor( color[0], color[1], color[2], color[3] );
-		qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-		// DX12
-		if( dx.active )
+		dx_begin_frame();
+		if (r_clear->integer)
 		{
+			float color[4] = { 1, 0, 0.5, 1 };
 			RB_SetGL2D(); // to ensure we have viewport that occupies entire window
 			dx_clear_attachments(false, true, color);
 		}
 	}
+	else if (gl_active)
+	{
+		qglDrawBuffer(GL_BACK);
+		if (r_clear->integer)
+		{
+			float color[4] = { 1, 0, 0.5, 1 };
+
+			qglClearColor(color[0], color[1], color[2], color[3]);
+			qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
+
+	// clear screen for debugging
+
 
 	return (const void *)(cmd + 1);
 }

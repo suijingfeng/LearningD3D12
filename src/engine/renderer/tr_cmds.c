@@ -267,7 +267,6 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 	}
 
 
-
 	//
 	// draw buffer stuff
 	//
@@ -278,10 +277,11 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 	}
 	cmd->commandId = RC_DRAW_BUFFER;
 
-
+/*
 	if ( stereoFrame != STEREO_CENTER ) {
 		ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is disabled, but stereoFrame was %i", stereoFrame );
 	}
+*/
 	
 /*
 	This is not applied to dx12, leave it here as a doc

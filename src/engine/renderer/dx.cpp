@@ -275,7 +275,7 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 	ri.Printf(PRINT_ALL, " Swap chain created. \n");
 }
 
-
+extern void printAvailableAdapters(IDXGIFactory2* const pHardwareFactory);
 
 void dx_initialize(void * pWinContext)
 {
@@ -316,8 +316,10 @@ void dx_initialize(void * pWinContext)
 #else
 	DX_CHECK(CreateDXGIFactory2(0, IID_PPV_ARGS(&pFactory)));
 #endif
+	
+	// printAvailableAdapters(pFactory);
 
-	// Create device.`
+	// Create device.
 	{
 		// A pointer to the video adapter to use when creating a device. 
 		// Pass NULL to use the default adapter, which is the first adapter
@@ -333,15 +335,6 @@ void dx_initialize(void * pWinContext)
 		// position specified by the adapter_index parameter.
 		while (pFactory->EnumAdapters1(adapter_index++, &pHardwareAdapter) != DXGI_ERROR_NOT_FOUND)
 		{
-			// Gets a DXGI 1.1 description of an adapter(or video card).
-			// This interface is not supported by DXGI 1.0, DXGI 1.1 support is required, which is available on Windows 7, 
-			// Windows Server 2008 R2, and as an update to Windows Vista with Service Pack 2 (SP2) (KB 971644) and Windows
-			// Server 2008 (KB 971512). win10 ??? ---suijingfeng
-			// A display subsystem is often referred to as a video card, however, on some machines the display subsystem
-			// is part of the mother board. 
-			// To enumerate the display subsystems, use IDXGIFactory1::EnumAdapters1. 
-			// To get an interface to the adapter for a particular device, use IDXGIDevice::GetAdapter.
-			// To create a software adapter, use IDXGIFactory::CreateSoftwareAdapter.
 			DXGI_ADAPTER_DESC1 desc;
 			pHardwareAdapter->GetDesc1(&desc);
 			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
@@ -352,8 +345,8 @@ void dx_initialize(void * pWinContext)
 			// Creates a device that represents the display adapter.
 			if ( SUCCEEDED( D3D12CreateDevice(pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dx.device) )))
 			{
-				ri.Printf(PRINT_ALL, "Create Device successed. \n");
-				ri.Printf(PRINT_ALL, "Adapter: ");
+				ri.Printf(PRINT_ALL, " Create Device successed. \n");
+				ri.Printf(PRINT_ALL, " Adapter: ");
 
 				wchar_t *WStr = desc.Description;
 
@@ -393,10 +386,11 @@ void dx_initialize(void * pWinContext)
 	
 
 	// If the CreateDXGIFactory1 function succeeds, the reference count 
-	// on the IDXGIFactory1 interface is incremented. To avoid a memory leak, 
-	// when you finish using the interface, call the IDXGIFactory1::Release 
-	// method to release the interface.
+	// on the IDXGIFactory1 interface is incremented. 
+	// To avoid a memory leak, when you finish using the interface, 
+	// call the IDXGIFactory1::Release method to release the interface.
 	// DXGI 1.1 support is required, which is available on Windows 7.
+
 	pFactory->Release();
 	pFactory = nullptr;
 

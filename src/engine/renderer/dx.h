@@ -1,5 +1,6 @@
 #pragma once
 
+
 enum DX_Shader_Type {
 	single_texture,
 	multi_texture_mul,
@@ -101,7 +102,6 @@ void dx_end_frame();
 struct Dx_Instance
 {
 	bool active = false;
-
 	ID3D12Device* device = nullptr;
 	ID3D12CommandQueue* command_queue = nullptr;
 	IDXGISwapChain3* swapchain = nullptr;
