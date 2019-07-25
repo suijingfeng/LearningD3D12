@@ -215,9 +215,6 @@ void GL_CheckErrors( void )
 }
 
 
-
-
-
 /*
 ** GL_SetDefaultState
 */
@@ -435,7 +432,7 @@ void R_Init( void )
 
 
 	if ( (intptr_t)tess.xyz & 15 ) {
-		Com_Printf( "WARNING: tess.xyz not 16 byte aligned\n" );
+		ri.Printf(PRINT_ALL, "WARNING: tess.xyz not 16 byte aligned\n" );
 	}
 	Com_Memset( tess.constantColor255, 255, sizeof( tess.constantColor255 ) );
 
@@ -453,10 +450,11 @@ void R_Init( void )
 	//
 	if (dx.active != true)
 	{
+		void * pWinContext;
 		// DX12
-		ri.GLimpInit(&glConfig, NULL);
+		ri.GLimpInit(&glConfig, &pWinContext);
 
-		dx_initialize();
+		dx_initialize( pWinContext );
 	}
 
 
@@ -600,7 +598,12 @@ GetRefAPI
 
 @@@@@@@@@@@@@@@@@@@@@
 */
-refexport_t * GetRefAPI ( int apiVersion, refimport_t *rimp )
+
+#ifdef USE_RENDERER_DLOPEN
+__declspec(dllexport) refexport_t * GetRefAPI(int apiVersion, refimport_t *rimp)
+#else
+refexport_t* GetRefAPI(int apiVersion, refimport_t *rimp)
+#endif
 {
 	static refexport_t re;
 

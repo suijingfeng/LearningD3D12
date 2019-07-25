@@ -28,7 +28,7 @@ struct DX_Sampler_Def {
 
 constexpr int MAX_VK_IMAGES = 2048; // should be the same as MAX_DRAWIMAGES
 constexpr int MAX_VK_PIPELINES = 1024;
-constexpr int SWAPCHAIN_BUFFER_COUNT = 2;
+constexpr int SWAPCHAIN_BUFFER_COUNT = 3;
 
 struct DX_Pipeline_Def {
 	DX_Shader_Type shader_type = DX_Shader_Type::single_texture;
@@ -76,7 +76,7 @@ struct Dx_Image {
 //
 // Initialization.
 //
-void dx_initialize();
+void dx_initialize(void * pWinContext);
 void dx_shutdown();
 void dx_release_resources();
 void dx_wait_device_idle();
@@ -98,7 +98,8 @@ void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Dept
 void dx_begin_frame();
 void dx_end_frame();
 
-struct Dx_Instance {
+struct Dx_Instance
+{
 	bool active = false;
 
 	ID3D12Device* device = nullptr;

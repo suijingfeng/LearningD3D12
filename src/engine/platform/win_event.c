@@ -17,6 +17,8 @@ EVENT LOOP
 #define	MAX_QUED_EVENTS		256
 #define	MASK_QUED_EVENTS	( MAX_QUED_EVENTS - 1 )
 
+extern WinVars_t g_wv;
+
 static sysEvent_t eventQue[MAX_QUED_EVENTS];
 static int eventHead;
 static int eventTail;

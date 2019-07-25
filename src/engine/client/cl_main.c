@@ -2333,6 +2333,35 @@ void CL_InitRef( void )
 
 	Com_Printf( "----- Initializing Renderer ----\n" );
 
+#ifdef USE_RENDERER_DLOPEN
+
+	GetRefAPI_t	GetRefAPI;
+	char dllName[MAX_OSPATH] = "renderer.dll";
+
+	Com_Printf("\n-------- USE_RENDERER_DLOPEN --------\n");
+
+	// cl_renderer = Cvar_Get("cl_renderer", "vulkan", CVAR_ARCHIVE | CVAR_LATCH | CVAR_PROTECTED);
+	// Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_renderer->string);
+
+	HMODULE rendererLib = LoadLibrary(dllName);
+	if (!rendererLib)
+	{
+		Com_Printf(" Loading %s failed.\n", dllName);
+	}
+	else
+	{
+		Com_Printf(" Loading %s success.\n", dllName);
+	}
+
+	GetRefAPI = (GetRefAPI_t) GetProcAddress(rendererLib, "GetRefAPI");
+	// GetRefAPI = LoadFunction(rendererLib, "GetRefAPI");
+	if (!GetRefAPI)
+	{
+		Com_Error(ERR_FATAL, "Can't load symbol GetRefAPI: GetRefAPI");
+	}
+
+#endif
+
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
 	ri.Cmd_Argc = Cmd_Argc;

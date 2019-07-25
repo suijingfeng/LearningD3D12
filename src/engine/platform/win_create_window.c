@@ -20,7 +20,7 @@
 #include "win_gamma.h"
 #include "I_PlatformDependent.h"
 
-
+extern WinVars_t g_wv;
 extern HWND create_main_window(int width, int height, bool fullscreen);
 
 // need to complete ...
@@ -166,8 +166,9 @@ void fnToggleLogging_f(void)
 }
 
 
-void GLimp_Init(glconfig_t * const pConfig, void * pContext)
+void GLimp_Init(glconfig_t * const pConfig, void **pContext)
 {
+
 	win_createWindowImpl();
 	
 	Cmd_AddCommand("listDisplayModes", R_ListDisplayMode_f);
@@ -188,6 +189,8 @@ void GLimp_Init(glconfig_t * const pConfig, void * pContext)
 	pConfig->colorBits = 32;
 	pConfig->deviceSupportsGamma = win_checkHardwareGamma();
 
+	////
+	*pContext = &g_wv;
 }
 
 void GLimp_Shutdown(void)

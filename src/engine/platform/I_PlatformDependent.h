@@ -8,7 +8,7 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
-void GLimp_Init( glconfig_t * const pConfig, void * pContext );
+void GLimp_Init( glconfig_t * const pConfig, void ** pContext );
 void GLimp_Shutdown( void );
 void GLimp_EndFrame( void );
 void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] );

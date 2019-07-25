@@ -47,9 +47,9 @@ const int ST1_OFFSET    = ST0_OFFSET + ST0_SIZE;
 const int VERTEX_BUFFER_SIZE = XYZ_SIZE + COLOR_SIZE + ST0_SIZE + ST1_SIZE;
 const int INDEX_BUFFER_SIZE = 2 * 1024 * 1024;
 
-#define DX_CHECK(function_call) { \
+#define DX_CHECK( function_call ) { \
 	HRESULT hr = function_call; \
-	if (FAILED(hr)) \
+	if ( FAILED(hr) ) \
 		ri.Error(ERR_FATAL, "Direct3D: error returned by %s", #function_call); \
 }
 
@@ -172,7 +172,109 @@ static D3D12_RESOURCE_DESC get_buffer_desc(UINT64 size)
 
 ID3D12PipelineState* create_pipeline(const DX_Pipeline_Def& def);
 
-void dx_initialize()
+static void DX_CreateCommandQueue(ID3D12CommandQueue** ppCmdQueue)
+{
+	D3D12_COMMAND_QUEUE_DESC queue_desc = {
+		D3D12_COMMAND_LIST_TYPE_DIRECT, 0,
+		D3D12_COMMAND_QUEUE_FLAG_NONE, 0 };
+
+	DX_CHECK( dx.device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(ppCmdQueue)) );
+
+	ri.Printf( PRINT_ALL, "Command queue created. \n" );
+}
+
+
+
+// You cannot cast a DXGI_SWAP_CHAIN_DESC1 to a DXGI_SWAP_CHAIN_DESC and vice versa. 
+// An application must explicitly use the IDXGISwapChain1::GetDesc1 method 
+// to retrieve the newer version of the swap-chain description structure.
+// In full-screen mode, there is a dedicated front buffer; in windowed mode, 
+// the desktop is the front buffer.
+static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT numTargetBuf,
+	void* pContext, IDXGIFactory4* pFactory, IDXGISwapChain3 ** ppWwapchain)
+{
+	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
+	swap_chain_desc.Width = width;
+	swap_chain_desc.Height = height;
+	swap_chain_desc.Format = fmt;
+	swap_chain_desc.Stereo = false;
+	// A DXGI_SAMPLE_DESC structure that describes multi-sampling parameters.
+	// This member is valid only with bit-block transfer (bitblt) model swap chains.
+	swap_chain_desc.SampleDesc.Count = 1;
+	swap_chain_desc.SampleDesc.Quality = 0;
+	// A DXGI_USAGE-typed value that describes the surface usage and CPU access 
+	// options for the back buffer. The back buffer can be used for shader input
+	// or render-target output
+	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	// A value that describes the number of buffers in the swap chain.
+	// When you create a full-screen swap chain, you typically include
+	// the front buffer in this value.
+	swap_chain_desc.BufferCount = numTargetBuf;
+
+	// A DXGI_SCALING-typed value that identifies resize behavior 
+	// if the size of the back buffer is not equal to the target output.
+	//
+	// DXGI_SCALING_STRETCH: 
+	// Directs DXGI to make the back-buffer contents scale to fit the presentation target size. 
+	// This is the implicit behavior of DXGI when you call the IDXGIFactory::CreateSwapChain method.
+	//
+	// DXGI_SCALING_NONE
+	// Directs DXGI to make the back-buffer contents appear without any scaling 
+	// when the presentation target size is not equal to the back-buffer size. 
+	// The top edges of the back buffer and presentation target are aligned together.
+	// If the WS_EX_LAYOUTRTL style is associated with the HWND handle to the target
+	// output window, the right edges of the back buffer and presentation target are 
+	// aligned together; otherwise, the left edges are aligned together. 
+	// All target area outside the back buffer is filled with window background color. 
+	// This value specifies that all target areas outside the back buffer of a swap chain 
+	// are filled with the background color that you specify in a call to
+	// IDXGISwapChain1::SetBackgroundColor.
+	//
+	// DXGI_SCALING_ASPECT_RATIO_STRETCH:
+	// Directs DXGI to make the back-buffer contents scale to fit the presentation target size,
+	// while preserving the aspect ratio of the back-buffer. If the scaled back-buffer does not
+	// fill the presentation area, it will be centered with black borders. 
+	// This constant is supported on Windows Phone 8 and Windows 10.
+	// Note that with legacy Win32 window swapchains, this works the same as DXGI_SCALING_STRETCH.
+	swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
+	// A DXGI_SWAP_EFFECT-typed value that describes the presentation model
+	// that is used by the swap chain and options for handling the contents
+	// of the presentation buffer after presenting a surface. 
+	//
+	// FLIP_SEQUENTIAL: to specify that DXGI persist the contents of the back buffer
+	// after you call IDXGISwapChain1::Present1, cannot be used with multisampling
+	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+	// DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swap_chain_desc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	IDXGISwapChain1* pTmpSwapchain;
+
+	WinVars_t * pWinSys = (WinVars_t*)pContext;
+
+	DX_CHECK( pFactory->CreateSwapChainForHwnd(
+		dx.command_queue,
+		pWinSys->hWnd,
+		&swap_chain_desc,
+		nullptr,
+		nullptr,
+		&pTmpSwapchain
+	));
+
+	// DXGI_MWA_NO_WINDOW_CHANGES - Prevent DXGI from monitoring an applications
+	// message queue; this makes DXGI unable to respond to mode changes.
+	DX_CHECK( pFactory->MakeWindowAssociation(pWinSys->hWnd, DXGI_MWA_NO_ALT_ENTER));
+
+	// pTmpSwapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&dx.swapchain);
+	pTmpSwapchain->QueryInterface( IID_PPV_ARGS(ppWwapchain) );
+	pTmpSwapchain->Release();
+
+	ri.Printf(PRINT_ALL, " Swap chain created. \n");
+}
+
+
+
+void dx_initialize(void * pWinContext)
 {
 	// enable validation in debug configuration
 #if defined(_DEBUG)
@@ -255,102 +357,23 @@ void dx_initialize()
 			}
 		}
 	
-
 		pHardwareAdapter->Release();
 	}
 	// allway enable stencil
-	// Create command queue.
-	{
-		D3D12_COMMAND_QUEUE_DESC queue_desc = { 
-			D3D12_COMMAND_LIST_TYPE_DIRECT, 0, 
-			D3D12_COMMAND_QUEUE_FLAG_NONE, 0 };
 
-		DX_CHECK( dx.device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&dx.command_queue)) );
-	}
+	DX_CreateCommandQueue( &dx.command_queue );
 
-	//
 	// Create swap chain.
-	//
-	// Note: 
-	// You cannot cast a DXGI_SWAP_CHAIN_DESC1 to a DXGI_SWAP_CHAIN_DESC and vice versa. 
-	// An application must explicitly use the IDXGISwapChain1::GetDesc1 method 
-	// to retrieve the newer version of the swap-chain description structure.
-	// In full-screen mode, there is a dedicated front buffer; in windowed mode, 
-	// the desktop is the front buffer. 
+	DX_CreateSwapChain(glConfig.vidWidth, glConfig.vidHeight,
+		DXGI_FORMAT_R8G8B8A8_UNORM, SWAPCHAIN_BUFFER_COUNT,
+		pWinContext, pFactory, &dx.swapchain);
+
+
+	for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; ++i)
 	{
-		DXGI_SWAP_CHAIN_DESC1 swap_chain_desc{};
-		
-		swap_chain_desc.Width = glConfig.vidWidth;
-		swap_chain_desc.Height = glConfig.vidHeight;
-		swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swap_chain_desc.Stereo = false;
-		// A DXGI_SAMPLE_DESC structure that describes multi-sampling parameters.
-		// This member is valid only with bit-block transfer (bitblt) model swap chains.
-		swap_chain_desc.SampleDesc = { 0 };
-		// A DXGI_USAGE-typed value that describes the surface usage and CPU access 
-		// options for the back buffer. The back buffer can be used for shader input
-		// or render-target output
-		swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		// A value that describes the number of buffers in the swap chain.
-		// When you create a full-screen swap chain, you typically include
-		// the front buffer in this value.
-		swap_chain_desc.BufferCount = SWAPCHAIN_BUFFER_COUNT;
-		
-		// A DXGI_SCALING-typed value that identifies resize behavior 
-		// if the size of the back buffer is not equal to the target output.
-		//
-		// DXGI_SCALING_STRETCH: 
-		// Directs DXGI to make the back-buffer contents scale to fit the presentation target size. 
-		// This is the implicit behavior of DXGI when you call the IDXGIFactory::CreateSwapChain method.
-		//
-		// DXGI_SCALING_NONE
-		// Directs DXGI to make the back-buffer contents appear without any scaling 
-		// when the presentation target size is not equal to the back-buffer size. 
-		// The top edges of the back buffer and presentation target are aligned together.
-		// If the WS_EX_LAYOUTRTL style is associated with the HWND handle to the target
-		// output window, the right edges of the back buffer and presentation target are 
-		// aligned together; otherwise, the left edges are aligned together. 
-		// All target area outside the back buffer is filled with window background color. 
-		// This value specifies that all target areas outside the back buffer of a swap chain 
-		// are filled with the background color that you specify in a call to
-		// IDXGISwapChain1::SetBackgroundColor.
-		//
-		// DXGI_SCALING_ASPECT_RATIO_STRETCH:
-		// Directs DXGI to make the back-buffer contents scale to fit the presentation target size,
-		// while preserving the aspect ratio of the back-buffer. If the scaled back-buffer does not
-		// fill the presentation area, it will be centered with black borders. 
-		// This constant is supported on Windows Phone 8 and Windows 10.
-		// Note that with legacy Win32 window swapchains, this works the same as DXGI_SCALING_STRETCH.
-		swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
-		// A DXGI_SWAP_EFFECT-typed value that describes the presentation model
-		// that is used by the swap chain and options for handling the contents
-		// of the presentation buffer after presenting a surface. 
-		swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-
-		swap_chain_desc.SampleDesc.Count = 1;
-		// swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-		IDXGISwapChain1* swapchain;
-
-		DX_CHECK(pFactory->CreateSwapChainForHwnd(
-			dx.command_queue,
-			g_wv.hWnd,
-			&swap_chain_desc,
-			nullptr,
-			nullptr,
-			&swapchain
-			));
-
-		DX_CHECK(pFactory->MakeWindowAssociation(g_wv.hWnd, DXGI_MWA_NO_ALT_ENTER));
-		swapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&dx.swapchain);
-		
-		swapchain->Release();
-
-		for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; ++i)
-		{
-			DX_CHECK(dx.swapchain->GetBuffer(i, IID_PPV_ARGS(&dx.render_targets[i])));
-		}
+		DX_CHECK(dx.swapchain->GetBuffer(i, IID_PPV_ARGS(&dx.render_targets[i])));
 	}
+	
 
 	pFactory->Release();
 	pFactory = nullptr;
@@ -877,7 +900,8 @@ void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mi
 
 	int w = width;
 	int h = height;
-	for (int i = 0; i < mip_levels; i++) {
+	for (int i = 0; i < mip_levels; ++i)
+	{
 		regions[i].Offset = buffer_size;
 		regions[i].Footprint.Format = texture->GetDesc().Format;
 		regions[i].Footprint.Width = w;
@@ -1009,8 +1033,6 @@ static ID3D12PipelineState* create_pipeline(const DX_Pipeline_Def& def)
 	extern unsigned char multi_texture_add_ge80_ps[];
 	extern long long multi_texture_add_ge80_ps_size;
 
-
-// #define BYTECODE(name)	D3D12_SHADER_BYTECODE{name, (SIZE_T)name##_size}
 
 	D3D12_SHADER_BYTECODE vs_bytecode;
 	D3D12_SHADER_BYTECODE ps_bytecode;
@@ -1393,7 +1415,7 @@ void dx_create_sampler_descriptor(const DX_Sampler_Def& def, Dx_Sampler_Index sa
 
 ID3D12PipelineState* dx_find_pipeline(const DX_Pipeline_Def& def)
 {
-	for (int i = 0; i < dx_world.num_pipelines; i++) {
+	for (int i = 0; i < dx_world.num_pipelines; ++i) {
 		const auto& cur_def = dx_world.pipeline_defs[i];
 
 		if (cur_def.shader_type == def.shader_type &&

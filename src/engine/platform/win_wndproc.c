@@ -7,6 +7,7 @@
 
 WinVars_t g_wv;
 
+
 // Console variables that we need to access from this module
 cvar_t* vid_xpos;	// X coordinate of window position
 cvar_t* vid_ypos;	// Y coordinate of window position
@@ -370,6 +371,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 	case WM_SYSKEYDOWN: 
 	{
+		
 		if (wParam == VK_RETURN)
 		{
 			g_wv.isFullScreen = !g_wv.isFullScreen;
@@ -378,7 +380,8 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			Cbuf_AddText("vid_restart\n");
 
 			return 0;
-		} 
+		}
+
 		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( wParam, lParam ), qtrue, 0, NULL );
 	} break;
 

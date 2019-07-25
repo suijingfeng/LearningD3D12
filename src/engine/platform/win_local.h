@@ -23,12 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #pragma once
 
-
 #include <windows.h>
 
-
-typedef struct
-{
+typedef struct WinVars_s {
 	HINSTANCE		reflib_library;		// Handle to refresh DLL 
 
 	HWND			hWnd; // main window
@@ -46,5 +43,3 @@ typedef struct
 	// can know the exact time of an event
 	unsigned		sysMsgTime;
 } WinVars_t;
-
-extern WinVars_t g_wv;

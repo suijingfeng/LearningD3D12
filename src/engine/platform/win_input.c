@@ -39,6 +39,7 @@ typedef struct {
 
 static WinMouseVars_t s_wmv;
 
+extern WinVars_t g_wv;
 
 cvar_t	*in_mouse;
 

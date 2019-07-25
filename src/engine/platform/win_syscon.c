@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "resource.h"
 #include "win_event.h"
 
+extern WinVars_t g_wv;
 
 #define COPY_ID			1
 #define QUIT_ID			2

@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define MEM_THRESHOLD 96*1024*1024
 
-
+extern WinVars_t g_wv;
 
 // define this to use alternate spanking method
 // I found out that the regular way doesn't work on my box for some reason

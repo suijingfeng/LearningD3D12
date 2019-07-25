@@ -137,7 +137,6 @@
     <ClCompile Include="..\src\engine\renderer\tr_world.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\engine\qcommon\cm_public.h" />
     <ClInclude Include="..\src\engine\renderer\dx.h" />
     <ClInclude Include="..\src\game\q_shared.h" />
     <ClInclude Include="..\src\engine\qcommon\qcommon.h" />

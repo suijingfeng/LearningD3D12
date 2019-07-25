@@ -23,20 +23,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ** WIN_GAMMA.C
 */
 #include <assert.h>
-#include "../renderer/tr_local.h"
-#include "../qcommon/qcommon.h"
+#include "../client/client.h"
 #include "win_local.h"
 #include "I_PlatformDependent.h"
-static unsigned short s_oldHardwareGamma[3][256];
 
+static unsigned short s_oldHardwareGamma[3][256];
+static qboolean deviceSupportsGamma = qfalse;
 /*
 ** Determines if the underlying hardware supports the Win32 gamma correction API.
 */
 qboolean win_checkHardwareGamma( void )
 {
 
-	qboolean deviceSupportsGamma = qfalse;
-	
 	HDC hDC = GetDC( GetDesktopWindow() );
 	
 	// GetDeviceGammaRamp function gets the gamma ramp
@@ -69,7 +67,7 @@ qboolean win_checkHardwareGamma( void )
 		{
 			int g;
 
-			ri.Printf( PRINT_WARNING, "WARNING: suspicious gamma tables, using linear ramp for restoration\n" );
+			Com_Printf( "WARNING: suspicious gamma tables, using linear ramp for restoration\n" );
 
 			for ( g = 0; g < 255; g++ )
 			{
@@ -90,9 +88,9 @@ qboolean win_checkHardwareGamma( void )
 void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] )
 {
 	unsigned short table[3][256];
-	int		ret;
+	int	ret;
 
-	if ( !glConfig.deviceSupportsGamma )
+	if ( !deviceSupportsGamma )
 	{
 		return;
 	}
@@ -146,7 +144,7 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 
 void win_restoreGamma( void )
 {
-	if ( glConfig.deviceSupportsGamma )
+	if ( deviceSupportsGamma )
 	{
 		// Retrieves a handle to the desktop window. 
 		// The desktop window covers the entire screen. 
