@@ -985,7 +985,7 @@ extern	cvar_t	*r_singleShader;				// make most world faces use default shader
 extern	cvar_t	*r_roundImagesDown;
 extern	cvar_t	*r_colorMipLevels;				// development aid to see texture mip usage
 extern	cvar_t	*r_picmip;						// controls picmip values
-extern	cvar_t	*r_drawBuffer;
+
 
 
 extern	cvar_t	*r_textureMode;
