@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // DX12
 #include "d3d12.h"
+#include "dx_world.h"
+
 
 backEndData_t* backEndData[1];
 backEndState_t backEnd;
@@ -702,53 +704,7 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, const byte *
     RE_StretchPic(x, y, w, h,  0.5f / cols, 0.5f / rows,  1.0f - 0.5f / cols, 1.0f - 0.5 / rows, tr.cinematicShader->index);
 }
 
-void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty) {
 
-	GL_Bind( tr.scratchImage[client] );
-
-	// if the scratchImage isn't in the format we want, specify it as a new texture
-	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height ) {
-		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
-		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
-
-		// DX12
-		if (dx.active) {
-			int image_index = tr.scratchImage[client]->index;
-			Dx_Image& image = dx_world.images[image_index];
-			image.texture->Release();
-			image = dx_create_image(cols, rows, IMAGE_FORMAT_RGBA8, 1, false, image_index);
-			dx_upload_image_data(image.texture, cols, rows, 1, data, 4);
-		}
-		else if (gl_active)
-		{
-			qglTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		}
-	}
-	else
-	{
-		if (dirty)
-		{
-			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
-			// it and don't try and do a texture compression
-
-
-			// DX12
-			if (dx.active) {
-				const Dx_Image& image = dx_world.images[tr.scratchImage[client]->index];
-				dx_upload_image_data(image.texture, cols, rows, 1, data, 4);
-			}
-			else if( gl_active )
-			{
-				qglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			}
-
-		}
-	}
-}
 
 
 /*

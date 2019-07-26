@@ -1,10 +1,10 @@
 #include "tr_local.h"
 #include "../platform/win_local.h"
 
-#include <functional>
 
 #include "D3d12.h"
 #include "DXGI1_4.h"
+#include "dx_world.h"
 
 #pragma comment (lib, "D3d12.lib")
 
@@ -47,11 +47,6 @@ const int ST1_OFFSET    = ST0_OFFSET + ST0_SIZE;
 const int VERTEX_BUFFER_SIZE = XYZ_SIZE + COLOR_SIZE + ST0_SIZE + ST1_SIZE;
 const int INDEX_BUFFER_SIZE = 2 * 1024 * 1024;
 
-#define DX_CHECK( function_call ) { \
-	HRESULT hr = function_call; \
-	if ( FAILED(hr) ) \
-		ri.Error(ERR_FATAL, "Direct3D: error returned by %s", #function_call); \
-}
 
 static DXGI_FORMAT get_depth_format()
 {
@@ -108,22 +103,7 @@ static void get_hardware_adapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdap
 }
 
 
-static void record_and_run_commands(std::function<void ( ID3D12GraphicsCommandList* )> recorder)
-{
-	ID3D12GraphicsCommandList* command_list;
-	DX_CHECK(dx.device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, dx.helper_command_allocator,
-		nullptr, IID_PPV_ARGS(&command_list)));
 
-	recorder(command_list);
-	DX_CHECK(command_list->Close());
-
-	ID3D12CommandList* command_lists[] = { command_list };
-	dx.command_queue->ExecuteCommandLists(1, command_lists);
-	dx_wait_device_idle();
-	
-	command_list->Release();
-	dx.helper_command_allocator->Reset();
-}
 
 
 static D3D12_RESOURCE_BARRIER get_transition_barrier(
@@ -152,6 +132,8 @@ static D3D12_HEAP_PROPERTIES get_heap_properties(D3D12_HEAP_TYPE heap_type)
 	properties.VisibleNodeMask = 1;
 	return properties;
 }
+
+
 
 static D3D12_RESOURCE_DESC get_buffer_desc(UINT64 size)
 {
@@ -761,6 +743,7 @@ void dx_initialize(void * pWinContext)
 	dx.active = true;
 }
 
+
 void dx_shutdown()
 {
 	::CloseHandle(dx.fence_event);
@@ -839,156 +822,6 @@ void dx_wait_device_idle()
 	DX_CHECK(dx.command_queue->Signal(dx.fence, dx.fence_value));
 	DX_CHECK(dx.fence->SetEventOnCompletion(dx.fence_value, dx.fence_event));
 	WaitForSingleObject(dx.fence_event, INFINITE);
-}
-
-Dx_Image dx_create_image(int width, int height, Dx_Image_Format format, int mip_levels,  bool repeat_texture, int image_index)
-{
-	Dx_Image image;
-
-	DXGI_FORMAT dx_format;
-	if (format == IMAGE_FORMAT_RGBA8)
-		dx_format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	else if (format == IMAGE_FORMAT_BGRA4)
-		dx_format = DXGI_FORMAT_B4G4R4A4_UNORM;
-	else {
-		assert(format == IMAGE_FORMAT_BGR5A1);
-		dx_format = DXGI_FORMAT_B5G5R5A1_UNORM;
-	}
-
-	// create texture
-	{
-		D3D12_RESOURCE_DESC desc;
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		desc.Alignment = 0;
-		desc.Width = width;
-		desc.Height = height;
-		desc.DepthOrArraySize = 1;
-		desc.MipLevels = mip_levels;
-		desc.Format = dx_format;
-		desc.SampleDesc.Count = 1;
-		desc.SampleDesc.Quality = 0;
-		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-		DX_CHECK(dx.device->CreateCommittedResource(
-			&get_heap_properties(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE,
-			&desc,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-			nullptr,
-			IID_PPV_ARGS(&image.texture)));
-	}
-
-	// create texture descriptor
-	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
-		srv_desc.Format = dx_format;
-		srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srv_desc.Texture2D.MipLevels = mip_levels;
-
-		D3D12_CPU_DESCRIPTOR_HANDLE handle;
-		handle.ptr = dx.srv_heap->GetCPUDescriptorHandleForHeapStart().ptr + image_index * dx.srv_descriptor_size;
-		dx.device->CreateShaderResourceView(image.texture, &srv_desc, handle);
-
-		dx_world.current_image_indices[glState.currenttmu] = image_index;
-	}
-
-	if (mip_levels > 0)
-		image.sampler_index = repeat_texture ? SAMPLER_MIP_REPEAT : SAMPLER_MIP_CLAMP;
-	else
-		image.sampler_index = repeat_texture ? SAMPLER_NOMIP_REPEAT : SAMPLER_NOMIP_CLAMP;
-
-	return image;
-}
-
-void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mip_levels, const uint8_t* pixels, int bytes_per_pixel)
-{
-	//
-	// Initialize subresource layouts int the upload texture.
-	//
-	auto align =[](size_t value, size_t alignment) {
-		return (value + alignment - 1) & ~(alignment - 1);
-	};
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT regions[16];
-	UINT64 buffer_size = 0;
-
-	int w = width;
-	int h = height;
-	for (int i = 0; i < mip_levels; ++i)
-	{
-		regions[i].Offset = buffer_size;
-		regions[i].Footprint.Format = texture->GetDesc().Format;
-		regions[i].Footprint.Width = w;
-		regions[i].Footprint.Height = h;
-		regions[i].Footprint.Depth = 1;
-		regions[i].Footprint.RowPitch = static_cast<UINT>(align(w * bytes_per_pixel, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
-		buffer_size += align(regions[i].Footprint.RowPitch * h, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-		w >>= 1;
-		if (w < 1) w = 1;
-		h >>= 1;
-		if (h < 1) h = 1;
-	}
-
-	//
-	// Create upload upload texture.
-	//
-	ID3D12Resource* upload_texture;
-	DX_CHECK(dx.device->CreateCommittedResource(
-			&get_heap_properties(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&get_buffer_desc(buffer_size),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&upload_texture)));
-
-	byte* upload_texture_data;
-	DX_CHECK(upload_texture->Map(0, nullptr, reinterpret_cast<void**>(&upload_texture_data)));
-	w = width;
-	h = height;
-	for (int i = 0; i < mip_levels; ++i)
-	{
-		byte* upload_subresource_base = upload_texture_data + regions[i].Offset;
-		for (int y = 0; y < h; y++) {
-			Com_Memcpy(upload_subresource_base + regions[i].Footprint.RowPitch * y, pixels, w * bytes_per_pixel);
-			pixels += w * bytes_per_pixel;
-		}
-		w >>= 1;
-		if (w < 1) w = 1;
-		h >>= 1;
-		if (h < 1) h = 1;
-	}
-	upload_texture->Unmap(0, nullptr);
-
-	//
-	// Copy data from upload texture to destination texture.
-	//
-	record_and_run_commands([texture, upload_texture, &regions, mip_levels]
-		(ID3D12GraphicsCommandList* command_list)
-	{
-		command_list->ResourceBarrier(1, &get_transition_barrier(texture,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST));
-
-		for (UINT i = 0; i < mip_levels; ++i) {
-			D3D12_TEXTURE_COPY_LOCATION  dst;
-			dst.pResource = texture;
-			dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-			dst.SubresourceIndex = i;
-
-			D3D12_TEXTURE_COPY_LOCATION src;
-			src.pResource = upload_texture;
-			src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-			src.PlacedFootprint = regions[i];
-
-			command_list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-		}
-
-		command_list->ResourceBarrier(1, &get_transition_barrier(texture,
-			D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	});
-
-	upload_texture->Release();
 }
 
 
@@ -1602,7 +1435,7 @@ void dx_bind_geometry()
 
 	// indexes stream
 	{
-		std::size_t indexes_size = tess.numIndexes * sizeof(uint32_t);        
+		uint32_t indexes_size = tess.numIndexes * sizeof(uint32_t);        
 
 		if (dx.index_buffer_offset + indexes_size > INDEX_BUFFER_SIZE)
 			ri.Error(ERR_DROP, "dx_bind_geometry: index buffer overflow\n");

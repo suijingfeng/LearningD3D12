@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_image.c
 #include "tr_local.h"
+#include "dx_image.h"
+#include "dx_world.h"
 
 static void* q3_stbi_malloc(size_t size) {
     return ri.Malloc((int)size);
@@ -508,13 +510,7 @@ byte	mipBlendColors[16][4] = {
 	{0,0,255,128},
 };
 
-struct Image_Upload_Data {
-	byte* buffer;
-	int buffer_size;
-	int mip_levels;
-	int base_level_width;
-	int base_level_height;
-};
+
 
 static Image_Upload_Data generate_image_upload_data(const byte* data, int width, int height, qboolean mipmap, qboolean picmip) {
 	//
@@ -682,69 +678,6 @@ static int upload_gl_image(const Image_Upload_Data& upload_data, int texture_add
 
 
 
-// DX12
-static Dx_Image upload_dx_image(const Image_Upload_Data& upload_data, bool repeat_texture, int image_index)
-{
-	int w = upload_data.base_level_width;
-	int h = upload_data.base_level_height;
-
-	bool has_alpha = false;
-	for (int i = 0; i < w * h; i++)
-	{
-		if (upload_data.buffer[i*4 + 3] != 255)
-		{
-			has_alpha = true;
-			break;
-		}
-	}
-
-	byte* buffer = upload_data.buffer;
-	Dx_Image_Format format = IMAGE_FORMAT_RGBA8;
-	int bytes_per_pixel = 4;
-
-/*  I comment this, always set r_texturebits->integer = 32, 
- *  as r_texturebits->integer = 16 emerge aliasing effect
-	if (r_texturebits->integer <= 16) {
-		buffer = (byte*) ri.Hunk_AllocateTempMemory( upload_data.buffer_size / 2 );
-		format = has_alpha ? IMAGE_FORMAT_BGRA4 : IMAGE_FORMAT_BGR5A1;
-		bytes_per_pixel = 2;
-	}
-*/
-	if (format == IMAGE_FORMAT_BGR5A1) {
-		auto p = (uint16_t*)buffer;
-		for (int i = 0; i < upload_data.buffer_size; i += 4, p++) {
-			byte r = upload_data.buffer[i+0];
-			byte g = upload_data.buffer[i+1];
-			byte b = upload_data.buffer[i+2];
-
-			*p = (uint32_t((b/255.0) * 31.0 + 0.5) << 0)  |
-				 (uint32_t((g/255.0) * 31.0 + 0.5) << 5)  |
-				 (uint32_t((r/255.0) * 31.0 + 0.5) << 10) |
-				 (1 << 15);
-		}
-	} else if (format == IMAGE_FORMAT_BGRA4) {
-		auto p = (uint16_t*)buffer;
-		for (int i = 0; i < upload_data.buffer_size; i += 4, p++) {
-			byte r = upload_data.buffer[i+0];
-			byte g = upload_data.buffer[i+1];
-			byte b = upload_data.buffer[i+2];
-			byte a = upload_data.buffer[i+3];
-
-			*p =(uint32_t((b/255.0) * 15.0 + 0.5) << 0) |
-				(uint32_t((g/255.0) * 15.0 + 0.5) << 4) |
-				(uint32_t((r/255.0) * 15.0 + 0.5) << 8) |
-				(uint32_t((a/255.0) * 15.0 + 0.5) << 12);
-		}
-	}
-
-	Dx_Image image = dx_create_image(w, h, format, upload_data.mip_levels, repeat_texture, image_index);
-	dx_upload_image_data(image.texture, w, h, upload_data.mip_levels, buffer, bytes_per_pixel);
-
-	if (bytes_per_pixel == 2)
-		ri.Hunk_FreeTempMemory(buffer);
-
-	return image;
-}
 
 /*
 ================

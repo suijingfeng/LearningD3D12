@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "R_SortDrawSurfs.h"
-
+#include "dx_world.h"
 
 trGlobals_t		tr;
 

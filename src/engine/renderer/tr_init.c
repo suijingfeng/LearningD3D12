@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "dx_utils.h"
-
+#include "dx_world.h"
 // As win_local belong to platform, we want the render to be platform independent,
 // platform belong to client side, it should merely created a window, 
 // which is shared by GL, vulkan, directX and event software renderer... 
@@ -38,7 +38,7 @@ glstate_t	glState;
 
 // DX12
 Dx_Instance dx;
-Dx_World	dx_world;
+
 
 
 cvar_t	*r_railWidth;

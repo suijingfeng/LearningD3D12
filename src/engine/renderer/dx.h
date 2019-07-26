@@ -1,5 +1,5 @@
 #pragma once
-
+#include <d3d12.h>
 
 enum DX_Shader_Type {
 	single_texture,
@@ -54,25 +54,12 @@ struct ID3D12RootSignature;
 struct IDXGISwapChain3;
 
 
+#define DX_CHECK( function_call ) { \
+	HRESULT hr = function_call; \
+	if ( FAILED(hr) ) \
+		ri.Error(ERR_FATAL, "Direct3D: error returned by %s", #function_call); \
+}
 
-enum Dx_Sampler_Index {
-	SAMPLER_MIP_REPEAT,
-	SAMPLER_MIP_CLAMP,
-	SAMPLER_NOMIP_REPEAT,
-	SAMPLER_NOMIP_CLAMP,
-	SAMPLER_COUNT
-};
-
-enum Dx_Image_Format {
-	IMAGE_FORMAT_RGBA8,
-	IMAGE_FORMAT_BGRA4,
-	IMAGE_FORMAT_BGR5A1
-};
-
-struct Dx_Image {
-	ID3D12Resource* texture = nullptr;
-	Dx_Sampler_Index sampler_index = SAMPLER_COUNT;
-};
 
 //
 // Initialization.
@@ -85,15 +72,14 @@ void dx_wait_device_idle();
 //
 // Resources allocation.
 //
-Dx_Image dx_create_image(int width, int height, Dx_Image_Format format, int mip_levels,  bool repeat_texture, int image_index);
-void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mip_levels, const uint8_t* pixels, int bytes_per_pixel);
-void dx_create_sampler_descriptor(const DX_Sampler_Def& def, Dx_Sampler_Index sampler_index);
+
+
 ID3D12PipelineState* dx_find_pipeline(const DX_Pipeline_Def& def);
 
 //
 // Rendering setup.
 //
-void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, vec4_t color);
+void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, float color[4]);
 void dx_bind_geometry();
 void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Depth_Range depth_range, bool indexed, bool lines);
 void dx_begin_frame();
@@ -173,26 +159,4 @@ struct Dx_Instance
 	ID3D12PipelineState* surface_debug_pipeline_solid = nullptr;
 	ID3D12PipelineState* surface_debug_pipeline_outline = nullptr;
 	ID3D12PipelineState* images_debug_pipeline = nullptr;
-};
-
-
-
-
-
-struct Dx_World
-{
-	//
-	// Resources.
-	//
-	int num_pipelines;
-	DX_Pipeline_Def pipeline_defs[MAX_VK_PIPELINES];
-	ID3D12PipelineState* pipelines[MAX_VK_PIPELINES];
-
-	Dx_Image images[MAX_VK_IMAGES];
-
-	//
-	// State.
-	//
-	int current_image_indices[2];
-	float modelview_transform[16];
 };
