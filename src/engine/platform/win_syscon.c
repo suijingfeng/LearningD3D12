@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // win_syscon.h
 
 #include "../client/client.h"
-#include "win_local.h"
+#include "win_public.h"
 #include "win_sysconsole.h"
 #include "resource.h"
 #include "win_event.h"

@@ -1,8 +1,8 @@
 #include <windows.h>
+#include "win_public.h"
 
 #include "../client/client.h"
 #include "../qcommon/qcommon.h"
-#include "win_local.h"
 #include "win_sysconsole.h"
 #include "win_net.h"
 

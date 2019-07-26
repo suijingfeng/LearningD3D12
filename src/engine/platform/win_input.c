@@ -22,10 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // win_input.c -- win32 mouse and joystick code
 // 02/21/97 JCB Added extended DirectInput code to support external controllers.
 
+#include "win_public.h"
 #include "../client/client.h"
-#include "win_local.h"
 #include "win_input.h"
 #include "win_event.h"
+
+
+extern WinVars_t g_wv;
 
 typedef struct {
 	int	oldButtonState;
@@ -38,8 +41,6 @@ typedef struct {
 } WinMouseVars_t;
 
 static WinMouseVars_t s_wmv;
-
-extern WinVars_t g_wv;
 
 cvar_t	*in_mouse;
 

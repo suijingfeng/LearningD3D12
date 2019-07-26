@@ -34,7 +34,7 @@
 //
 //
 // Invariant Backbuffer Identity
-// In Direct3D 11, applications could call GetBuffer(0, …) only once. 
+// In Direct3D 11, applications could call GetBuffer(0, ? only once. 
 // Every call to Present implicitly changed the resource identity of the returned interface.
 // Direct3D 12 no longer supports that implicit resource identity change, 
 // due to the CPU overhead required and the flexible resource descriptor design.

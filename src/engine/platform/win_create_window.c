@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 #include "../client/client.h"
-#include "win_local.h"
+#include "win_public.h"
 #include "win_mode.h"
 #include "win_gamma.h"
 #include "I_PlatformDependent.h"

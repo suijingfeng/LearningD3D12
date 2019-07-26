@@ -20,9 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
-#include "../../game/q_shared.h"
-#include "../qcommon/qcommon.h"
-#include "win_local.h"
+#include "win_public.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -30,6 +28,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <direct.h>
 #include <io.h>
 #include <conio.h>
+
+
+#include "../../game/q_shared.h"
+#include "../qcommon/qcommon.h"
+
 
 
 int Sys_Milliseconds (void)

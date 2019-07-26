@@ -21,11 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // win_local.h: Win32-specific Quake3 header file
 
-#pragma once
+#ifndef WIN_PUBLIC_H_
+#define WIN_PUBLIC_H_
 
 #include <windows.h>
 
 typedef struct WinVars_s {
+	
 	HINSTANCE		reflib_library;		// Handle to refresh DLL 
 
 	HWND			hWnd; // main window
@@ -35,11 +37,14 @@ typedef struct WinVars_s {
 
 	bool			isFullScreen;
 
-	qboolean		activeApp;
-	qboolean		isMinimized;
+	bool			activeApp;
+	bool			isMinimized;
 	OSVERSIONINFO	osversion;
 
 	// when we get a windows message, we store the time off so keyboard processing
 	// can know the exact time of an event
 	unsigned		sysMsgTime;
 } WinVars_t;
+
+
+#endif

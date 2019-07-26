@@ -21,10 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include <float.h>
 
-#include "../client/snd_local.h"
 #define CINTERFACE
+#include "win_public.h"
+#include "../client/snd_local.h"
 
-#include "win_local.h"
 extern WinVars_t g_wv;
 
 #define	DIRECTSOUND_VERSION	0x0300

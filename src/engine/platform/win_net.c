@@ -21,12 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // net_wins.c
 
-#include "../../game/q_shared.h"
-#include "../qcommon/qcommon.h"
-#include "win_local.h"
 
+#include "win_public.h"
 #include <winsock.h>
 #include <wsipx.h>
+
+
+#include "../../game/q_shared.h"
+#include "../qcommon/qcommon.h"
+
 
 static WSADATA	winsockdata;
 static qboolean	winsockInitialized = qfalse;

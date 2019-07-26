@@ -1,10 +1,11 @@
+
+#include "../platform/win_public.h"
+
 #include "tr_local.h"
-#include "../platform/win_local.h"
-
-
 #include "D3d12.h"
 #include "DXGI1_4.h"
 #include "dx_world.h"
+#include "dx_utils.h"
 
 #pragma comment (lib, "D3d12.lib")
 
@@ -83,19 +84,12 @@ static void get_hardware_adapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdap
 		// check for 11_0 feature level support
 		if ( SUCCEEDED( D3D12CreateDevice(*ppAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr) ) )
 		{
-			ri.Printf(PRINT_ALL, "Adapter: ");
+			ri.Printf(PRINT_ALL, "Using Adapter: ");
 
-			wchar_t *WStr = desc.Description;
 
-			size_t len = wcslen(WStr) + 1;
-			size_t converted = 0;
-			char *CStr = (char*) malloc(len * sizeof(char));
-			// Converts a sequence of wide characters to a 
-			// corresponding sequence of multibyte characters.
-			wcstombs_s(&converted, CStr, len, WStr, _TRUNCATE);
-			ri.Printf( PRINT_ALL, "%s\n", CStr );
-			free(CStr);
+			printWideStr(desc.Description);
 
+			ri.Printf(PRINT_ALL, "\n");
 			return;
 		}
 	}
@@ -257,7 +251,6 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 	ri.Printf(PRINT_ALL, " Swap chain created. \n");
 }
 
-extern void printAvailableAdapters(IDXGIFactory2* const pHardwareFactory);
 
 void dx_initialize(void * pWinContext)
 {
@@ -327,19 +320,12 @@ void dx_initialize(void * pWinContext)
 			// Creates a device that represents the display adapter.
 			if ( SUCCEEDED( D3D12CreateDevice(pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dx.device) )))
 			{
-				ri.Printf(PRINT_ALL, " Create Device successed. \n");
-				ri.Printf(PRINT_ALL, " Adapter: ");
+				ri.Printf(PRINT_ALL, " Create Device successed. Using Adapter: \n");
 
-				wchar_t *WStr = desc.Description;
 
-				size_t len = wcslen(WStr) + 1;
-				size_t converted = 0;
-				char *CStr = (char*)malloc(len * sizeof(char));
-				// Converts a sequence of wide characters to a 
-				// corresponding sequence of multibyte characters.
-				wcstombs_s(&converted, CStr, len, WStr, _TRUNCATE);
-				ri.Printf(PRINT_ALL, "%s\n", CStr);
-				free(CStr);
+				printWideStr(desc.Description);
+
+				ri.Printf(PRINT_ALL, "\n");
 
 				break;
 			}

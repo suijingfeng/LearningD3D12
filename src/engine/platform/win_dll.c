@@ -1,11 +1,10 @@
-
+#include <windows.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <direct.h>
 #include <io.h>
 #include <conio.h>
-#include <windows.h>
 //#include <VersionHelpers.h>
 
 #include "../client/client.h"
