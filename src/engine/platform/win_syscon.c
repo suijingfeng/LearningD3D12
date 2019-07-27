@@ -69,7 +69,6 @@ typedef struct
 	HWND		hwndStatusBar;
 	HWND		hwndButtonClear;
 	HWND		hwndButtonCopy;
-	HWND		hwndButtonQuit;
 
 	HWND		hwndErrorBox;
 	HWND		hwndErrorText;
@@ -81,17 +80,17 @@ typedef struct
 
 	HFONT		hfBufferFont;
 	HFONT		hfButtonFont;
-
+	HFONT		hfStatusFont;
 	HWND		hwndInputLine;
 
 	char		errorString[80];
 
 	char		consoleText[512];
 	char		returnedText[512];
+
 	int		visLevel;
 	qboolean	quitOnClose;
 	int		windowWidth, windowHeight;
-
 
 	WNDPROC		SysInputLineWndProc;
 
@@ -116,7 +115,7 @@ static void ConClear( void )
 static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	char *cmdString;
-	static qboolean s_timePolarity;
+	static bool s_timePolarity;
 
 	switch ( uMsg )
 	{
@@ -180,7 +179,7 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 		else if ( ( HWND ) lParam == s_console_window.hwndErrorBox )
 		{
-			if ( s_timePolarity & 1 )
+			if ( s_timePolarity )
 			{
 				SetBkColor( ( HDC ) wParam, ERROR_BG_COLOR );
 				SetTextColor( ( HDC ) wParam, ERROR_COLOR_1 );
@@ -242,7 +241,7 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 	case WM_TIMER:
 		if ( wParam == 1 )
 		{
-			s_timePolarity = (qboolean) !s_timePolarity;
+			s_timePolarity = !s_timePolarity;
 			if ( s_console_window.hwndErrorBox )
 			{
 				InvalidateRect( s_console_window.hwndErrorBox, NULL, FALSE );
@@ -264,9 +263,7 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 	{
 	// Sent to a window immediately before it loses the keyboard focus.
 	case WM_KILLFOCUS:
-		if ( (HWND)wParam == s_console_window.hwndBuffer ||
-			(HWND)wParam == s_console_window.hWnd || 
-			( HWND ) wParam == s_console_window.hwndErrorBox )
+		if ( (HWND)wParam == s_console_window.hwndBuffer )
 		{
 			SetFocus( s_console_window.hwndInputLine );
 			return 0;
@@ -343,14 +340,20 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 	}
 
 	case WM_CHAR:
+		if ( wParam > 255 )
+			return 0;
 		if ( wParam == VK_RETURN )
 		{
 			GetWindowText( s_console_window.hwndInputLine, inputBuffer, sizeof( inputBuffer ) );
-			strncat( s_console_window.consoleText, inputBuffer, sizeof( s_console_window.consoleText ) - (int)strlen( s_console_window.consoleText ) - 5 );
-			strcat( s_console_window.consoleText, "\n" );
-			SetWindowText( s_console_window.hwndInputLine, "" );
 
-			Sys_Print( va( "]%s\n", inputBuffer ) );
+			strncat( s_console_window.consoleText, inputBuffer, 
+				sizeof( s_console_window.consoleText ) - (int)strlen( s_console_window.consoleText ) - 5 );
+			strcat( s_console_window.consoleText, "\n" );
+
+			SetWindowText( s_console_window.hwndInputLine, "" );
+			Field_Clear( &console );
+
+			Sys_Print( va( "]%s\n", WtoA( inputBuffer ) ) );
 
 			return 0;
 		}
@@ -384,19 +387,20 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 void Sys_CreateConsole( void )
 {	
 	const char * const pDEDCLASS = "Console";
-
-	const int DEDSTYLE = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX;
+	int widths[2] = { 140, -1 };
+	int borders[3];
+	const int DEDSTYLE = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 	
 	WNDCLASS wc;
 
 	wc.style         = 0;
-	wc.lpfnWndProc   = (WNDPROC) ConWndProc;
+	wc.lpfnWndProc   = ConWndProc;
 	wc.cbClsExtra    = 0;
 	wc.cbWndExtra    = 0;
 	wc.hInstance     = g_wv.hInstance;
 	wc.hIcon         = LoadIcon( g_wv.hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	wc.hCursor       = LoadCursor (NULL,IDC_ARROW);
-	wc.hbrBackground = (HBRUSH) (void *)COLOR_WINDOW;
+	wc.hbrBackground = (HBRUSH)(LRESULT)COLOR_WINDOW;
 	wc.lpszMenuName  = NULL;
 	wc.lpszClassName = pDEDCLASS;
 
@@ -462,6 +466,16 @@ void Sys_CreateConsole( void )
 
 	ReleaseDC( s_console_window.hWnd, hDC );
 
+	// split statusbar into parts and set styles
+	SendMessage( s_console_window.hwndStatusBar, WM_SETFONT, ( WPARAM ) s_console_window.hfStatusFont, 0 );
+	SendMessage( s_console_window.hwndStatusBar, SB_GETBORDERS, 0, (LPARAM)&borders );
+	widths[0] += borders[1]*2; // count vertical borders
+	SendMessage( s_console_window.hwndStatusBar, SB_SETPARTS, 2, (LPARAM)&widths );
+	SendMessage( s_console_window.hwndStatusBar, SB_SETTEXT, 0 | SBT_NOBORDERS, (LPARAM)"" );
+
+	SendMessage( s_console_window.hwndStatusBar, SB_GETRECT, 0, (LPARAM)&rect );
+	rect.left += borders[1];
+	rect.right -= borders[1];
 	//
 	// create the input line
 	//
@@ -503,12 +517,6 @@ void Sys_CreateConsole( void )
 												g_wv.hInstance, NULL );
 	SendMessage( s_console_window.hwndButtonClear, WM_SETTEXT, 0, ( LPARAM ) "clear" );
 
-	s_console_window.hwndButtonQuit = CreateWindow( "button", NULL, BS_PUSHBUTTON | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-												678, 540, 72, 24,
-												s_console_window.hWnd, 
-												( HMENU ) QUIT_ID,	// child window ID
-												g_wv.hInstance, NULL );
-	SendMessage( s_console_window.hwndButtonQuit, WM_SETTEXT, 0, ( LPARAM ) "quit" );
 
 
 	// To write code that is compatible with both 32 bit and 64 bit 
