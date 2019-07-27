@@ -26,6 +26,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "resource.h"
 #include "win_event.h"
 
+// This header is used by Windows Controls.
+#include <shlobj.h>
+// A control is a child window that an application uses in conjunction with
+// another window to enable user interaction. Controls are most often used 
+// within dialog boxes, but they can also be used in other windows. 
+// Controls within dialog boxes provide the user with a way to type text, 
+// choose options, and initiate actions. Controls in other windows provide 
+// a variety of services, such as letting the user choose commands, 
+// view status, and view and edit text. 
+
+
+
 extern WinVars_t g_wv;
 
 #define COPY_ID			1
@@ -53,6 +65,8 @@ typedef struct
 	HWND		hWnd;
 	HWND		hwndBuffer;
 
+
+	HWND		hwndStatusBar;
 	HWND		hwndButtonClear;
 	HWND		hwndButtonCopy;
 	HWND		hwndButtonQuit;
@@ -234,12 +248,13 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	char inputBuffer[1024];
+	char inputBuffer[MAX_EDIT_LINE];
 
 	switch ( uMsg )
 	{
+	// Sent to a window immediately before it loses the keyboard focus.
 	case WM_KILLFOCUS:
-		if ( ( HWND ) wParam == s_console_window.hWnd ||
+		if ( (HWND)wParam == s_console_window.hWnd ||
 			 ( HWND ) wParam == s_console_window.hwndErrorBox )
 		{
 			SetFocus( hWnd );
@@ -247,6 +262,34 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 		}
 		break;
 
+	case WM_MOUSEWHEEL:
+	{
+		int zDelta = (short) HIWORD( wParam ) / WHEEL_DELTA;
+		if ( zDelta )
+		{
+			WPARAM scrollMsg;
+			int fwKeys = LOWORD( wParam );
+			if ( zDelta > 0 )
+			{
+				if ( fwKeys & MK_CONTROL )
+					scrollMsg = SB_PAGEUP;
+				else
+					scrollMsg = SB_LINEUP;
+			}
+			else
+			{
+				zDelta = -zDelta;
+				if ( fwKeys & MK_CONTROL )
+					scrollMsg = SB_PAGEDOWN;
+				else
+					scrollMsg = SB_LINEDOWN;
+			}
+			for (int i = 0; i < zDelta; i++ ) {
+				SendMessage( s_console_window.hwndBuffer, EM_SCROLL, scrollMsg, 0 );
+			}
+			return 0;
+		}
+	} break;
 	case WM_CHAR:
 		if ( wParam == VK_RETURN )
 		{
@@ -353,20 +396,17 @@ void Sys_CreateConsole( void )
 	// The GetDeviceCaps function retrieves device-specific information for the specified device.
 	int nHeight = -MulDiv( 8, GetDeviceCaps( hDC, LOGPIXELSY), 72);
 
-	s_console_window.hfBufferFont = CreateFont( nHeight,
-									  0,
-									  0,
-									  0,
-									  FW_LIGHT,
-									  0,
-									  0,
-									  0,
-									  DEFAULT_CHARSET,
-									  OUT_DEFAULT_PRECIS,
-									  CLIP_DEFAULT_PRECIS,
-									  DEFAULT_QUALITY,
-									  FF_MODERN | FIXED_PITCH,
-									  "Courier New" );
+	s_console_window.hfBufferFont = CreateFont( nHeight, 0,
+		0, 0, FW_LIGHT, 0, 0, 0,
+		DEFAULT_CHARSET,
+		OUT_DEFAULT_PRECIS,
+		CLIP_DEFAULT_PRECIS,
+		DEFAULT_QUALITY,
+		FF_MODERN | FIXED_PITCH,
+		"Courier New" );
+
+	s_console_window.hwndStatusBar = CreateWindow( STATUSCLASSNAME, NULL, WS_VISIBLE | WS_CHILD,
+		1,1,32,32, s_console_window.hWnd, NULL, g_wv.hInstance, NULL );
 
 	ReleaseDC( s_console_window.hWnd, hDC );
 
@@ -452,11 +492,12 @@ void Sys_CreateConsole( void )
 
 void Sys_DestroyConsole( void )
 {
-	if ( s_console_window.hWnd ) {
+	if ( s_console_window.hWnd )
+	{
 		ShowWindow( s_console_window.hWnd, SW_HIDE );
 		CloseWindow( s_console_window.hWnd );
 		DestroyWindow( s_console_window.hWnd );
-		s_console_window.hWnd = 0;
+		s_console_window.hWnd = NULL;
 	}
 }
 
@@ -501,18 +542,38 @@ void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
 }
 
 
+
+void QDECL Sys_SetStatus( const char *format, ... )
+{
+	va_list		argptr;
+	char		text[256];
+
+	if ( s_console_window.hwndStatusBar == NULL )
+		return;
+
+	text[0] = ' '; // add leading space for better look :P
+	va_start( argptr, format );
+	Q_vsnprintf( text + 1, sizeof( text ) - 1, format, argptr );
+	va_end( argptr );
+
+	SendMessage( s_console_window.hwndStatusBar, SB_SETTEXT, (WPARAM) 1 | 0, (LPARAM) AtoW( text ) );
+}
+
+
+
 char* Sys_ConsoleInput( void )
 {
-	if ( s_console_window.consoleText[0] == 0 )
+	if ( s_console_window.consoleText[0] == '\0' )
 	{
 		return NULL;
 	}
-		
+
 	strcpy( s_console_window.returnedText, s_console_window.consoleText );
-	s_console_window.consoleText[0] = 0;
-	
+	s_console_window.consoleText[0] = '\0';
+
 	return s_console_window.returnedText;
 }
+
 
 
 void Sys_Print( const char *pMsg )
@@ -596,6 +657,7 @@ void Sys_Print( const char *pMsg )
 
 #undef CONSOLE_BUFFER_SIZE
 }
+
 
 
 
