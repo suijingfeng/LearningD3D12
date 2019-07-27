@@ -15,12 +15,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Foobar; if not, write to the Free Software
+along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 // win_syscon.h
-
 #include "../client/client.h"
 #include "win_public.h"
 #include "win_sysconsole.h"
@@ -34,10 +33,20 @@ extern WinVars_t g_wv;
 #define CLEAR_ID		3
 
 #define ERRORBOX_ID		10
-#define ERRORTEXT_ID	11
+#define ERRORTEXT_ID		11
 
 #define EDIT_ID			100
 #define INPUT_ID		101
+
+#define EDIT_COLOR	RGB(0x00,0x00,0x10)
+#define TEXT_COLOR	RGB(0x40,0xEE,0x20)
+
+#define ERROR_BG_COLOR	RGB(0x90,0x80,0x80)
+
+#define ERROR_COLOR_1   RGB(0xFF,0xFF,0x00)
+#define ERROR_COLOR_2   RGB(0xF0,0x00,0x00)
+
+field_t console;
 
 typedef struct
 {
@@ -50,7 +59,6 @@ typedef struct
 
 	HWND		hwndErrorBox;
 	HWND		hwndErrorText;
-
 	HBITMAP		hbmLogo;
 	HBITMAP		hbmClearBitmap;
 
@@ -64,31 +72,40 @@ typedef struct
 
 	char		errorString[80];
 
-	char		consoleText[512], returnedText[512];
-	int			visLevel;
+	char		consoleText[512];
+	char		returnedText[512];
+	int		visLevel;
 	qboolean	quitOnClose;
+	int		windowWidth, windowHeight;
+
 
 	WNDPROC		SysInputLineWndProc;
 
 } WinConData;
 
-
 static WinConData s_console_window;
 
+static int maxConSize; // up to MAX_CONSIZE
+static int curConSize; // up to MAX_CONSIZE
 
-static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+
+static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	char *cmdString;
 	static qboolean s_timePolarity;
 
-	switch (uMsg)
+	switch ( uMsg )
 	{
-	case WM_ACTIVATE:
-		if ( LOWORD( wParam ) != WA_INACTIVE )
+	// Sent to a window after it has gained the keyboard focus.
+	case WM_SETFOCUS:
+		if ( s_console_window.hwndInputLine ) 
 		{
 			SetFocus( s_console_window.hwndInputLine );
 		}
+		break;
 
+	case WM_ACTIVATE:
+	{
 		if ( com_viewlog && ( com_dedicated && !com_dedicated->integer ) )
 		{
 			// if the viewlog is open, check to see if it's being minimized
@@ -107,10 +124,10 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 				}
 			}
 		}
-		break;
+	} break;
 
 	case WM_CLOSE:
-		if ( ( com_dedicated && com_dedicated->integer ) )
+		if ( com_dedicated && com_dedicated->integer && !com_errorEntered )
 		{
 			cmdString = CopyString( "quit" );
 			Sys_QueEvent( 0, SE_CONSOLE, 0, 0, (int)strlen( cmdString ) + 1, cmdString );
@@ -125,29 +142,41 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			Cvar_Set( "viewlog", "0" );
 		}
 		return 0;
+	// A static control, or an edit control that is read-only or disabled, 
+	// sends the WM_CTLCOLORSTATIC message to its parent window when the 
+	// control is about to be drawn. By responding to this message, the 
+	// parent window can use the specified device context handle to set 
+	// the text foreground and background colors of the static control.
 	case WM_CTLCOLORSTATIC:
 		if ( ( HWND ) lParam == s_console_window.hwndBuffer )
 		{
-			SetBkColor( ( HDC ) wParam, RGB( 0x00, 0x00, 0xB0 ) );
-			SetTextColor( ( HDC ) wParam, RGB( 0xff, 0xff, 0x00 ) );
+			SetBkColor( ( HDC ) wParam, EDIT_COLOR );
+			SetTextColor( ( HDC ) wParam, TEXT_COLOR );
 			return ( LRESULT ) s_console_window.hbrEditBackground;
 		}
 		else if ( ( HWND ) lParam == s_console_window.hwndErrorBox )
 		{
 			if ( s_timePolarity & 1 )
 			{
-				SetBkColor( ( HDC ) wParam, RGB( 0x80, 0x80, 0x80 ) );
-				SetTextColor( ( HDC ) wParam, RGB( 0xff, 0x0, 0x00 ) );
+				SetBkColor( ( HDC ) wParam, ERROR_BG_COLOR );
+				SetTextColor( ( HDC ) wParam, ERROR_COLOR_1 );
 			}
 			else
 			{
-				SetBkColor( ( HDC ) wParam, RGB( 0x80, 0x80, 0x80 ) );
-				SetTextColor( ( HDC ) wParam, RGB( 0x00, 0x0, 0x00 ) );
+				SetBkColor( ( HDC ) wParam, ERROR_BG_COLOR );
+				SetTextColor( ( HDC ) wParam, ERROR_COLOR_2 );
 			}
 			return ( LRESULT ) s_console_window.hbrErrorBackground;
 		}
 		break;
 
+	case WM_CREATE:
+		s_console_window.hbrEditBackground = CreateSolidBrush( EDIT_COLOR );
+		s_console_window.hbrErrorBackground = CreateSolidBrush( RGB( 0x80, 0x80, 0x80 ) );
+		// Creates a timer with the specified time-out value.
+		// 
+		SetTimer( hWnd, 1, 1000, NULL );
+		break;
 	case WM_COMMAND:
 		if ( wParam == COPY_ID )
 		{
@@ -168,16 +197,24 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		}
 		else if ( wParam == CLEAR_ID )
 		{
+			// EM_SETSEL: Selects a range of characters in an edit control. 
+			// You can send this message to either an edit control
+			// or a rich edit control.
+			// If the start is 0 and the end is -1, all the text 
+			// in the edit control is selected.
 			SendMessage( s_console_window.hwndBuffer, EM_SETSEL, 0, -1 );
+			// EM_REPLACESEL: Replaces the selected text in an edit control
+			// or a rich edit control with the specified text.
+			// wParam: Specifies whether the replacement operation can be undone.
+			// If this is TRUE, the operation can be undone.If this is FALSE, 
+			// the operation cannot be undone.
+			// lParam: A pointer to a null - terminated string containing the
+			// replacement text.
 			SendMessage( s_console_window.hwndBuffer, EM_REPLACESEL, FALSE, ( LPARAM ) "" );
 			UpdateWindow( s_console_window.hwndBuffer );
 		}
 		break;
-	case WM_CREATE:
-		s_console_window.hbrEditBackground = CreateSolidBrush( RGB( 0x00, 0x00, 0xB0 ) );
-		s_console_window.hbrErrorBackground = CreateSolidBrush( RGB( 0x80, 0x80, 0x80 ) );
-		SetTimer( hWnd, 1, 1000, NULL );
-		break;
+
 	case WM_TIMER:
 		if ( wParam == 1 )
 		{
@@ -194,7 +231,8 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 }
 
 
-static LONG WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+
+static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	char inputBuffer[1024];
 
@@ -210,7 +248,7 @@ static LONG WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		break;
 
 	case WM_CHAR:
-		if ( wParam == 13 )
+		if ( wParam == VK_RETURN )
 		{
 			GetWindowText( s_console_window.hwndInputLine, inputBuffer, sizeof( inputBuffer ) );
 			strncat( s_console_window.consoleText, inputBuffer, sizeof( s_console_window.consoleText ) - (int)strlen( s_console_window.consoleText ) - 5 );
@@ -221,8 +259,29 @@ static LONG WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 			return 0;
 		}
+
+		if ( wParam == VK_TAB )
+		{
+			DWORD pos;
+
+			GetWindowText( hWnd, inputBuffer, sizeof( inputBuffer ) );
+			Q_strncpyz( console.buffer, WtoA( inputBuffer ), sizeof( console.buffer ) );
+			SendMessage( hWnd, EM_GETSEL, (WPARAM) &pos, (LPARAM) 0 );
+			console.cursor = pos;
+			
+			Field_CompleteCommand( &console );
+
+			SetWindowText( hWnd, AtoW( console.buffer ) );
+			SendMessage( hWnd, EM_SETSEL, console.cursor, console.cursor );
+			return 0;
+		}
+		break;
+
+	case WM_CONTEXTMENU:
+		return 0;
 	}
 
+	// Passes message information to the specified window procedure.
 	return CallWindowProc( s_console_window.SysInputLineWndProc, hWnd, uMsg, wParam, lParam );
 }
 
@@ -360,8 +419,24 @@ void Sys_CreateConsole( void )
 	SendMessage( s_console_window.hwndButtonQuit, WM_SETTEXT, 0, ( LPARAM ) "quit" );
 
 
+	// To write code that is compatible with both 32 bit and 64 bit 
+	// versions of Windows, use SetWindowLongPtr. When compiling for
+	// 32 bit Windows, SetWindowLongPtr is defined as a call to the 
+	// SetWindowLong function.
+	//
+	// Changes an attribute of the specified window. The function also
+	// sets a value at the specified offset in the extra window memory.
+	// 
+	// A handle to the window and, indirectly, the class to which the 
+	// window belongs. The SetWindowLongPtr function fails if the process
+	// that owns the window specified by the hWnd parameter is at a higher
+	// process privilege in the UIPI hierarchy than the process the calling
+	// thread resides in.
 
-	s_console_window.SysInputLineWndProc = (WNDPROC)SetWindowLongPtr(s_console_window.hwndInputLine, GWLP_WNDPROC, (LONG_PTR)InputLineWndProc);
+	// GWLP_WNDPROC: Sets a new address for the window procedure.
+	// dwNewLong: The replacement value.
+	s_console_window.SysInputLineWndProc = (WNDPROC)SetWindowLongPtr( 
+		s_console_window.hwndInputLine, GWLP_WNDPROC, (LONG_PTR)InputLineWndProc);
 
 
 	ShowWindow( s_console_window.hWnd, SW_SHOWDEFAULT);
@@ -407,7 +482,14 @@ void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
 		break;
 	case 1:
 		ShowWindow( s_console_window.hWnd, SW_SHOWNORMAL );
-		SendMessage( s_console_window.hwndBuffer, EM_LINESCROLL, 0, 0xffff );
+		curConSize = GetWindowTextLength( s_console_window.hwndBuffer );
+		// Sends the specified message to a window or windows. 
+		// The SendMessage function calls the window procedure
+		// for the specified window and does not return until 
+		// the window procedure has processed the message.
+		SendMessage( s_console_window.hwndBuffer, EM_SETSEL, curConSize, curConSize );
+		SendMessage( s_console_window.hwndBuffer, EM_SCROLLCARET, 0, 0 );
+		//SendMessage( s_wcd.hwndBuffer, EM_LINESCROLL, 0, 0xffff );
 		break;
 	case 2:
 		ShowWindow( s_console_window.hWnd, SW_MINIMIZE );

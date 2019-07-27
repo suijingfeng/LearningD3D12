@@ -7,13 +7,7 @@
 #include "win_sysconsole.h"
 #include "win_net.h"
 
-/*
-========================================================================
 
-EVENT LOOP
-
-========================================================================
-*/
 
 #define	MAX_QUED_EVENTS		256
 #define	MASK_QUED_EVENTS	( MAX_QUED_EVENTS - 1 )
@@ -93,7 +87,7 @@ void getConsoleEvents(void)
 /*
 ================
 Sys_GetEvent
-
+EVENT LOOP
 ================
 */
 sysEvent_t Sys_GetEvent(void)
@@ -108,6 +102,8 @@ sysEvent_t Sys_GetEvent(void)
 	}
 
 	// pump the message loop
+	// Dispatches incoming sent messages, checks the thread message queue 
+	// for a posted message, and retrieves the message (if any exist).
 	while ( PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) )
 	{
 		if (!GetMessage(&msg, NULL, 0, 0)) {

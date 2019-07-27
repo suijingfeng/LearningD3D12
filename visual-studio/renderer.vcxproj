@@ -141,15 +141,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\engine\renderer\dx.h" />
-    <ClInclude Include="..\src\game\q_shared.h" />
-    <ClInclude Include="..\src\engine\qcommon\qcommon.h" />
-    <ClInclude Include="..\src\engine\qcommon\qfiles.h" />
-    <ClInclude Include="..\src\engine\renderer\qgl.h" />
-    <ClInclude Include="..\src\game\surfaceflags.h" />
-    <ClInclude Include="..\src\engine\renderer\tr_local.h" />
-    <ClInclude Include="..\src\engine\renderer\tr_public.h" />
-    <ClInclude Include="..\src\cgame\tr_types.h" />
-    <ClInclude Include="..\src\engine\platform\win_local.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

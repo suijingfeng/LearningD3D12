@@ -1,5 +1,14 @@
 #pragma once
 
+#ifdef UNICODE
+LPWSTR AtoW(const char *s);
+const char *WtoA(const LPWSTR s);
+#else
+#define AtoW(S) (S)
+#define WtoA(S) (S)
+#endif
+
+
 void Sys_CreateConsole(void);
 void Sys_DestroyConsole(void);
 
