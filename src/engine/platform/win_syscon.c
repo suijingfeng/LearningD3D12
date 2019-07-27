@@ -102,6 +102,16 @@ static WinConData s_console_window;
 static int maxConSize; // up to MAX_CONSIZE
 static int curConSize; // up to MAX_CONSIZE
 
+static void ConClear( void ) 
+{
+	//SendMessage( s_wcd.hwndBuffer, EM_SETSEL, 0, -1 );
+	//SendMessage( s_wcd.hwndBuffer, EM_REPLACESEL, FALSE, ( LPARAM ) "" );
+	SetWindowText( s_console_window.hwndBuffer, "" );
+	UpdateWindow( s_console_window.hwndBuffer );
+	// s_console_window.newline = qfalse;
+	curConSize = 0;
+	// conBufPos = 0;
+}
 
 static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
@@ -254,10 +264,11 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 	{
 	// Sent to a window immediately before it loses the keyboard focus.
 	case WM_KILLFOCUS:
-		if ( (HWND)wParam == s_console_window.hWnd ||
-			 ( HWND ) wParam == s_console_window.hwndErrorBox )
+		if ( (HWND)wParam == s_console_window.hwndBuffer ||
+			(HWND)wParam == s_console_window.hWnd || 
+			( HWND ) wParam == s_console_window.hwndErrorBox )
 		{
-			SetFocus( hWnd );
+			SetFocus( s_console_window.hwndInputLine );
 			return 0;
 		}
 		break;
@@ -290,6 +301,47 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			return 0;
 		}
 	} break;
+
+	case WM_KEYDOWN:
+	{
+		if ( wParam == 'L' && ( GetAsyncKeyState( VK_LCONTROL ) & 0x8000 || GetAsyncKeyState( VK_RCONTROL ) & 0x8000 ) ) {
+			ConClear();
+			return 0;
+		}
+
+		if ( wParam == VK_PRIOR ) {
+			if ( GetAsyncKeyState( VK_LCONTROL ) & 0x8000 || GetAsyncKeyState( VK_RCONTROL ) & 0x8000 )
+				SendMessage( s_console_window.hwndBuffer, EM_SCROLL, (WPARAM)SB_PAGEUP, 0 );
+			else
+				SendMessage( s_console_window.hwndBuffer, EM_SCROLL, (WPARAM)SB_LINEUP, 0 );
+			return 0;
+		}
+
+		if ( wParam == VK_NEXT ) {
+			if ( GetAsyncKeyState( VK_LCONTROL ) & 0x8000 || GetAsyncKeyState( VK_RCONTROL ) & 0x8000 )
+				SendMessage( s_console_window.hwndBuffer, EM_SCROLL, (WPARAM)SB_PAGEDOWN, 0 );
+			else
+				SendMessage( s_console_window.hwndBuffer, EM_SCROLL, (WPARAM)SB_LINEDOWN, 0 );
+			return 0;
+		}
+
+		if ( wParam == VK_UP ) {
+			// Con_HistoryGetPrev( &console );
+			SetWindowText( hWnd, AtoW( console.buffer ) );
+			SendMessage( hWnd, EM_SETSEL, (WPARAM) console.cursor, console.cursor );
+			return 0;
+		}
+
+		if ( wParam == VK_DOWN ) {
+			// Con_HistoryGetNext( &console );
+			SetWindowText( hWnd, AtoW( console.buffer ) );
+			SendMessage( hWnd, EM_SETSEL, (WPARAM) console.cursor, console.cursor );
+			return 0;
+		}
+
+		break;
+	}
+
 	case WM_CHAR:
 		if ( wParam == VK_RETURN )
 		{
