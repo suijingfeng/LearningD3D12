@@ -16,7 +16,7 @@ cvar_t* in_forceCharset;//
 
 static void VID_AppActivate(BOOL fActive, BOOL minimize)
 {
-	g_wv.isMinimized = (qboolean) minimize;
+	g_wv.isMinimized = minimize;
 
 	Com_DPrintf(" App Activate: %i\n", fActive );
 

@@ -458,7 +458,6 @@
     <ClInclude Include="..\src\engine\client\snd_local.h" />
     <ClInclude Include="..\src\engine\client\snd_public.h" />
     <ClInclude Include="..\src\game\surfaceflags.h" />
-    <ClInclude Include="..\src\engine\renderer\tr_local.h" />
     <ClInclude Include="..\src\engine\renderer\tr_public.h" />
     <ClInclude Include="..\src\cgame\tr_types.h" />
     <ClInclude Include="..\src\q3_ui\ui_public.h" />

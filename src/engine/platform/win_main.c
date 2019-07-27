@@ -488,7 +488,7 @@ void Sys_Init( void )
 	// timeBeginPeriod function requests a minimum resolution for periodic timers.
 	// Minimum timer resolution, in milliseconds, for the application or device driver.
 	// A lower value specifies a higher (more accurate) resolution.
-	timeBeginPeriod( 1 );
+	// timeBeginPeriod( 1 );
 
 	Cmd_AddCommand ("in_restart", Sys_In_Restart_f);
 	Cmd_AddCommand ("net_restart", Sys_Net_Restart_f);
@@ -526,10 +526,8 @@ void Sys_Init( void )
 	{
 		Cvar_Set( "arch", "unknown Windows variant" );
 	}
-	// window procedure
-	extern LRESULT WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	// save out a couple things in rom cvars for the renderer to access
-	Cvar_Get( "win_wndproc", va("%p", MainWndProc), CVAR_ROM );
+
+
 
 	//
 	// figure out our CPU

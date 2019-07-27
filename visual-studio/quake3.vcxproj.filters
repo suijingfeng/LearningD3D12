@@ -251,9 +251,6 @@
     <ClInclude Include="..\src\game\surfaceflags.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\engine\renderer\tr_local.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\engine\renderer\tr_public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
