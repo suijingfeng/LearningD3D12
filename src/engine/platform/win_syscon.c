@@ -72,18 +72,12 @@ typedef struct
 	HWND		hwndButtonCopy;
 
 	HWND		hwndErrorBox;
-	HBITMAP		hbmLogo;
-	HBITMAP		hbmClearBitmap;
 
 	HBRUSH		hbrEditBackground;
 	HBRUSH		hbrErrorBackground;
 
 	HFONT		hfBufferFont;
-	HFONT		hfButtonFont;
 	HFONT		hfStatusFont;
-
-
-	char		errorString[80];
 
 	char		consoleText[512];
 	char		returnedText[512];
@@ -723,7 +717,8 @@ void Sys_Print( const char *pMsg )
 
 void Sys_SetErrorText( const char *buf )
 {
-	Q_strncpyz( s_console_window.errorString, buf, sizeof( s_console_window.errorString ) );
+	char errorString[80];
+	Q_strncpyz( errorString, buf, sizeof( errorString ) );
 
 	if ( !s_console_window.hwndErrorBox )
 	{
@@ -733,7 +728,7 @@ void Sys_SetErrorText( const char *buf )
 													( HMENU ) ERRORBOX_ID,	// child window ID
 													g_wv.hInstance, NULL );
 		SendMessage( s_console_window.hwndErrorBox, WM_SETFONT, ( WPARAM ) s_console_window.hfBufferFont, 0 );
-		SetWindowText( s_console_window.hwndErrorBox, s_console_window.errorString );
+		SetWindowText( s_console_window.hwndErrorBox, errorString );
 
 		DestroyWindow( s_console_window.hwndInputLine );
 		s_console_window.hwndInputLine = NULL;
