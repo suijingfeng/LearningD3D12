@@ -65,13 +65,13 @@ typedef struct
 	HWND		hWnd;
 	HWND		hwndBuffer;
 
+	HWND		hwndInputLine;
 
 	HWND		hwndStatusBar;
 	HWND		hwndButtonClear;
 	HWND		hwndButtonCopy;
 
 	HWND		hwndErrorBox;
-	HWND		hwndErrorText;
 	HBITMAP		hbmLogo;
 	HBITMAP		hbmClearBitmap;
 
@@ -81,7 +81,7 @@ typedef struct
 	HFONT		hfBufferFont;
 	HFONT		hfButtonFont;
 	HFONT		hfStatusFont;
-	HWND		hwndInputLine;
+
 
 	char		errorString[80];
 
