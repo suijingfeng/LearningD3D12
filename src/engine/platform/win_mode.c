@@ -71,3 +71,13 @@ void R_ListDisplayMode_f( void )
 	}
 	Com_Printf( "\n" );
 }
+
+void win_InitDisplayModel(void)
+{
+	Cmd_AddCommand("printDisplayModes", R_ListDisplayMode_f);
+}
+
+void win_EndDisplayModel(void)
+{
+	Cmd_RemoveCommand("printDisplayModes");
+}

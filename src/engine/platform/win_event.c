@@ -2,7 +2,8 @@
 #include "win_public.h"
 
 #include "../client/client.h"
-#include "../qcommon/qcommon.h"
+
+// sys_consoleInput
 #include "win_sysconsole.h"
 #include "win_net.h"
 
@@ -37,22 +38,20 @@ void Sys_QueEvent(int time, sysEventType_t type, int value, int value2, int ptrL
 {
 	sysEvent_t* const ev = &eventQue[eventHead & MASK_QUED_EVENTS];
 
-	if (eventHead - eventTail >= MAX_QUED_EVENTS) {
+	if (eventHead - eventTail >= MAX_QUED_EVENTS)
+	{
 		Com_Printf("Sys_QueEvent: overflow\n");
 		// we are discarding an event, but don't leak memory
 		if (ev->evPtr) {
 			Z_Free(ev->evPtr);
 		}
-		eventTail++;
+		++eventTail;
 	}
 
-	eventHead++;
+	++eventHead;
 
-	if (time == 0) {
-		time = Sys_Milliseconds();
-	}
 
-	ev->evTime = time;
+	ev->evTime = (time == 0 ? Sys_Milliseconds() : time);
 	ev->evType = type;
 	ev->evValue = value;
 	ev->evValue2 = value2;
@@ -60,6 +59,36 @@ void Sys_QueEvent(int time, sysEventType_t type, int value, int value2, int ptrL
 	ev->evPtr = ptr;
 }
 
+void getNetworkEvent(void)
+{
+	// check for network packets
+	msg_t netmsg;
+	netadr_t adr;
+	MSG_Init(&netmsg, sys_packetReceived, sizeof(sys_packetReceived));
+	if (Sys_GetPacket(&adr, &netmsg))
+	{
+		// copy out to a seperate buffer for qeueing
+		// the readcount stepahead is for SOCKS support
+		int len = sizeof(netadr_t) + netmsg.cursize - netmsg.readcount;
+		netadr_t* buf = (netadr_t*)Z_Malloc(len);
+		*buf = adr;
+		memcpy(buf + 1, &netmsg.data[netmsg.readcount], netmsg.cursize - netmsg.readcount);
+		Sys_QueEvent(0, SE_PACKET, 0, 0, len, buf);
+	}
+}
+
+void getConsoleEvents(void)
+{
+	// check for console commands
+	char* s = Sys_ConsoleInput();
+	if (s)
+	{
+		int len = (int)strlen(s) + 1;
+		char* b = (char*)Z_Malloc(len);
+		Q_strncpyz(b, s, len - 1);
+		Sys_QueEvent(0, SE_CONSOLE, 0, 0, len, b);
+	}
+}
 
 /*
 ================
@@ -69,20 +98,17 @@ Sys_GetEvent
 */
 sysEvent_t Sys_GetEvent(void)
 {
-	MSG			msg;
-	sysEvent_t	ev;
-	msg_t		netmsg;
-	netadr_t	adr;
+	MSG	msg;
 
 	// return if we have data
 	if (eventHead > eventTail)
 	{
-		eventTail++;
+		++eventTail;
 		return eventQue[(eventTail - 1) & MASK_QUED_EVENTS];
 	}
 
 	// pump the message loop
-	while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+	while ( PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) )
 	{
 		if (!GetMessage(&msg, NULL, 0, 0)) {
 			Com_Quit_f();
@@ -95,30 +121,10 @@ sysEvent_t Sys_GetEvent(void)
 		DispatchMessage(&msg);
 	}
 
-	// check for console commands
-	char* s = Sys_ConsoleInput();
-	if (s)
-	{
-		int len = (int)strlen(s) + 1;
-		char* b = (char*)Z_Malloc(len);
-		Q_strncpyz(b, s, len - 1);
-		Sys_QueEvent(0, SE_CONSOLE, 0, 0, len, b);
-	}
 
-	// check for network packets
-	MSG_Init(&netmsg, sys_packetReceived, sizeof(sys_packetReceived));
-	if (Sys_GetPacket(&adr, &netmsg))
-	{
+	getConsoleEvents();
 
-
-		// copy out to a seperate buffer for qeueing
-		// the readcount stepahead is for SOCKS support
-		int len = sizeof(netadr_t) + netmsg.cursize - netmsg.readcount;
-		netadr_t* buf = (netadr_t*)Z_Malloc(len);
-		*buf = adr;
-		memcpy(buf + 1, &netmsg.data[netmsg.readcount], netmsg.cursize - netmsg.readcount);
-		Sys_QueEvent(0, SE_PACKET, 0, 0, len, buf);
-	}
+	getNetworkEvent();
 
 	// return if we have data
 	if (eventHead > eventTail)
@@ -128,7 +134,7 @@ sysEvent_t Sys_GetEvent(void)
 	}
 
 	// create an empty event to return
-
+	sysEvent_t ev;
 	memset(&ev, 0, sizeof(ev));
 	ev.evTime = timeGetTime();
 

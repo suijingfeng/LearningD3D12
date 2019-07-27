@@ -110,14 +110,12 @@ struct Dx_Instance
 	// Descriptor heaps.
 	//
 	ID3D12DescriptorHeap* rtv_heap = nullptr;
-	UINT rtv_descriptor_size = 0;
-
 	ID3D12DescriptorHeap* dsv_heap = nullptr;
-
 	ID3D12DescriptorHeap* srv_heap = nullptr;
-	UINT srv_descriptor_size = 0;
-
 	ID3D12DescriptorHeap* sampler_heap = nullptr;
+
+	UINT rtv_descriptor_size = 0;
+	UINT srv_descriptor_size = 0;
 	UINT sampler_descriptor_size = 0;
 
 	//

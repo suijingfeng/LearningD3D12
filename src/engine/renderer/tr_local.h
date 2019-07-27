@@ -997,7 +997,6 @@ extern	cvar_t	*r_lightmap;					// render lightmaps only
 extern	cvar_t	*r_vertexLight;					// vertex lighting mode for better performance
 extern	cvar_t	*r_uiFullScreen;				// ui is running fullscreen
 
-extern	cvar_t	*r_logFile;						// number of frames to emit GL logs
 extern	cvar_t	*r_showtris;					// enables wireframe rendering of the world
 extern	cvar_t	*r_showsky;						// forces sky in front of all surfaces
 extern	cvar_t	*r_shownormals;					// draws wireframe normals
@@ -1363,8 +1362,8 @@ RENDERER BACK END FUNCTIONS
 
 =============================================================
 */
-
-
+void R_SyncRenderThread(void);
+void R_IssueRenderCommands(qboolean runPerformanceCounters);
 void RB_ExecuteRenderCommands( const void *data );
 
 /*
@@ -1473,10 +1472,10 @@ extern	backEndData_t * backEndData[1];	// the second one may not be allocated
 
 
 void *R_GetCommandBuffer( int bytes );
-void RB_ExecuteRenderCommands( const void *data );
 
 
-void R_SyncRenderThread( void );
+
+
 
 void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs );
 

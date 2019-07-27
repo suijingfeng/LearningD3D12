@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <assert.h>
 #include "win_public.h"
 #include "../client/client.h"
-#include "I_PlatformDependent.h"
+
 
 static unsigned short s_oldHardwareGamma[3][256];
 static qboolean deviceSupportsGamma = qfalse;

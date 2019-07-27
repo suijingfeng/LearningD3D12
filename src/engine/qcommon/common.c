@@ -2009,13 +2009,15 @@ void Com_InitPushEvent( void )
 Com_PushEvent
 =================
 */
-void Com_PushEvent( sysEvent_t *event ) {
-	sysEvent_t		*ev;
+void Com_PushEvent( sysEvent_t *event )
+{
+
 	static int printedWarning = 0; // bk001129 - init, bk001204 - explicit int
 
-	ev = &com_pushedEvents[ com_pushedEventsHead & (MAX_PUSHED_EVENTS-1) ];
+	sysEvent_t * ev = &com_pushedEvents[ com_pushedEventsHead & (MAX_PUSHED_EVENTS-1) ];
 
-	if ( com_pushedEventsHead - com_pushedEventsTail >= MAX_PUSHED_EVENTS ) {
+	if ( com_pushedEventsHead - com_pushedEventsTail >= MAX_PUSHED_EVENTS )
+	{
 
 		// don't print the warning constantly, or it can give time for more...
 		if ( !printedWarning ) {
@@ -2023,11 +2025,13 @@ void Com_PushEvent( sysEvent_t *event ) {
 			Com_Printf( "WARNING: Com_PushEvent overflow\n" );
 		}
 
-		if ( ev->evPtr ) {
+		if ( ev->evPtr )
+		{
 			Z_Free( ev->evPtr );
 		}
 		com_pushedEventsTail++;
-	} else {
+	}
+	else {
 		printedWarning = qfalse;
 	}
 
@@ -2040,9 +2044,11 @@ void Com_PushEvent( sysEvent_t *event ) {
 Com_GetEvent
 =================
 */
-sysEvent_t	Com_GetEvent( void ) {
-	if ( com_pushedEventsHead > com_pushedEventsTail ) {
-		com_pushedEventsTail++;
+sysEvent_t Com_GetEvent( void )
+{
+	if ( com_pushedEventsHead > com_pushedEventsTail )
+	{
+		++com_pushedEventsTail;
 		return com_pushedEvents[ (com_pushedEventsTail-1) & (MAX_PUSHED_EVENTS-1) ];
 	}
 	return Com_GetRealEvent();

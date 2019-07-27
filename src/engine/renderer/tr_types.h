@@ -164,7 +164,7 @@ typedef enum {
 } glHardwareType_t;
 // </artem>
 
-typedef struct {
+typedef struct glconfig_s {
 	char					renderer_string[MAX_STRING_CHARS];
 	char					vendor_string[MAX_STRING_CHARS];
 	char					version_string[MAX_STRING_CHARS];

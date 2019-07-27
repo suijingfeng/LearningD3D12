@@ -198,6 +198,9 @@
     <ClCompile Include="..\src\engine\platform\win_create_window.c">
       <Filter>Source Files\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\engine\platform\win_log.c">
+      <Filter>Source Files\platform</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\game\bg_public.h">
@@ -264,9 +267,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\engine\qcommon\vm_local.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\engine\platform\win_local.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\q3_ui\keycodes.h">

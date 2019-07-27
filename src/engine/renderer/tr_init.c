@@ -73,7 +73,7 @@ cvar_t	*r_showcluster;
 cvar_t	*r_nocurves;
 
 
-cvar_t	*r_logFile;
+
 
 
 cvar_t	*r_depthbits;
@@ -384,7 +384,7 @@ void R_Register( void )
 	r_showcluster = ri.Cvar_Get ("r_showcluster", "0", CVAR_CHEAT);
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", CVAR_CHEAT);
 	r_verbose = ri.Cvar_Get( "r_verbose", "0", CVAR_CHEAT );
-	r_logFile = ri.Cvar_Get( "r_logFile", "0", CVAR_CHEAT );
+
 	r_debugSurface = ri.Cvar_Get ("r_debugSurface", "0", CVAR_CHEAT);
 	r_nobind = ri.Cvar_Get ("r_nobind", "0", CVAR_CHEAT);
 	r_showtris = ri.Cvar_Get ("r_showtris", "0", CVAR_CHEAT);
@@ -554,7 +554,7 @@ void RE_Shutdown( qboolean destroyWindow )
 	ri.Cmd_RemoveCommand("shaderstate" );
 	ri.Cmd_RemoveCommand("printAvailableAdapters");
 	if ( tr.registered ) {
-		R_SyncRenderThread();
+		R_IssueRenderCommands(qfalse);
 		R_DeleteTextures();
 	}
 

@@ -141,6 +141,7 @@
     <ClCompile Include="..\src\engine\platform\win_fstream.c" />
     <ClCompile Include="..\src\engine\platform\win_gamma.c" />
     <ClCompile Include="..\src\engine\platform\win_get_clipboard.c" />
+    <ClCompile Include="..\src\engine\platform\win_log.c" />
     <ClCompile Include="..\src\engine\platform\win_mode.c" />
     <ClCompile Include="..\src\engine\qcommon\md5.c" />
     <ClCompile Include="..\src\engine\server\sv_bot.c">
@@ -463,7 +464,6 @@
     <ClInclude Include="..\src\q3_ui\ui_public.h" />
     <ClInclude Include="..\src\engine\qcommon\unzip.h" />
     <ClInclude Include="..\src\engine\qcommon\vm_local.h" />
-    <ClInclude Include="..\src\engine\platform\win_local.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\engine\platform\winquake.rc">

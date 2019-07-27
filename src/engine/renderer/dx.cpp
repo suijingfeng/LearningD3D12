@@ -56,49 +56,6 @@ static DXGI_FORMAT get_depth_format()
 }
 
 
-static void get_hardware_adapter(IDXGIFactory4* pFactory, IDXGIAdapter1** ppAdapter)
-{
-	// The IDXGIAdapter1 interface represents a display sub-system 
-	// (including one or more GPU's, DACs and video memory).
-	UINT adapter_index = 0;
-	// Enumerates both adapters (video cards) with or without outputs.
-	// adapter_index: The index of the adapter to enumerate.
-	// The address of a pointer to an IDXGIAdapter1 interface at the position specified by the adapter_index parameter.
-	while (pFactory->EnumAdapters1(adapter_index++, ppAdapter) != DXGI_ERROR_NOT_FOUND)
-	{
-		// Gets a DXGI 1.1 description of an adapter(or video card).
-		// This interface is not supported by DXGI 1.0, DXGI 1.1 support is required, which is available on Windows 7, 
-		// Windows Server 2008 R2, and as an update to Windows Vista with Service Pack 2 (SP2) (KB 971644) and Windows
-		// Server 2008 (KB 971512). win10 ??? ---suijingfeng
-		// A display subsystem is often referred to as a video card, however, on some machines the display subsystem
-		// is part of the mother board. 
-		// To enumerate the display subsystems, use IDXGIFactory1::EnumAdapters1. 
-		// To get an interface to the adapter for a particular device, use IDXGIDevice::GetAdapter.
-		// To create a software adapter, use IDXGIFactory::CreateSoftwareAdapter.
-		DXGI_ADAPTER_DESC1 desc;
-		(*ppAdapter)->GetDesc1(&desc);
-		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-		{
-			continue;
-		}
-		// check for 11_0 feature level support
-		if ( SUCCEEDED( D3D12CreateDevice(*ppAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr) ) )
-		{
-			ri.Printf(PRINT_ALL, "Using Adapter: ");
-
-
-			printWideStr(desc.Description);
-
-			ri.Printf(PRINT_ALL, "\n");
-			return;
-		}
-	}
-	*ppAdapter = nullptr;
-}
-
-
-
-
 
 static D3D12_RESOURCE_BARRIER get_transition_barrier(
 	ID3D12Resource* resource,
@@ -252,6 +209,107 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 }
 
 
+void DX_CreateDepthBuffer(uint32_t width, uint32_t height, DXGI_FORMAT DSFmt, ID3D12Resource** pDSbuffer)
+{
+	D3D12_RESOURCE_DESC depth_desc{};
+	depth_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	depth_desc.Alignment = 0;
+	depth_desc.Width = glConfig.vidWidth;
+	depth_desc.Height = glConfig.vidHeight;
+	depth_desc.DepthOrArraySize = 1;
+	depth_desc.MipLevels = 1;
+	depth_desc.Format = DSFmt;
+	depth_desc.SampleDesc.Count = 1;
+	depth_desc.SampleDesc.Quality = 0;
+	depth_desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	depth_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_CLEAR_VALUE optimized_clear_value;
+	optimized_clear_value.Format = DSFmt;
+	optimized_clear_value.DepthStencil.Depth = 1.0f;
+	optimized_clear_value.DepthStencil.Stencil = 0;
+
+	D3D12_HEAP_PROPERTIES heaProp;
+	heaProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+	heaProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heaProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	heaProp.CreationNodeMask = 1;
+	heaProp.VisibleNodeMask = 1;
+
+
+	DX_CHECK( dx.device->CreateCommittedResource(
+		&heaProp,
+		D3D12_HEAP_FLAG_NONE,
+		&depth_desc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&optimized_clear_value,
+		IID_PPV_ARGS(pDSbuffer) )
+	);
+
+	ri.Printf(PRINT_ALL, " depth Stencil buffer created. \n ");
+
+}
+
+void DX_CreateDSBufferView(DXGI_FORMAT DSFmt, ID3D12Resource* const pDSbuffer, ID3D12DescriptorHeap* const pDsvHeap)
+{
+	D3D12_DEPTH_STENCIL_VIEW_DESC view_desc{};
+	view_desc.Format = DSFmt;
+	view_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	view_desc.Flags = D3D12_DSV_FLAG_NONE;
+
+	dx.device->CreateDepthStencilView(pDSbuffer, &view_desc,
+		pDsvHeap->GetCPUDescriptorHandleForHeapStart() );
+
+	ri.Printf(PRINT_ALL, " View of depth Stencil buffer created. \n ");
+}
+
+
+void DX_CreateRtvHeap(uint32_t size, ID3D12DescriptorHeap** pRtvHeap)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
+	heap_desc.NumDescriptors = size;
+	heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	heap_desc.NodeMask = 0;
+	DX_CHECK( dx.device->CreateDescriptorHeap( &heap_desc, IID_PPV_ARGS(pRtvHeap) ));
+	
+	ri.Printf(PRINT_ALL, " render target view heap created. \n ");
+}
+
+void DX_CreateDsvHeap(uint32_t size, ID3D12DescriptorHeap** pDsvHeap)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
+	heap_desc.NumDescriptors = size;
+	heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	heap_desc.NodeMask = 0;
+	DX_CHECK(dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(pDsvHeap)));
+
+	ri.Printf(PRINT_ALL, " render Depth stencil view heap created. \n ");
+}
+
+void DX_CreateSRVheap(uint32_t size, ID3D12DescriptorHeap** pSrvHeap)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
+	heap_desc.NumDescriptors = size;
+	// The descriptor heap for the combination of constant-buffer,
+	// shader-resource, and unordered-access views.
+	heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	heap_desc.NodeMask = 0;
+	DX_CHECK(dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(pSrvHeap)));
+}
+
+void DX_CreateISheap(uint32_t size, ID3D12DescriptorHeap** pSrvHeap)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
+	heap_desc.NumDescriptors = size;
+	heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+	heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	heap_desc.NodeMask = 0;
+	DX_CHECK( dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(pSrvHeap)) );
+}
+
 void dx_initialize(void * pWinContext)
 {
 	// enable validation in debug configuration
@@ -322,7 +380,6 @@ void dx_initialize(void * pWinContext)
 			{
 				ri.Printf(PRINT_ALL, " Create Device successed. Using Adapter: \n");
 
-
 				printWideStr(desc.Description);
 
 				ri.Printf(PRINT_ALL, "\n");
@@ -390,47 +447,17 @@ void dx_initialize(void * pWinContext)
 	//
 	{
 		// RTV heap.
-		{
-			D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
-			heap_desc.NumDescriptors = SWAPCHAIN_BUFFER_COUNT;
-			heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-			heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-			heap_desc.NodeMask = 0;
-			DX_CHECK(dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&dx.rtv_heap)));
-			dx.rtv_descriptor_size = dx.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		}
-
+		DX_CreateRtvHeap(SWAPCHAIN_BUFFER_COUNT, &dx.rtv_heap);
 		// DSV heap.
-		{
-			D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
-			heap_desc.NumDescriptors = 1;
-			heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-			heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-			heap_desc.NodeMask = 0;
-			DX_CHECK(dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&dx.dsv_heap)));
-		}
-
+		DX_CreateDsvHeap(1, &dx.dsv_heap);
 		// SRV heap.
-		{
-			D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
-			heap_desc.NumDescriptors = MAX_DRAWIMAGES;
-			heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-			heap_desc.NodeMask = 0;
-			DX_CHECK(dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&dx.srv_heap)));
-			dx.srv_descriptor_size = dx.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		}
+		DX_CreateSRVheap(MAX_DRAWIMAGES/2, &dx.srv_heap);
+		// Image Sampler heap.
+		DX_CreateISheap(SAMPLER_COUNT, &dx.sampler_heap);
 
-		// Sampler heap.
-		{
-			D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
-			heap_desc.NumDescriptors = SAMPLER_COUNT;
-			heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-			heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-			heap_desc.NodeMask = 0;
-			DX_CHECK(dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&dx.sampler_heap)));
-			dx.sampler_descriptor_size = dx.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-		}
+		dx.rtv_descriptor_size = dx.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		dx.srv_descriptor_size = dx.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		dx.sampler_descriptor_size = dx.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 	}
 
 	//
@@ -483,41 +510,8 @@ void dx_initialize(void * pWinContext)
 	//
 	// Create depth buffer resources.
 	//
-	{
-		D3D12_RESOURCE_DESC depth_desc{};
-		depth_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-		depth_desc.Alignment = 0;
-		depth_desc.Width = glConfig.vidWidth;
-		depth_desc.Height = glConfig.vidHeight;
-		depth_desc.DepthOrArraySize = 1;
-		depth_desc.MipLevels = 1;
-		depth_desc.Format = get_depth_format();
-		depth_desc.SampleDesc.Count = 1;
-		depth_desc.SampleDesc.Quality = 0;
-		depth_desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		depth_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-		D3D12_CLEAR_VALUE optimized_clear_value{};
-		optimized_clear_value.Format = get_depth_format();
-		optimized_clear_value.DepthStencil.Depth = 1.0f;
-		optimized_clear_value.DepthStencil.Stencil = 0;
-
-		DX_CHECK(dx.device->CreateCommittedResource(
-			&get_heap_properties(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE,
-			&depth_desc,
-			D3D12_RESOURCE_STATE_DEPTH_WRITE,
-			&optimized_clear_value,
-			IID_PPV_ARGS(&dx.depth_stencil_buffer)));
-
-		D3D12_DEPTH_STENCIL_VIEW_DESC view_desc{};
-		view_desc.Format = get_depth_format();
-		view_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-		view_desc.Flags = D3D12_DSV_FLAG_NONE;
-
-		dx.device->CreateDepthStencilView(dx.depth_stencil_buffer, &view_desc,
-			dx.dsv_heap->GetCPUDescriptorHandleForHeapStart());
-	}
+	DX_CreateDepthBuffer(glConfig.vidWidth, glConfig.vidHeight, get_depth_format(), &dx.depth_stencil_buffer);
+	DX_CreateDSBufferView(get_depth_format(), dx.depth_stencil_buffer, dx.dsv_heap);
 
 	//
 	// Create root signature.
@@ -1375,7 +1369,7 @@ static D3D12_RECT get_scissor_rect()
 	return r;
 }
 
-void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, vec4_t color)
+void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, float color[4])
 {
 	if (!clear_depth_stencil && !clear_color)
 		return;

@@ -12,19 +12,15 @@
 **
 */
 
-#include <stdio.h>
-
 #include "../client/client.h"
-#include "win_public.h"
 #include "win_mode.h"
 #include "win_gamma.h"
-#include "I_PlatformDependent.h"
+#include "win_log.h"
+#include "win_public.h"
 
 extern WinVars_t g_wv;
 extern HWND create_main_window(int width, int height, bool fullscreen);
 
-// need to complete ...
-static FILE* log_fp;
 
 
 static int GetDesktopColorDepth(void)
@@ -35,6 +31,7 @@ static int GetDesktopColorDepth(void)
 	return value;
 }
 
+
 static int GetDesktopWidth(void)
 {
 	HDC hdc = GetDC(GetDesktopWindow());
@@ -42,6 +39,7 @@ static int GetDesktopWidth(void)
 	ReleaseDC(GetDesktopWindow(), hdc);
 	return value;
 }
+
 
 static int GetDesktopHeight(void)
 {
@@ -57,27 +55,30 @@ static void win_createWindowImpl( void )
 {
 	Com_Printf( " Initializing window subsystem. \n" );
 
-
 	cvar_t* win_fullscreen = Cvar_Get("r_fullscreen", "1", 0);
 
 	cvar_t* win_mode = Cvar_Get("r_mode", "3", 0);
 
+	g_wv.desktopWidth = g_wv.winWidth = GetDesktopWidth();
+	g_wv.desktopHeight = g_wv.winHeight = GetDesktopHeight();
 
 	if ( win_fullscreen->integer )
 	{
 		// fullscreen 
-		g_wv.winWidth = GetDesktopWidth();
-		g_wv.winHeight = GetDesktopHeight();
-		g_wv.isFullScreen = true;
-		Com_Printf(" Setting fullscreen mode. ");
 
-		win_fullscreen->integer = 1;
+		g_wv.winWidth = g_wv.desktopWidth;
+		g_wv.winHeight = g_wv.desktopHeight;
+
+		g_wv.isFullScreen = true;
+		Cvar_Set("r_fullscreen", "1");
+		Com_Printf(" Setting fullscreen mode. ");
 	}
 	else
 	{
 		R_GetModeInfo(&g_wv.winWidth, &g_wv.winHeight, win_mode->integer);
 		g_wv.isFullScreen = false;
 		win_fullscreen->integer = 0;
+		Cvar_Set("r_fullscreen", "0");
 		Com_Printf(" Setting windowed mode. ");
 	}
 
@@ -111,68 +112,18 @@ static void win_destroyWindowImpl(void)
 
 		g_wv.hWnd = NULL;
 	}
-
 }
 
 
-void FNimp_Log(char * const comment)
-{
-	if (log_fp) {
-		fprintf(log_fp, "%s", comment);
-	}
-}
 
-void fnToggleLogging_f(void)
-{
-	static qboolean isEnabled;
-
-	// return if we're already active
-	if (isEnabled)
-	{
-
-		// toggled
-		isEnabled = qfalse;
-
-		if (log_fp) {
-			fprintf(log_fp, "*** CLOSING LOG ***\n");
-			fclose(log_fp);
-			log_fp = NULL;
-		}
-
-		Com_Printf(" Logging Disabled! \n");
-		return;
-	}
-
-	// return if we're already disabled
-
-	isEnabled = qtrue;
-
-	if (!log_fp)
-	{
-		time_t aclock;
-		time(&aclock);
-		struct tm *newtime = localtime(&aclock);
-		asctime(newtime);
-
-		char buffer[1024];
-		Com_sprintf(buffer, sizeof(buffer), "%s/debug.log", "./");
-
-		log_fp = fopen(buffer, "wt");
-
-		fprintf(log_fp, "%s\n", asctime(newtime));
-	}
-
-	Com_Printf(" Logging Enabled! \n");
-}
-
-
-void GLimp_Init(glconfig_t * const pConfig, void **pContext)
+void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 {
 
 	win_createWindowImpl();
 	
-	Cmd_AddCommand("listDisplayModes", R_ListDisplayMode_f);
-	Cmd_AddCommand("toggleLogging", fnToggleLogging_f);
+	win_InitDisplayModel();
+
+	win_InitLoging();
 
 	pConfig->vidWidth = g_wv.winWidth;
 	pConfig->vidHeight = g_wv.winHeight;
@@ -193,6 +144,7 @@ void GLimp_Init(glconfig_t * const pConfig, void **pContext)
 	*pContext = &g_wv;
 }
 
+
 void GLimp_Shutdown(void)
 {
 	win_destroyWindowImpl();
@@ -202,14 +154,9 @@ void GLimp_Shutdown(void)
 
 	win_restoreGamma();
 
-	Cmd_RemoveCommand("listDisplayModes");
-	Cmd_RemoveCommand("toggleLogging");
+	win_EndDisplayModel();
 
-	if (log_fp)
-	{
-		fclose(log_fp);
-		log_fp = 0;
-	}
+	win_EndLoging();
 }
 
 

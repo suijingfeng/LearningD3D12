@@ -410,33 +410,8 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 }
 
 
-static int GetDesktopColorDepth(void)
-{
-	HDC hdc = GetDC(GetDesktopWindow());
-	int value = GetDeviceCaps(hdc, BITSPIXEL);
-	ReleaseDC(GetDesktopWindow(), hdc);
-	return value;
-}
 
-static int GetDesktopWidth(void)
-{
-	HDC hdc = GetDC(GetDesktopWindow());
-	int value = GetDeviceCaps(hdc, HORZRES);
-	ReleaseDC(GetDesktopWindow(), hdc);
-	return value;
-}
-
-static int GetDesktopHeight(void)
-{
-	HDC hdc = GetDC(GetDesktopWindow());
-	int value = GetDeviceCaps(hdc, VERTRES);
-	ReleaseDC(GetDesktopWindow(), hdc);
-	return value;
-}
-
-
-
-HWND create_main_window(int width, int height, bool fullscreen)
+HWND WINAPI create_main_window(int width, int height, bool fullscreen)
 {
 	#define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
 	//
@@ -468,7 +443,7 @@ HWND create_main_window(int width, int height, bool fullscreen)
 		}
 		isWinRegistered = true;
 	}
-	Com_Printf(" Window class registered.\n ");
+	Com_Printf(" Window class registered. \n");
 
 
 	//
@@ -491,8 +466,6 @@ HWND create_main_window(int width, int height, bool fullscreen)
 		AdjustWindowRect(&r, stylebits, FALSE);
 	}
 
-	int w = r.right - r.left;
-	int h = r.bottom - r.top;
 
 	int x, y;
 
@@ -512,19 +485,13 @@ HWND create_main_window(int width, int height, bool fullscreen)
 		// so that the window is completely on screen
 		if (x < 0)
 			x = 0;
+		if (x + width > g_wv.desktopWidth)
+			x = (g_wv.desktopWidth - width);
+
 		if (y < 0)
 			y = 0;
-
-		int desktop_width = GetDesktopWidth();
-		int desktop_height = GetDesktopHeight();
-
-		if (w < desktop_width && h < desktop_height)
-		{
-			if (x + w > desktop_width)
-				x = (desktop_width - w);
-			if (y + h > desktop_height)
-				y = (desktop_height - h);
-		}
+		if (y + height > g_wv.desktopHeight)
+			y = (g_wv.desktopHeight - height);
 	}
 
 
@@ -533,7 +500,7 @@ HWND create_main_window(int width, int height, bool fullscreen)
 		MAIN_WINDOW_CLASS_NAME,
 		MAIN_WINDOW_CLASS_NAME,
 		stylebits,
-		x, y, w, h,
+		x, y, width, height,
 		NULL,
 		NULL,
 		g_wv.hInstance,
@@ -541,12 +508,15 @@ HWND create_main_window(int width, int height, bool fullscreen)
 
 	if (!hwnd)
 	{
-		Com_Error(ERR_FATAL, "create main window() - Couldn't create window");
+		Com_Error(ERR_FATAL, " Couldn't create window ");
+	}
+	else
+	{
+		Com_Printf(" %d x %d window created at (%d, %d). \n", width, height, x, y);
 	}
 
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
-	Com_Printf(" %d x %d window created at (%d, %d). \n", w, h, x, y);
 
 	return hwnd;
 }

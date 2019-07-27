@@ -1882,27 +1882,21 @@ void R_InitImages( void )
 	R_CreateBuiltinImages();
 }
 
-/*
-===============
-R_DeleteTextures
-===============
-*/
+
 void R_DeleteTextures( void )
 {
+	ri.Printf(PRINT_ALL, "Deleting %d Textures\n", tr.numImages);
 	for ( int i=0; i<tr.numImages ; ++i )
 	{
 		qglDeleteTextures( 1, &tr.images[i]->texnum );
 	}
 	Com_Memset( tr.images, 0, sizeof( tr.images ) );
 
+
 	tr.numImages = 0;
 
 	Com_Memset( glState.currenttextures, 0, sizeof( glState.currenttextures ) );
 
-	GL_SelectTexture( 1 );
-	qglBindTexture( GL_TEXTURE_2D, 0 );
-	GL_SelectTexture( 0 );
-	qglBindTexture( GL_TEXTURE_2D, 0 );
 }
 
 /*
@@ -2035,13 +2029,15 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 	char		*token;
 	char		surfName[MAX_QPATH];
 
-	if ( !name || !name[0] ) {
-		Com_Printf( "Empty name passed to RE_RegisterSkin\n" );
+	if ( !name || !name[0] )
+	{
+		ri.Printf(PRINT_ALL, "Empty name passed to RE_RegisterSkin\n" );
 		return 0;
 	}
 
-	if ( (int)strlen( name ) >= MAX_QPATH ) {
-		Com_Printf( "Skin name exceeds MAX_QPATH\n" );
+	if ( (int)strlen( name ) >= MAX_QPATH )
+	{
+		ri.Printf(PRINT_ALL, "Skin name exceeds MAX_QPATH\n" );
 		return 0;
 	}
 

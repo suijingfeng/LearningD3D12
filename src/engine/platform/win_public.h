@@ -35,6 +35,9 @@ typedef struct WinVars_s {
 	int				winWidth;
 	int				winHeight;
 
+	int				desktopWidth;
+	int				desktopHeight;
+
 	bool			isFullScreen;
 
 	bool			activeApp;
@@ -45,6 +48,26 @@ typedef struct WinVars_s {
 	// can know the exact time of an event
 	unsigned		sysMsgTime;
 } WinVars_t;
+
+
+/*
+====================================================================
+
+IMPLEMENTATION SPECIFIC FUNCTIONS
+
+====================================================================
+*/
+
+struct glconfig_s;
+
+void GLimp_Init(struct glconfig_s * const pConfig, void ** pContext);
+void GLimp_Shutdown(void);
+void GLimp_EndFrame(void);
+void GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned char blue[256]);
+void Impl_Logging(char * const pComment);
+
+// NOTE TTimo linux works with float gamma value, not the gamma table
+// the params won't be used, getting the r_gamma cvar directly
 
 
 #endif

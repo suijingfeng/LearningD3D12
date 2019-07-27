@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <limits.h>
 #include "client.h"
-#include "../platform/I_PlatformDependent.h"
+
 
 #ifdef _WIN32
 	#include <winsock2.h>
@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	#include <ws2spi.h>
 #endif
 
+#include "../platform/win_public.h"
 
 cvar_t	*cl_nodelta;
 cvar_t	*cl_debugMove;
@@ -2400,7 +2401,7 @@ void CL_InitRef( void )
 	ri.GLimpShutdown = GLimp_Shutdown;
 	ri.GLimpEndFrame = GLimp_EndFrame;
 	ri.GLimpSetGamma = GLimp_SetGamma;
-	ri.pfnLog = FNimp_Log;
+	ri.pfnLog = Impl_Logging;
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 

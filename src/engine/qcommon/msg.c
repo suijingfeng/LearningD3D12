@@ -41,7 +41,8 @@ int oldsize = 0;
 
 void MSG_initHuffman();
 
-void MSG_Init( msg_t *buf, byte *data, int length ) {
+void MSG_Init( msg_t * const buf, byte *const data, int length )
+{
 	if (!msgInit) {
 		MSG_initHuffman();
 	}

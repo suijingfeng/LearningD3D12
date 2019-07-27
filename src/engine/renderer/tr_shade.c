@@ -845,12 +845,11 @@ void RB_StageIteratorGeneric(shaderCommands_t * const input)
 	//
 	// log this call
 	//
-	if ( r_logFile->integer ) 
-	{
-		// don't just call LogComment, or we will get
-		// a call to va() every frame!
-		ri.pfnLog( va("--- RB_StageIteratorGeneric( %s ) ---\n", input->shader->name) );
-	}
+
+	// don't just call LogComment, or we will get
+	// a call to va() every frame!
+	// ri.pfnLog( va("--- RB_StageIteratorGeneric( %s ) ---\n", input->shader->name) );
+
 
 	//
 	// set face culling appropriately
