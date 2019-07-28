@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // choose options, and initiate actions. Controls in other windows provide 
 // a variety of services, such as letting the user choose commands, 
 // view status, and view and edit text. 
-
+// Support for controls is provided by User32.dll and Comctl32.dll.
 
 
 extern WinVars_t g_wv;
@@ -45,7 +45,7 @@ extern WinVars_t g_wv;
 #define CLEAR_ID		3
 
 #define ERRORBOX_ID		10
-#define ERRORTEXT_ID		11
+#define ERRORTEXT_ID	11
 
 #define EDIT_ID			100
 #define INPUT_ID		101

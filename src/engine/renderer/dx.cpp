@@ -451,7 +451,7 @@ void dx_initialize(void * pWinContext)
 		// DSV heap.
 		DX_CreateDsvHeap(1, &dx.dsv_heap);
 		// SRV heap.
-		DX_CreateSRVheap(MAX_DRAWIMAGES/2, &dx.srv_heap);
+		DX_CreateSRVheap(MAX_DRAWIMAGES, &dx.srv_heap);
 		// Image Sampler heap.
 		DX_CreateISheap(SAMPLER_COUNT, &dx.sampler_heap);
 
