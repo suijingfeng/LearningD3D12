@@ -46,19 +46,39 @@ const static int s_numVidModes = (sizeof(r_vidModes) / sizeof(r_vidModes[0]));
 
 
 // always returu a valid mode ...
-void R_GetModeInfo(int *width, int *height, int mode)
+int R_GetModeInfo(int * const width, int * const height, int mode, const int desktopWidth, const int desktopHeight)
 {
 	// corse error handle,
 	if (mode < 0 || mode >= s_numVidModes)
 	{
 		// just 640 * 480;
-		mode = 3;
+		*width = 640;
+		*height = 480;
+		return 3;
 	}
 
-	const vidmode_t * const vm = &r_vidModes[mode];
+	int i = mode;
+	for ( ; i > 0; --i)
+	{
+		const vidmode_t * pVm = &r_vidModes[i];
+		if (pVm->width >= desktopWidth || pVm->height >= desktopHeight)
+		{
+			continue;
+		}
 
-	*width = vm->width;
-	*height = vm->height;
+		*width = pVm->width;
+		*height = pVm->height;
+		return i;
+	}
+
+	if (i == 0)
+	{
+		*width = 640;
+		*height = 480;
+		return 3;
+	}
+
+	return i;
 }
 
 

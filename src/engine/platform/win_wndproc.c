@@ -3,14 +3,12 @@
 #include "win_input.h"
 #include "win_event.h"
 #include "win_snd.h"
-#include "resource.h"
+
 
 WinVars_t g_wv;
 
 
 // Console variables that we need to access from this module
-cvar_t* vid_xpos;	// X coordinate of window position
-cvar_t* vid_ypos;	// Y coordinate of window position
 cvar_t* in_forceCharset;// 
 
 
@@ -284,14 +282,15 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		break;
 
 	case WM_CREATE:
+	{
+		CREATESTRUCT * pCreate = (CREATESTRUCT *)lParam;
+		WinVars_t * pWinState = (WinVars_t *)pCreate->lpCreateParams;
 
-		g_wv.hWnd = hWnd;
+		// pWinState->hWnd = hWnd;
 
-		vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
-		vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
-		
-		in_forceCharset = Cvar_Get( "in_forceCharset", "1", CVAR_ARCHIVE );
-		break;
+		in_forceCharset = Cvar_Get("in_forceCharset", "1", CVAR_ARCHIVE);
+
+	} break;
 
 	case WM_DESTROY:
 		// let sound and input know about this?
@@ -326,11 +325,6 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 			int style = GetWindowLong( hWnd, GWL_STYLE );
 			AdjustWindowRect( &r, style, FALSE );
-
-			Cvar_SetValue( "vid_xpos", xPos + r.left);
-			Cvar_SetValue( "vid_ypos", yPos + r.top);
-			vid_xpos->modified = qfalse;
-			vid_ypos->modified = qfalse;
 			
 			if ( g_wv.activeApp )
 			{
@@ -396,127 +390,15 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		break;
 
 	case WM_CHAR:
+	{
 		// Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, wParam, 0, 0, NULL );
-		{
-			byte scancode = ((lParam >> 16) & 0xFF);
-			if ( wParam != VK_NUMPAD0 && scancode != 0x29 ) {
-				Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, MapChar( wParam, scancode ), 0, 0, NULL );
-			}
+		byte scancode = ((lParam >> 16) & 0xFF);
+		if ( wParam != VK_NUMPAD0 && scancode != 0x29 ) {
+			Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, MapChar( wParam, scancode ), 0, 0, NULL );
 		}
-		break;
-	}
+	} break;
+	
+	} // end of switch
 
     return DefWindowProc( hWnd, uMsg, wParam, lParam );
-}
-
-
-
-HWND WINAPI create_main_window(int width, int height, bool fullscreen)
-{
-	#define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
-	//
-	// register the window class if necessary
-	//
-
-	static bool isWinRegistered = false;
-
-	if (isWinRegistered != true)
-	{
-		WNDCLASS wc;
-
-		memset(&wc, 0, sizeof(wc));
-
-		wc.style = 0;
-		wc.lpfnWndProc = MainWndProc;
-		wc.cbClsExtra = 0;
-		wc.cbWndExtra = 0;
-		wc.hInstance = g_wv.hInstance;
-		wc.hIcon = LoadIcon(g_wv.hInstance, MAKEINTRESOURCE(IDI_ICON1));
-		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.hbrBackground = (HBRUSH)(void *)COLOR_GRAYTEXT;
-		wc.lpszMenuName = 0;
-		wc.lpszClassName = MAIN_WINDOW_CLASS_NAME;
-
-		if (!RegisterClass(&wc))
-		{
-			Com_Error(ERR_FATAL, "create main window: could not register window class");
-		}
-		isWinRegistered = true;
-	}
-	Com_Printf(" Window class registered. \n");
-
-
-	//
-	// compute width and height
-	//
-	RECT r;
-	r.left = 0;
-	r.top = 0;
-	r.right = width;
-	r.bottom = height;
-
-	int	stylebits;
-	if (fullscreen)
-	{
-		stylebits = WS_POPUP | WS_VISIBLE | WS_SYSMENU;
-	}
-	else
-	{
-		stylebits = WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE | WS_SYSMENU;
-		AdjustWindowRect(&r, stylebits, FALSE);
-	}
-
-
-	int x, y;
-
-	if (fullscreen)
-	{
-		x = 0;
-		y = 0;
-	}
-	else
-	{
-		cvar_t* vid_xpos = Cvar_Get("vid_xpos", "", 0);
-		cvar_t* vid_ypos = Cvar_Get("vid_ypos", "", 0);
-		x = vid_xpos->integer;
-		y = vid_ypos->integer;
-
-		// adjust window coordinates if necessary 
-		// so that the window is completely on screen
-		if (x < 0)
-			x = 0;
-		if (x + width > g_wv.desktopWidth)
-			x = (g_wv.desktopWidth - width);
-
-		if (y < 0)
-			y = 0;
-		if (y + height > g_wv.desktopHeight)
-			y = (g_wv.desktopHeight - height);
-	}
-
-
-	HWND hwnd = CreateWindowEx(
-		0,
-		MAIN_WINDOW_CLASS_NAME,
-		MAIN_WINDOW_CLASS_NAME,
-		stylebits,
-		x, y, width, height,
-		NULL,
-		NULL,
-		g_wv.hInstance,
-		NULL);
-
-	if (!hwnd)
-	{
-		Com_Error(ERR_FATAL, " Couldn't create window ");
-	}
-	else
-	{
-		Com_Printf(" %d x %d window created at (%d, %d). \n", width, height, x, y);
-	}
-
-	ShowWindow(hwnd, SW_SHOW);
-	UpdateWindow(hwnd);
-
-	return hwnd;
 }

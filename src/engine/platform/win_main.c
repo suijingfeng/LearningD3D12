@@ -569,7 +569,6 @@ void Sys_Init( void )
 	Cvar_Set( "username", Sys_GetCurrentUser() );
 
 	IN_Init();		// FIXME: not in dedicated?
-
 #undef OSR2_BUILD_NUMBER
 #undef WIN98_BUILD_NUMBER
 }
@@ -578,7 +577,7 @@ void Sys_Init( void )
 //=======================================================================
 
 
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	char cwd[MAX_OSPATH];
 	char sys_cmdline[MAX_STRING_CHARS];

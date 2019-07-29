@@ -1,7 +1,7 @@
 #pragma once
 
 
-void R_GetModeInfo(int *width, int *height, int mode);
+int R_GetModeInfo(int * const width, int * const height, int mode, const int desktopWidth, const int desktopHeight);
 
 void win_InitDisplayModel(void);
 void win_EndDisplayModel(void);

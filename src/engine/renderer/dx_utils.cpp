@@ -73,9 +73,8 @@
 // so user initiated operating system elements can seamlessly appear 
 // in front of application output.Volume settings is an example of this.
 
-#include "D3d12.h"
-#include "DXGI1_4.h"
 #include "tr_local.h"
+#include "dx_utils.h"
 
 void printWideStr(wchar_t * const WStr)
 {
@@ -167,7 +166,28 @@ void printAvailableAdapters(IDXGIFactory2* const pHardwareFactory)
 	// do not release it twice
 	// pHardwareAdapter->Release();
 	ri.Printf(PRINT_ALL, "--------------------------------------------\n\n");
+
+	ri.Printf(PRINT_ALL, " Current adapter index: [%d] \n", r_gpuIndex->integer);
 }
+
+
+unsigned int getNumberOfAvailableAdapters(IDXGIFactory2* const pHardwareFactory)
+{
+	IDXGIAdapter1* pHardwareAdapter = nullptr;
+	// adapter_index: The index of the adapter to enumerate.
+	UINT adapter_index = 0;
+
+	while (pHardwareFactory->EnumAdapters1(adapter_index, &pHardwareAdapter) != DXGI_ERROR_NOT_FOUND)
+	{
+		// Gets a DXGI 1.1 description of an adapter(or video card).
+		DXGI_ADAPTER_DESC1 desc;
+		pHardwareAdapter->GetDesc1(&desc);
+
+		++adapter_index;
+	}
+	return adapter_index;
+}
+
 
 void printAvailableAdapters_f(void)
 {

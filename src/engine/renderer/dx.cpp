@@ -310,6 +310,83 @@ void DX_CreateISheap(uint32_t size, ID3D12DescriptorHeap** pSrvHeap)
 	DX_CHECK( dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(pSrvHeap)) );
 }
 
+
+void DX_CreateDevice(IDXGIFactory2* const pFactory, ID3D12Device** ppDevice)
+{
+	// A pointer to the video adapter to use when creating a device. 
+	// Pass NULL to use the default adapter, which is the first adapter
+	// that is enumerated by IDXGIFactory1::EnumAdapters.
+	IDXGIAdapter1* pHardwareAdapter = nullptr;
+
+	// max three GPU
+	if (r_gpuIndex->integer < 0)
+		r_gpuIndex->integer = 0;
+	else if (r_gpuIndex->integer > 2)
+		r_gpuIndex->integer = 2;
+
+	HRESULT res = pFactory->EnumAdapters1(r_gpuIndex->integer, &pHardwareAdapter);
+	if (res == S_OK)
+	{
+		res = D3D12CreateDevice(pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(ppDevice));
+		if (res == S_OK)
+		{
+			ri.Printf(PRINT_ALL, " Create device on Adapter %d successed! \n", r_gpuIndex->integer);
+			
+			DXGI_ADAPTER_DESC1 desc;
+			
+			pHardwareAdapter->GetDesc1(&desc);
+			
+			printWideStr(desc.Description);
+
+			ri.Printf(PRINT_ALL, "\n");
+
+			return;
+		}
+	}
+
+	// create on r_gpuIndex failed, do it again!
+
+	// The IDXGIAdapter1 interface represents a display sub-system 
+	// (including one or more GPU's, DACs and video memory).
+	UINT adapter_index = 0;
+	// Enumerates both adapters (video cards) with or without outputs.
+	// adapter_index: The index of the adapter to enumerate.
+	// The address of a pointer to an IDXGIAdapter1 interface at the 
+	// position specified by the adapter_index parameter.
+	// EnumAdapterByGpuPreference(, , , );
+
+	while (pFactory->EnumAdapters1(adapter_index, &pHardwareAdapter) != DXGI_ERROR_NOT_FOUND)
+	{
+		DXGI_ADAPTER_DESC1 desc;
+		pHardwareAdapter->GetDesc1(&desc);
+		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+		{
+			continue;
+		}
+		// check for 11_0 feature level support
+		// Creates a device that represents the display adapter.
+		if (SUCCEEDED(D3D12CreateDevice(pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(ppDevice))))
+		{
+			r_gpuIndex->integer = adapter_index;
+
+			ri.Printf(PRINT_ALL, " Create Device successed. Using Adapter: \n");
+
+			printWideStr(desc.Description);
+
+			ri.Printf(PRINT_ALL, "\n");
+
+			break;
+		}
+		else
+		{
+			ri.Printf(PRINT_WARNING, " Failed create device on this adapter. \n");
+		}
+		++adapter_index;
+	}
+
+	pHardwareAdapter->Release();
+}
+
 void dx_initialize(void * pWinContext)
 {
 	// enable validation in debug configuration
@@ -345,55 +422,15 @@ void dx_initialize(void * pWinContext)
 #ifndef NDEBUG
 	// This function accepts a flag indicating whether DXGIDebug.dll is loaded.
 	// The function otherwise behaves identically to CreateDXGIFactory1.
-	DX_CHECK(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&pFactory))); 
+	DX_CHECK( CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&pFactory)) ); 
 #else
-	DX_CHECK(CreateDXGIFactory2(0, IID_PPV_ARGS(&pFactory)));
+	DX_CHECK( CreateDXGIFactory2(0, IID_PPV_ARGS(&pFactory)) );
 #endif
 	
-	// printAvailableAdapters(pFactory);
+	//printAvailableAdapters(pFactory);
 
-	// Create device.
-	{
-		// A pointer to the video adapter to use when creating a device. 
-		// Pass NULL to use the default adapter, which is the first adapter
-		// that is enumerated by IDXGIFactory1::EnumAdapters.
-		IDXGIAdapter1* pHardwareAdapter = nullptr;
+	DX_CreateDevice(pFactory, &dx.device);
 
-		// The IDXGIAdapter1 interface represents a display sub-system 
-		// (including one or more GPU's, DACs and video memory).
-		UINT adapter_index = 0;
-		// Enumerates both adapters (video cards) with or without outputs.
-		// adapter_index: The index of the adapter to enumerate.
-		// The address of a pointer to an IDXGIAdapter1 interface at the 
-		// position specified by the adapter_index parameter.
-		while (pFactory->EnumAdapters1(adapter_index++, &pHardwareAdapter) != DXGI_ERROR_NOT_FOUND)
-		{
-			DXGI_ADAPTER_DESC1 desc;
-			pHardwareAdapter->GetDesc1(&desc);
-			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-			{
-				continue;
-			}
-			// check for 11_0 feature level support
-			// Creates a device that represents the display adapter.
-			if ( SUCCEEDED( D3D12CreateDevice(pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dx.device) )))
-			{
-				ri.Printf(PRINT_ALL, " Create Device successed. Using Adapter: \n");
-
-				printWideStr(desc.Description);
-
-				ri.Printf(PRINT_ALL, "\n");
-
-				break;
-			}
-			else
-			{
-				ri.Error(ERR_FATAL , " Create Device Failed. \n");
-			}
-		}
-	
-		pHardwareAdapter->Release();
-	}
 	// allway enable stencil
 
 	DX_CreateCommandQueue( &dx.command_queue );
