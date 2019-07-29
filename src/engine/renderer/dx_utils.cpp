@@ -90,6 +90,28 @@ void printWideStr(wchar_t * const WStr)
 }
 
 
+void printOutputInfo(IDXGIAdapter1* const pAdapter)
+{
+	UINT i = 0;
+	// An IDXGIOutput interface represents an adapter output (such as a monitor).
+	IDXGIOutput * pOutput = nullptr;
+
+	if(pAdapter->EnumOutputs(i, &pOutput) != DXGI_ERROR_NOT_FOUND)
+	{
+		DXGI_OUTPUT_DESC monitorDesc;
+		pOutput->GetDesc(&monitorDesc);
+
+		printWideStr(monitorDesc.DeviceName);
+
+		++i;
+	}
+	else
+	{
+		ri.Printf(PRINT_ALL, "EnumOutputs %d failed. \n", i);
+	}
+}
+
+
 void printAvailableAdapters(IDXGIFactory2* const pHardwareFactory)
 {
 	// HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&pFactory));

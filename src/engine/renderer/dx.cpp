@@ -185,6 +185,7 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	IDXGISwapChain1* pTmpSwapchain;
+	// IDXGIOutput * pOutputInfo = nullptr;
 
 	WinVars_t * pWinSys = (WinVars_t*)pContext;
 
@@ -209,13 +210,13 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 }
 
 
-void DX_CreateDepthBuffer(uint32_t width, uint32_t height, DXGI_FORMAT DSFmt, ID3D12Resource** pDSbuffer)
+void DX_CreateDepthBuffer(uint32_t width, uint32_t height, DXGI_FORMAT DSFmt, ID3D12Resource** const pDSbuffer)
 {
 	D3D12_RESOURCE_DESC depth_desc{};
 	depth_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	depth_desc.Alignment = 0;
-	depth_desc.Width = glConfig.vidWidth;
-	depth_desc.Height = glConfig.vidHeight;
+	depth_desc.Width = width;
+	depth_desc.Height = height;
 	depth_desc.DepthOrArraySize = 1;
 	depth_desc.MipLevels = 1;
 	depth_desc.Format = DSFmt;
@@ -264,7 +265,7 @@ void DX_CreateDSBufferView(DXGI_FORMAT DSFmt, ID3D12Resource* const pDSbuffer, I
 }
 
 
-void DX_CreateRtvHeap(uint32_t size, ID3D12DescriptorHeap** pRtvHeap)
+void DX_CreateRtvHeap(uint32_t size, ID3D12DescriptorHeap** const pRtvHeap)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
 	heap_desc.NumDescriptors = size;
@@ -276,7 +277,7 @@ void DX_CreateRtvHeap(uint32_t size, ID3D12DescriptorHeap** pRtvHeap)
 	ri.Printf(PRINT_ALL, " render target view heap created. \n ");
 }
 
-void DX_CreateDsvHeap(uint32_t size, ID3D12DescriptorHeap** pDsvHeap)
+void DX_CreateDsvHeap(uint32_t size, ID3D12DescriptorHeap** const pDsvHeap)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
 	heap_desc.NumDescriptors = size;
@@ -288,7 +289,7 @@ void DX_CreateDsvHeap(uint32_t size, ID3D12DescriptorHeap** pDsvHeap)
 	ri.Printf(PRINT_ALL, " render Depth stencil view heap created. \n ");
 }
 
-void DX_CreateSRVheap(uint32_t size, ID3D12DescriptorHeap** pSrvHeap)
+void DX_CreateSRVheap(uint32_t size, ID3D12DescriptorHeap** const pSrvHeap)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
 	heap_desc.NumDescriptors = size;
@@ -300,7 +301,7 @@ void DX_CreateSRVheap(uint32_t size, ID3D12DescriptorHeap** pSrvHeap)
 	DX_CHECK(dx.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(pSrvHeap)));
 }
 
-void DX_CreateISheap(uint32_t size, ID3D12DescriptorHeap** pSrvHeap)
+void DX_CreateISheap(uint32_t size, ID3D12DescriptorHeap** const pSrvHeap)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC heap_desc;
 	heap_desc.NumDescriptors = size;
@@ -311,7 +312,7 @@ void DX_CreateISheap(uint32_t size, ID3D12DescriptorHeap** pSrvHeap)
 }
 
 
-void DX_CreateDevice(IDXGIFactory2* const pFactory, ID3D12Device** ppDevice)
+void DX_CreateDevice(IDXGIFactory2* const pFactory, ID3D12Device** const ppDevice)
 {
 	// A pointer to the video adapter to use when creating a device. 
 	// Pass NULL to use the default adapter, which is the first adapter
@@ -337,6 +338,8 @@ void DX_CreateDevice(IDXGIFactory2* const pFactory, ID3D12Device** ppDevice)
 			pHardwareAdapter->GetDesc1(&desc);
 			
 			printWideStr(desc.Description);
+
+			// printOutputInfo(pHardwareAdapter);
 
 			ri.Printf(PRINT_ALL, "\n");
 
