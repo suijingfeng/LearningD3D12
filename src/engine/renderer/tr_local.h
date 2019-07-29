@@ -1030,7 +1030,7 @@ extern	cvar_t	*r_saveFontData;
 
 
 extern cvar_t	*r_gpuIndex;
-
+extern cvar_t	*r_brightness;
 //====================================================================
 
 float R_NoiseGet4f( float x, float y, float z, float t );

@@ -206,14 +206,14 @@ void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 	pConfig->stereoEnabled = qfalse;
 	pConfig->smpActive = qfalse;
 	pConfig->UNUSED_displayFrequency = 60;
-	pConfig->deviceSupportsGamma = qtrue;
+
 
 	// allways enable stencil
 	pConfig->stencilBits = 8;
 	pConfig->depthBits = 24;
 	pConfig->colorBits = 32;
-	pConfig->deviceSupportsGamma = win_checkHardwareGamma();
-
+	// pConfig->deviceSupportsGamma = win_checkHardwareGamma();
+	pConfig->deviceSupportsGamma = qfalse;
 	////
 	*pContext = &g_wv;
 }

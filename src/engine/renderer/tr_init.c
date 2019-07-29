@@ -135,6 +135,8 @@ int		max_polyverts;
 
 
 cvar_t	*r_gpuIndex;
+cvar_t	*r_brightness;
+
 
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
 {
@@ -334,7 +336,7 @@ void R_Register( void )
 	//
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_LATCH|CVAR_CHEAT );
 	r_mapOverBrightBits = ri.Cvar_Get ("r_mapOverBrightBits", "2", CVAR_LATCH );
-	r_intensity = ri.Cvar_Get ("r_intensity", "1", CVAR_LATCH );
+
 	r_singleShader = ri.Cvar_Get ("r_singleShader", "0", CVAR_CHEAT | CVAR_LATCH );
 
 	//
@@ -399,8 +401,9 @@ void R_Register( void )
 	r_noportals = ri.Cvar_Get ("r_noportals", "0", CVAR_CHEAT);
 	r_shadows = ri.Cvar_Get( "cg_shadows", "1", 0 );
 
-
-	r_gpuIndex = ri.Cvar_Get("r_gpuIndex", "0", CVAR_ARCHIVE);
+	r_intensity = ri.Cvar_Get("r_intensity", "1.5", CVAR_LATCH | CVAR_ARCHIVE );
+	r_brightness = ri.Cvar_Get("r_brightness", "2.0", CVAR_LATCH | CVAR_ARCHIVE);
+	r_gpuIndex = ri.Cvar_Get("r_gpuIndex", "0", CVAR_LATCH | CVAR_ARCHIVE );
 
 	r_maxpolys = ri.Cvar_Get( "r_maxpolys", va("%d", MAX_POLYS), 0);
 	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", va("%d", MAX_POLYVERTS), 0);

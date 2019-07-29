@@ -44,11 +44,30 @@ extern WinVars_t g_wv;
 #define QUIT_ID			2
 #define CLEAR_ID		3
 
+#define ERROR_TIMER_ID	4
+
+#define CON_TIMER_ID	5
+#define BUF_TIMER_ID	6
+#define TEX_TIMER_ID	7
+
 #define ERRORBOX_ID		10
-#define ERRORTEXT_ID	11
+#define ERRORTEXT_ID		11
 
 #define EDIT_ID			100
 #define INPUT_ID		101
+
+#define DEFAULT_WIDTH   600
+#define DEFAULT_HEIGHT  434
+
+#define BORDERW			1
+#define BORDERH			2
+
+#define INPUT_HEIGHT    16
+#define ERROR_HEIGHT    27
+
+#define MAX_CONSIZE		65536
+
+#define T TEXT
 
 #define EDIT_COLOR	RGB(0x00,0x00,0x10)
 #define TEXT_COLOR	RGB(0x40,0xEE,0x20)
@@ -57,6 +76,8 @@ extern WinVars_t g_wv;
 
 #define ERROR_COLOR_1   RGB(0xFF,0xFF,0x00)
 #define ERROR_COLOR_2   RGB(0xF0,0x00,0x00)
+
+#define CONSOLE_WINDOW_TITLE  "OpenArena Console"
 
 field_t console;
 
@@ -87,6 +108,10 @@ typedef struct
 	int		windowWidth, windowHeight;
 
 	WNDPROC		SysInputLineWndProc;
+	LONG_PTR	SysStatusWndProc;
+	LONG_PTR	SysBufferWndProc;
+
+	qboolean	newline;
 
 } WinConData;
 
@@ -95,16 +120,47 @@ static WinConData s_console_window;
 static int maxConSize; // up to MAX_CONSIZE
 static int curConSize; // up to MAX_CONSIZE
 
+static UINT texTimerID; // for flushing text in buffer
+
+static char conBuffer[ MAXPRINTMSG ];
+static int  conBufPos;
+
 static void ConClear( void ) 
 {
 	//SendMessage( s_wcd.hwndBuffer, EM_SETSEL, 0, -1 );
 	//SendMessage( s_wcd.hwndBuffer, EM_REPLACESEL, FALSE, ( LPARAM ) "" );
-	SetWindowText( s_console_window.hwndBuffer, "" );
+	SetWindowText( s_console_window.hwndBuffer, T("") );
 	UpdateWindow( s_console_window.hwndBuffer );
-	// s_console_window.newline = qfalse;
+	s_console_window.newline = qfalse;
 	curConSize = 0;
-	// conBufPos = 0;
+	conBufPos = 0;
 }
+
+static int GetStatusBarHeight( void ) 
+{
+	RECT rect;
+
+	if ( !s_console_window.hwndStatusBar )
+		return 22;
+
+	GetClientRect( s_console_window.hwndStatusBar, &rect );
+
+	return (rect.bottom-rect.top+1);
+}
+
+
+static int GetTimerMsec( void )
+{
+	int msec;
+	if ( !com_sv_running || !com_sv_running->integer ) {
+		msec = 50; // 20fps
+	} else {
+		msec = 1000 / Cvar_VariableIntegerValue( "sv_fps" );
+	}
+
+	return msec;
+}
+
 
 static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
@@ -189,11 +245,53 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 	case WM_CREATE:
 		s_console_window.hbrEditBackground = CreateSolidBrush( EDIT_COLOR );
-		s_console_window.hbrErrorBackground = CreateSolidBrush( RGB( 0x80, 0x80, 0x80 ) );
+		// s_console_window.hbrErrorBackground = CreateSolidBrush( RGB( 0x80, 0x80, 0x80 ) );
 		// Creates a timer with the specified time-out value.
-		// 
-		SetTimer( hWnd, 1, 1000, NULL );
+		// SetTimer( hWnd, 1, 1000, NULL );
 		break;
+
+	case WM_MOVE:
+		// GetWindowRect( hWnd, &g_wv.conRect );
+		break;
+
+	case WM_SIZE:
+		{
+			RECT rect;
+			int sth;
+
+			sth = GetStatusBarHeight();
+			GetClientRect( hWnd, &rect );
+
+			s_console_window.windowWidth = rect.right - rect.left + 1;
+			s_console_window.windowHeight = rect.bottom - rect.top + 1;
+
+			if ( s_console_window.hwndErrorBox ) {
+				SetWindowPos( s_console_window.hwndBuffer, HWND_TOP, BORDERW, ERROR_HEIGHT + BORDERH*2, rect.right - BORDERW*2, rect.bottom - sth - ERROR_HEIGHT - BORDERH*3 + 1, SWP_NOZORDER );
+			} else {
+				SetWindowPos( s_console_window.hwndBuffer, HWND_TOP, BORDERW, BORDERH, rect.right - BORDERW*2, rect.bottom - sth - INPUT_HEIGHT - BORDERH*3 - 2, SWP_NOZORDER );
+			}
+
+			if ( s_console_window.hwndErrorBox ) {
+				SetWindowPos( s_console_window.hwndErrorBox, HWND_TOP, BORDERW, BORDERH, rect.right - BORDERW*2, ERROR_HEIGHT, SWP_NOZORDER );
+				InvalidateRect( s_console_window.hwndErrorBox, NULL, FALSE );
+			}
+
+			if ( s_console_window.hwndInputLine ) {
+				SetWindowPos( s_console_window.hwndInputLine, HWND_TOP, BORDERW, rect.bottom - sth - INPUT_HEIGHT - BORDERH, rect.right - BORDERW*2, INPUT_HEIGHT, SWP_NOZORDER );
+				InvalidateRect( s_console_window.hwndInputLine, NULL, FALSE );
+			}
+
+			if ( s_console_window.hwndStatusBar ) {
+				SetWindowPos( s_console_window.hwndStatusBar, HWND_TOP, BORDERW, rect.bottom, rect.right - BORDERW*2, 26, SWP_NOZORDER );
+				InvalidateRect( s_console_window.hwndStatusBar, NULL, FALSE );
+			}
+
+			// GetWindowRect( hWnd, &g_wv.conRect );
+
+			return 0;
+		}
+
+
 	case WM_COMMAND:
 		if ( wParam == COPY_ID )
 		{
@@ -247,6 +345,154 @@ static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     return DefWindowProc( hWnd, uMsg, wParam, lParam );
 }
 
+
+static void AddBufferText( const char *text, int textLength )
+{
+	int lineCount;
+	int pos, n;
+
+	if ( textLength + curConSize >= maxConSize ) {
+		lineCount = SendMessage( s_console_window.hwndBuffer, EM_GETLINECOUNT, 0, 0 );
+		// cut off half from total lines count
+		lineCount /= 2;
+		if ( lineCount <= 1 ) {
+			SetWindowText( s_console_window.hwndBuffer, T("") );
+		} else {
+			pos = SendMessage( s_console_window.hwndBuffer, EM_LINEINDEX, lineCount, 0 );
+			SendMessage( s_console_window.hwndBuffer, EM_SETSEL, 0, pos );
+			SendMessage( s_console_window.hwndBuffer, EM_REPLACESEL, FALSE, (LPARAM) TEXT("") );
+		}
+		curConSize = 0;
+	}
+
+	if ( !curConSize )
+		curConSize = GetWindowTextLength( s_console_window.hwndBuffer );
+
+	SendMessage( s_console_window.hwndBuffer, EM_GETSEL, (WPARAM)(LPDWORD)&pos, (LPARAM)(LPDWORD)&n );
+	if ( pos != curConSize || n != curConSize ) {
+		SendMessage( s_console_window.hwndBuffer, EM_SETSEL, curConSize, curConSize );
+	}
+
+	// put this text into the windows console
+	//SendMessage( s_wcd.hwndBuffer, EM_LINESCROLL, 0, 0xffff );
+	SendMessage( s_console_window.hwndBuffer, EM_SCROLLCARET, 0, 0 );
+	SendMessage( s_console_window.hwndBuffer, EM_REPLACESEL, 0, (LPARAM) AtoW( text ) );
+
+	curConSize += textLength;
+}
+
+
+static LRESULT WINAPI BufferWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	static UINT bufTimerID;
+	int v;
+
+	switch ( uMsg ) {
+
+	case WM_VSCROLL:
+		if ( (int)LOWORD(wParam) == SB_ENDSCROLL ) {
+			if ( bufTimerID != 0 ) { 
+				KillTimer( hWnd, bufTimerID );
+				bufTimerID = 0;
+			}
+		} else {
+			if ( bufTimerID == 0 && (v = GetTimerMsec()) > 0 ) {
+				bufTimerID = SetTimer( hWnd, BUF_TIMER_ID, v, NULL );
+			}
+		}
+		break;
+
+	case WM_CAPTURECHANGED:
+		if ( (HWND)lParam == hWnd ) {
+			if ( bufTimerID == 0 && (v = GetTimerMsec()) > 0 )
+				bufTimerID = SetTimer( hWnd, BUF_TIMER_ID, v, NULL );
+		} else {
+			if ( bufTimerID != 0 ) { 
+				KillTimer( hWnd, bufTimerID );
+				bufTimerID = 0;
+			}
+		}
+		return 0;
+
+	case WM_TIMER:
+
+		if ( wParam == TEX_TIMER_ID && texTimerID != 0 ) {
+			if ( conBufPos ) { 
+				// dump text
+				AddBufferText( conBuffer, conBufPos );
+				conBufPos = 0;
+			} else {
+				// kill timer
+				KillTimer( hWnd, texTimerID );
+				texTimerID = 0;
+			}
+		}
+		return 0;
+	
+	case WM_CONTEXTMENU:
+		return 0;
+	}
+
+	return CallWindowProc( (WNDPROC) s_console_window.SysBufferWndProc, hWnd, uMsg, wParam, lParam );
+}
+
+
+LRESULT WINAPI StatusWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	HGLOBAL hMem;
+	TCHAR *text;
+	int len;
+
+	switch (uMsg)
+	{
+
+	case WM_COMMAND:
+		if ( wParam == COPY_ID )
+		{
+			if ( OpenClipboard( s_console_window.hWnd ) )
+			{
+				EmptyClipboard();
+				len = GetWindowTextLength( s_console_window.hwndBuffer );
+				if ( len > 0 ) {
+					hMem = GlobalAlloc( GMEM_MOVEABLE | GMEM_DDESHARE | GMEM_ZEROINIT, 
+						(len + 1) * sizeof( TCHAR ) );
+					if ( hMem != NULL ) {
+						text = ( TCHAR* )GlobalLock( hMem );
+						if ( text != NULL ) {
+							GetWindowText( s_console_window.hwndBuffer, text, len + 1 );
+						}
+						GlobalUnlock( hMem );
+#ifdef UNICODE
+						SetClipboardData( CF_UNICODETEXT, hMem );
+#else
+						SetClipboardData( CF_TEXT, hMem );
+#endif
+					}
+				}
+				CloseClipboard();
+			}
+			if ( s_console_window.hwndInputLine ) {
+				SetFocus( s_console_window.hwndInputLine );
+			}
+		}
+		else if ( wParam == CLEAR_ID )
+		{
+			ConClear();
+			if ( s_console_window.hwndInputLine ) {
+				SetFocus( s_console_window.hwndInputLine );
+			}
+		}
+		break;
+	case WM_LBUTTONDBLCLK:
+	case WM_LBUTTONDOWN:
+		if ( s_console_window.hwndInputLine ) {
+			SetFocus( s_console_window.hwndInputLine );
+		}
+		break;
+    }
+
+	return CallWindowProc( (WNDPROC)s_console_window.SysStatusWndProc, hWnd, uMsg, wParam, lParam );
+}
 
 
 static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -338,10 +584,22 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			return 0;
 		if ( wParam == VK_RETURN )
 		{
-			GetWindowText( s_console_window.hwndInputLine, inputBuffer, sizeof( inputBuffer ) );
+			GetWindowText( hWnd, inputBuffer, sizeof( inputBuffer ) );
 
-			strncat( s_console_window.consoleText, inputBuffer, 
-				sizeof( s_console_window.consoleText ) - (int)strlen( s_console_window.consoleText ) - 5 );
+			Q_strncpyz( console.buffer, WtoA( inputBuffer ), sizeof( console.buffer ) );
+			
+			DWORD pos;
+			SendMessage( hWnd, EM_GETSEL, (WPARAM) &pos, (LPARAM) 0 );
+			console.cursor = pos;
+			// Con_SaveField( &console );
+
+			char* s = console.buffer;
+
+			while ( *s == '\\' || *s == '/' ) // skip leading slashes
+				s++;
+			
+			strncat( s_console_window.consoleText, s, 
+				sizeof( s_console_window.consoleText ) - (int)strlen( s_console_window.consoleText ) - 2 );
 			strcat( s_console_window.consoleText, "\n" );
 
 			SetWindowText( s_console_window.hwndInputLine, "" );
@@ -378,13 +636,39 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 }
 
 
+void QDECL Sys_SetStatus(const char *format, ...)
+{
+	va_list		argptr;
+	char		text[256];
+
+	if (s_console_window.hwndStatusBar == NULL)
+		return;
+
+	text[0] = ' '; // add leading space for better look :P
+	va_start(argptr, format);
+	Q_vsnprintf(text + 1, sizeof(text) - 1, format, argptr);
+	va_end(argptr);
+
+	SendMessage(s_console_window.hwndStatusBar, SB_SETTEXT, (WPARAM)1 | 0, (LPARAM)AtoW(text));
+}
+
+
 void Sys_CreateConsole( void )
-{	
-	const char * const pDEDCLASS = "Console";
+{
+	const char * const pDEDCLASS = "WinConsole";
+	
+	int statusFontHeight= -11;
 	int widths[2] = { 140, -1 };
 	int borders[3];
-	const int DEDSTYLE = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
-	
+	int x, y, w, h;
+	int con_x, con_y;
+
+	HMONITOR hMonitor;
+	MONITORINFO mInfo;
+	POINT		p;
+
+	const int DEDSTYLE = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX;
+
 	WNDCLASS wc;
 
 	wc.style         = 0;
@@ -403,28 +687,59 @@ void Sys_CreateConsole( void )
 
 	RECT rect;
 	rect.left = 0;
-	rect.right = 800;
+	rect.right = DEFAULT_WIDTH;
 	rect.top = 0;
-	rect.bottom = 600;
+	rect.bottom = DEFAULT_HEIGHT;
 
 	// Calculates the required size of the window rectangle, 
 	// based on the desired client rectangle size.
 	// The window rectangle can then be passed to the CreateWindow function
 	// to create a window whose client area is the desired size.
 	AdjustWindowRect( &rect, DEDSTYLE, FALSE );
-/*
+
 	// Retrieves a handle to the desktop window. The desktop window covers the entire screen. 
 	// The desktop window is the area on top of which other windows are painted.
+	// try to use command line provided coodinates to locate primary monitor
 
-	HDC hDC = GetDC( GetDesktopWindow() );
-	int swidth = GetDeviceCaps( hDC, HORZRES );
-	int sheight = GetDeviceCaps( hDC, VERTRES );
-	ReleaseDC( GetDesktopWindow(), hDC );
-*/
-	// well, g_wv.hInstance get initialed before 
-	s_console_window.hWnd = CreateWindow(
-		pDEDCLASS, "Console Arena", DEDSTYLE,
-		CW_USEDEFAULT, CW_USEDEFAULT, rect.right, rect.bottom,
+	GetCursorPos( &p );
+	
+	
+	memset( &mInfo, 0, sizeof( mInfo ) );
+	mInfo.cbSize = sizeof( MONITORINFO );
+	// Query display dimensions
+	hMonitor = MonitorFromPoint( p, MONITOR_DEFAULTTONEAREST );
+	if ( hMonitor && GetMonitorInfo( hMonitor, &mInfo ) ) {
+		// current monitor info
+		w = mInfo.rcMonitor.right - mInfo.rcMonitor.left;
+		h = mInfo.rcMonitor.bottom - mInfo.rcMonitor.top;
+		x = mInfo.rcMonitor.left;
+		y = mInfo.rcMonitor.top;
+	} else {
+		// primary display info
+		HDC hDC = GetDC( GetDesktopWindow() );
+		w = GetDeviceCaps( hDC, HORZRES );
+		h = GetDeviceCaps( hDC, VERTRES );
+		x = 0;
+		y = 0;
+		ReleaseDC( GetDesktopWindow(), hDC );
+	}
+
+
+	int fontWidth = -8;
+	int fontHeight = -12;
+
+	s_console_window.windowWidth = rect.right - rect.left + 1;
+	s_console_window.windowHeight = rect.bottom - rect.top + 1;
+
+
+	{
+		con_x = x + ( w - s_console_window.windowWidth ) / 2;
+		con_y = y + ( h - s_console_window.windowHeight ) / 2;
+	}
+
+	s_console_window.hWnd = CreateWindowEx( 0, pDEDCLASS,
+		CONSOLE_WINDOW_TITLE, DEDSTYLE, con_x, con_y,
+		s_console_window.windowWidth, s_console_window.windowHeight,
 		NULL, NULL, g_wv.hInstance, NULL );
 
 	if ( s_console_window.hWnd == NULL )
@@ -432,33 +747,28 @@ void Sys_CreateConsole( void )
 		return;
 	}
 
-	//
-	// create fonts
-	//
-	// The GetDC function retrieves a handle to a device context (DC) 
-	// for the client area of a specified window or for the entire screen. 
-	// You can use the returned handle in subsequent GDI functions to draw in the DC.
-	// The device context is an opaque data structure, whose values are used internally by GDI.
-	HDC hDC = GetDC( s_console_window.hWnd );
+	InitCommonControls();
 
-	// Multiplies two 32-bit values and then divides the 64-bit result by a third 32-bit value.
-	// The final result is rounded to the nearest integer.
-	// The GetDeviceCaps function retrieves device-specific information for the specified device.
-	int nHeight = -MulDiv( 8, GetDeviceCaps( hDC, LOGPIXELSY), 72);
+	s_console_window.hfBufferFont = CreateFont( fontHeight, fontWidth,
+		0, 0, FW_DONTCARE, 0, 0, 0,
+		DEFAULT_CHARSET,
+		OUT_RASTER_PRECIS,
+		CLIP_DEFAULT_PRECIS,
+		NONANTIALIASED_QUALITY,
+		FIXED_PITCH | FF_MODERN,
+		T("Terminal") );
 
-	s_console_window.hfBufferFont = CreateFont( nHeight, 0,
-		0, 0, FW_LIGHT, 0, 0, 0,
+	s_console_window.hfStatusFont = CreateFont( statusFontHeight, 0,
+		0, 0, FW_NORMAL, 0, 0, 0,
 		DEFAULT_CHARSET,
 		OUT_DEFAULT_PRECIS,
 		CLIP_DEFAULT_PRECIS,
 		DEFAULT_QUALITY,
-		FF_MODERN | FIXED_PITCH,
-		"Courier New" );
+		DEFAULT_PITCH,
+		"Tahoma" );
 
 	s_console_window.hwndStatusBar = CreateWindow( STATUSCLASSNAME, NULL, WS_VISIBLE | WS_CHILD,
 		1,1,32,32, s_console_window.hWnd, NULL, g_wv.hInstance, NULL );
-
-	ReleaseDC( s_console_window.hWnd, hDC );
 
 	// split statusbar into parts and set styles
 	SendMessage( s_console_window.hwndStatusBar, WM_SETFONT, ( WPARAM ) s_console_window.hfStatusFont, 0 );
@@ -470,48 +780,47 @@ void Sys_CreateConsole( void )
 	SendMessage( s_console_window.hwndStatusBar, SB_GETRECT, 0, (LPARAM)&rect );
 	rect.left += borders[1];
 	rect.right -= borders[1];
-	//
+	x = rect.left;
+	h = rect.bottom - rect.top - 1;
+	w = (rect.right - rect.left - 4) / 2;
+
+	// create the buttons 
+	s_console_window.hwndButtonCopy = CreateWindow( T("button"), T("copy"), WS_VISIBLE | WS_CHILD,
+		x, rect.top, w, h, s_console_window.hwndStatusBar, (HMENU)(LRESULT)COPY_ID, g_wv.hInstance, NULL );
+	x += w + 4;
+
+	s_console_window.hwndButtonClear = CreateWindow( T("button"), T("clear"), WS_VISIBLE | WS_CHILD,
+		x, rect.top, w, h, s_console_window.hwndStatusBar, (HMENU)(LRESULT)CLEAR_ID, g_wv.hInstance, NULL );
+
+	SendMessage( s_console_window.hwndButtonCopy, WM_SETFONT, ( WPARAM ) s_console_window.hfStatusFont, 0 );
+	SendMessage( s_console_window.hwndButtonClear, WM_SETFONT, ( WPARAM ) s_console_window.hfStatusFont, 0 );
+
+	int sth = GetStatusBarHeight();
+	GetClientRect( s_console_window.hWnd, &rect );
+
+	// create fonts
+	//hDC = GetDC( s_wcd.hWnd );
+	//nHeight = -MulDiv( 8, GetDeviceCaps( hDC, LOGPIXELSY ), 72);
+	//ReleaseDC( s_wcd.hWnd, hDC );
+
 	// create the input line
-	//
-	s_console_window.hwndInputLine = CreateWindow("edit", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER |
+	s_console_window.hwndInputLine = CreateWindow( T("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER |
 		ES_LEFT | ES_AUTOHSCROLL,
-		10, 515, 730, 20,
+		BORDERW, rect.bottom - sth - INPUT_HEIGHT - BORDERH, rect.right - BORDERW*2, INPUT_HEIGHT,
 		s_console_window.hWnd,
-		(HMENU)INPUT_ID,	// child window ID
-		g_wv.hInstance, NULL);
+		(HMENU)(LRESULT)INPUT_ID,	// child window ID
+		g_wv.hInstance, NULL );
 
-	SendMessage(s_console_window.hwndInputLine, WM_SETFONT, (WPARAM)s_console_window.hfBufferFont, 0);
-
-	//
 	// create the scrollbuffer
-	//
-	s_console_window.hwndBuffer = CreateWindow("edit", NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_BORDER |
-		ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY,
-		10, 10, 775, 500,
+	s_console_window.hwndBuffer = CreateWindow( T("edit"), NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_BORDER |
+		ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_NOHIDESEL,
+		BORDERW, BORDERH, rect.right - BORDERW*2, rect.bottom - sth - INPUT_HEIGHT - BORDERH*3 - 2,
 		s_console_window.hWnd,
-		(HMENU)EDIT_ID,	// child window ID
-		g_wv.hInstance, NULL);
-	SendMessage(s_console_window.hwndBuffer, WM_SETFONT, (WPARAM)s_console_window.hfBufferFont, 0);
+		(HMENU)(LRESULT)EDIT_ID,	// child window ID
+		g_wv.hInstance, NULL );
 
-
-	//
-	// create the buttons
-	//
-	s_console_window.hwndButtonCopy = CreateWindow( "button", NULL, BS_PUSHBUTTON | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-												10, 540, 72, 24,
-												s_console_window.hWnd, 
-												( HMENU ) COPY_ID,	// child window ID
-												g_wv.hInstance, NULL );
-	SendMessage( s_console_window.hwndButtonCopy, WM_SETTEXT, 0, ( LPARAM ) "copy" );
-
-	s_console_window.hwndButtonClear = CreateWindow( "button", NULL, BS_PUSHBUTTON | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-												90, 540, 72, 24,
-												s_console_window.hWnd, 
-												( HMENU ) CLEAR_ID,	// child window ID
-												g_wv.hInstance, NULL );
-	SendMessage( s_console_window.hwndButtonClear, WM_SETTEXT, 0, ( LPARAM ) "clear" );
-
-
+	SendMessage( s_console_window.hwndBuffer, WM_SETFONT, ( WPARAM ) s_console_window.hfBufferFont, 0 );
+	SendMessage( s_console_window.hwndInputLine, WM_SETFONT, ( WPARAM ) s_console_window.hfBufferFont, 0 );
 
 	// To write code that is compatible with both 32 bit and 64 bit 
 	// versions of Windows, use SetWindowLongPtr. When compiling for
@@ -529,16 +838,28 @@ void Sys_CreateConsole( void )
 
 	// GWLP_WNDPROC: Sets a new address for the window procedure.
 	// dwNewLong: The replacement value.
-	s_console_window.SysInputLineWndProc = (WNDPROC)SetWindowLongPtr( 
-		s_console_window.hwndInputLine, GWLP_WNDPROC, (LONG_PTR)InputLineWndProc);
-
-
-	ShowWindow( s_console_window.hWnd, SW_SHOWDEFAULT);
+	s_console_window.SysInputLineWndProc = (WNDPROC)SetWindowLongPtr( s_console_window.hwndInputLine, GWLP_WNDPROC, ( LONG_PTR ) InputLineWndProc );
+	s_console_window.SysStatusWndProc = SetWindowLongPtr( s_console_window.hwndStatusBar, GWLP_WNDPROC, ( LONG_PTR ) StatusWndProc );
+	s_console_window.SysBufferWndProc = SetWindowLongPtr( s_console_window.hwndBuffer, GWLP_WNDPROC, ( LONG_PTR ) BufferWndProc );
+/*
+	if ( title && *title ) {
+		SetWindowText( s_console_window.hWnd, AtoW( title ) );
+	}
+*/
+	ShowWindow( s_console_window.hWnd, SW_SHOWDEFAULT );
 	UpdateWindow( s_console_window.hWnd );
-	
 	SetForegroundWindow( s_console_window.hWnd );
 	
-	SetFocus( s_console_window.hwndInputLine );
+	SendMessage( s_console_window.hwndBuffer, EM_SETLIMITTEXT, MAX_CONSIZE, 0 );
+	maxConSize = SendMessage( s_console_window.hwndBuffer, EM_GETLIMITTEXT, 0, 0 );
+
+	SendMessage( s_console_window.hwndInputLine, EM_SETLIMITTEXT, MAX_EDIT_LINE, 0 );
+
+	Field_Clear( &console );
+
+	ConClear();
+
+	Sys_SetStatus( "Server is not running" );
 
 	s_console_window.visLevel = 1;
 }
@@ -596,22 +917,6 @@ void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
 }
 
 
-
-void QDECL Sys_SetStatus( const char *format, ... )
-{
-	va_list		argptr;
-	char		text[256];
-
-	if ( s_console_window.hwndStatusBar == NULL )
-		return;
-
-	text[0] = ' '; // add leading space for better look :P
-	va_start( argptr, format );
-	Q_vsnprintf( text + 1, sizeof( text ) - 1, format, argptr );
-	va_end( argptr );
-
-	SendMessage( s_console_window.hwndStatusBar, SB_SETTEXT, (WPARAM) 1 | 0, (LPARAM) AtoW( text ) );
-}
 
 
 
@@ -733,4 +1038,5 @@ void Sys_SetErrorText( const char *buf )
 		DestroyWindow( s_console_window.hwndInputLine );
 		s_console_window.hwndInputLine = NULL;
 	}
+	Sys_SetStatus( "Fatal error occured" );
 }

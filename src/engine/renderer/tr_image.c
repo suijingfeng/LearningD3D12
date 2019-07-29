@@ -320,6 +320,7 @@ void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only
 {
 	if ( only_gamma )
 	{
+/*
 		if ( !glConfig.deviceSupportsGamma )
 		{
 
@@ -333,15 +334,16 @@ void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only
 				p[2] = s_gammatable[p[2]];
 			}
 		}
+*/
 	}
 	else
 	{
 
 		byte* p = (byte *)in;
 
-		int c = inwidth*inheight;
+		const int c = inwidth*inheight;
 
-		if ( glConfig.deviceSupportsGamma )
+		if ( 1 )
 		{
 			for (int i=0 ; i<c ; ++i, p+=4)
 			{
@@ -350,6 +352,7 @@ void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only
 				p[2] = s_intensitytable[p[2]];
 			}
 		}
+/*
 		else
 		{
 			for (int i=0 ; i<c ; ++i, p+=4)
@@ -359,6 +362,7 @@ void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only
 				p[2] = s_gammatable[s_intensitytable[p[2]]];
 			}
 		}
+*/
 	}
 }
 
@@ -1799,17 +1803,7 @@ void R_SetColorMappings( void )
 	// setup the overbright lighting
 	tr.overbrightBits = r_overBrightBits->integer;
 	
-	if ( ( qfalse == glConfig.deviceSupportsGamma ) || 
-		( r_fullscreen->integer == 0 ) )
-	{
-		// 1) need hardware gamma for overbright
-		
-		// never overbright in windowed mode
-		// why ? suijingfeng
-		// because the gamma ramp turn the entire window gamma ...
-		// dont do this in non fullscreen mode.
-		tr.overbrightBits = 0;
-	}
+
 
 
 	// allow 2 overbright bits in 24 bit, but only 1 in 16 bit
@@ -1824,7 +1818,8 @@ void R_SetColorMappings( void )
 		tr.overbrightBits = 0;
 	}
 
-	tr.identityLight = 1.0f / ( 1 << tr.overbrightBits );
+	// tr.identityLight = 1.0f / ( 1 << tr.overbrightBits );
+	tr.identityLight = 0.5;
 	tr.identityLightByte = 255 * tr.identityLight;
 
 
@@ -1846,13 +1841,13 @@ void R_SetColorMappings( void )
 	{
 		int inf = ((g == 1.0f) ? i : (255 * pow(i / 255.0f, 1.0f / g) + 0.5f));
 
-		inf <<= shift;
+		inf *= 1.6;
 	
 		
 		s_gammatable[i] = inf > 255 ? 255 : inf;
 	}
 
-	for (int i=0 ; i<256 ; ++i)
+	for (int i=0 ; i<256; ++i)
 	{
 		int j = i * r_intensity->value;
 		if (j > 255) {
@@ -1861,10 +1856,12 @@ void R_SetColorMappings( void )
 		s_intensitytable[i] = j;
 	}
 
+/*
 	if ( glConfig.deviceSupportsGamma )
 	{
 		ri.GLimpSetGamma( s_gammatable, s_gammatable, s_gammatable );
 	}
+*/
 }
 
 /*
