@@ -51,12 +51,6 @@ int Sys_Milliseconds (void)
 }
 
 
-int Sys_GetProcessorId( void )
-{
-	return CPUID_GENERIC;
-}
-
-
 char* Sys_GetCurrentUser( void )
 {
 	static char s_userName[1024];
