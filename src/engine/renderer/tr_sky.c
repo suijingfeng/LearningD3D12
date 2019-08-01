@@ -390,7 +390,7 @@ static void DrawSkyBox( shader_t *shader )
 	sky_min = 0;
 	sky_max = 1;
 
-	Com_Memset( s_skyTexCoords, 0, sizeof( s_skyTexCoords ) );
+	memset( s_skyTexCoords, 0, sizeof( s_skyTexCoords ) );
 
 	for(int i=0; i<6; ++i)
 	{
@@ -493,7 +493,7 @@ static void DrawSkyBox( shader_t *shader )
 				}
 			}
 
-			Com_Memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
+			memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
 
 			dx_bind_geometry();
 			dx_shade_geometry(dx.skybox_pipeline, false, 
@@ -728,7 +728,7 @@ void RB_StageIteratorSky( void )
 	{
         float modelMatrix_original[16];
 
-		Com_Memcpy(modelMatrix_original, dx_world.modelview_transform, sizeof(float[16]));
+		memcpy(modelMatrix_original, dx_world.modelview_transform, sizeof(float[16]));
 
         float skybox_translate[16] = {
             1, 0, 0, 0,
@@ -747,7 +747,7 @@ void RB_StageIteratorSky( void )
 		DrawSkyBox( tess.shader );
 		qglPopMatrix();
 
-		Com_Memcpy(dx_world.modelview_transform, modelMatrix_original, sizeof(float[16]));
+		memcpy(dx_world.modelview_transform, modelMatrix_original, sizeof(float[16]));
 	}
 
 	// generate the vertexes for all the clouds, which will be drawn

@@ -432,16 +432,16 @@ void R_Init( void )
 	ri.Printf( PRINT_ALL, "----- R_Init -----\n" );
 
 	// clear all our internal state
-	Com_Memset( &tr, 0, sizeof( tr ) );
-	Com_Memset( &backEnd, 0, sizeof( backEnd ) );
-	Com_Memset( &tess, 0, sizeof( tess ) );
-	Com_Memset( &dx_world, 0, sizeof(struct Dx_World));
+	memset( &tr, 0, sizeof( tr ) );
+	memset( &backEnd, 0, sizeof( backEnd ) );
+	memset( &tess, 0, sizeof( tess ) );
+	memset( &dx_world, 0, sizeof(struct Dx_World));
 
 
 	if ( (intptr_t)tess.xyz & 15 ) {
 		ri.Printf(PRINT_ALL, "WARNING: tess.xyz not 16 byte aligned\n" );
 	}
-	Com_Memset( tess.constantColor255, 255, sizeof( tess.constantColor255 ) );
+	memset( tess.constantColor255, 255, sizeof( tess.constantColor255 ) );
 
 	R_Register();
 
@@ -616,7 +616,7 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t *rimp)
 
 	ri = *rimp;
 
-	Com_Memset( &re, 0, sizeof( re ) );
+	memset( &re, 0, sizeof( re ) );
 
 	if ( apiVersion != REF_API_VERSION )
 	{
