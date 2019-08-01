@@ -45,13 +45,13 @@ void R_Init( void )
 
     R_ClearBackendState();
 
-
+	ri.Printf(PRINT_ALL, "init function tables. \n");
 	//
 	// init function tables
 	//
-	for ( i = 0; i < FUNCTABLE_SIZE; i++ )
+	for ( i = 0; i < FUNCTABLE_SIZE; ++i )
 	{
-		tr.sinTable[i]		= sin( i * ( 2.0 * M_PI / (float)(FUNCTABLE_SIZE - 1) ) );
+		tr.sinTable[i]		= sinf( i * ( 2.0 * M_PI / (float)(FUNCTABLE_SIZE - 1) ) );
 		tr.squareTable[i]	= ( i < FUNCTABLE_SIZE/2 ) ? 1.0f : -1.0f;
 		tr.sawToothTable[i] = (float)i / FUNCTABLE_SIZE;
 		tr.inverseSawToothTable[i] = 1.0f - tr.sawToothTable[i];
@@ -73,12 +73,14 @@ void R_Init( void )
 		}
 	}
 
+	ri.Printf(PRINT_ALL, "R_InitDisplayResolution. \n");
+
     R_InitDisplayResolution();
 
 	R_InitFogTable();
-
+	ri.Printf(PRINT_ALL, "R_InitFogTable. \n");
 	R_NoiseInit();
-
+	ri.Printf(PRINT_ALL, "R_NoiseInit. \n");
 	R_Register();
 
 	// make sure all the commands added here are also

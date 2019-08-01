@@ -474,6 +474,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\renderer_vulkan\renderer_vulkan.vcxproj">
+      <Project>{d62893fb-4fd8-4205-89a7-7266ad30c39a}</Project>
+    </ProjectReference>
     <ProjectReference Include="botlib.vcxproj">
       <Project>{a410161f-ae9f-485d-a01f-5294891430a6}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

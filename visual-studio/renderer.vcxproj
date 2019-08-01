@@ -123,6 +123,7 @@
     <ClCompile Include="..\src\engine\renderer\tr_backend.c" />
     <ClCompile Include="..\src\engine\renderer\tr_bsp.c" />
     <ClCompile Include="..\src\engine\renderer\tr_cmds.c" />
+    <ClCompile Include="..\src\engine\renderer\tr_common.c" />
     <ClCompile Include="..\src\engine\renderer\tr_curve.c" />
     <ClCompile Include="..\src\engine\renderer\tr_font.c" />
     <ClCompile Include="..\src\engine\renderer\tr_image.c" />

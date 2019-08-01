@@ -310,7 +310,7 @@ void R_Register( void )
 	//
 	// latched and archived variables
 	//
-
+	ri.Printf(PRINT_ALL, " R_Register \n");
 
 	r_picmip = ri.Cvar_Get ("r_picmip", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_roundImagesDown = ri.Cvar_Get ("r_roundImagesDown", "1", CVAR_ARCHIVE | CVAR_LATCH );

@@ -7,7 +7,7 @@
 #include "glConfig.h"
 #include "ref_import.h"
 
-#include "../win32/win_public.h"
+#include "../platform/win_public.h"
 
 #define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
 

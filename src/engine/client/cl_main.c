@@ -2259,6 +2259,9 @@ CL_InitRenderer
 */
 void CL_InitRenderer( void )
 {
+
+	Com_Printf("CL_InitRenderer\n");
+
 	// this sets up the renderer and calls R_Init
 	re.BeginRegistration( &cls.glconfig );
 
@@ -2337,7 +2340,7 @@ void CL_InitRef( void )
 #ifdef USE_RENDERER_DLOPEN
 
 	GetRefAPI_t	GetRefAPI;
-	char dllName[MAX_OSPATH] = "renderer.dll";
+	char dllName[MAX_OSPATH] = "renderer_vulkan.dll";
 
 	Com_Printf("\n-------- USE_RENDERER_DLOPEN --------\n");
 
@@ -2360,6 +2363,10 @@ void CL_InitRef( void )
 	{
 		Com_Error(ERR_FATAL, "Can't load symbol GetRefAPI: GetRefAPI");
 	}
+	else
+	{
+		Com_Printf(" GetRefAPI: %p success.\n", GetRefAPI);
+	}
 
 #endif
 
@@ -2380,7 +2387,10 @@ void CL_InitRef( void )
 #endif
 	ri.Hunk_AllocateTempMemory = Hunk_AllocateTempMemory;
 	ri.Hunk_FreeTempMemory = Hunk_FreeTempMemory;
+
+	ri.CM_ClusterPVS = CM_ClusterPVS;
 	ri.CM_DrawDebugSurface = CM_DrawDebugSurface;
+
 	ri.FS_ReadFile = FS_ReadFile;
 	ri.FS_FreeFile = FS_FreeFile;
 	ri.FS_WriteFile = FS_WriteFile;
@@ -2390,6 +2400,10 @@ void CL_InitRef( void )
 	ri.FS_FileExists = FS_FileExists;
 	ri.Cvar_Get = Cvar_Get;
 	ri.Cvar_Set = Cvar_Set;
+	ri.Cvar_SetValue = Cvar_SetValue;
+	ri.Cvar_CheckRange = Cvar_CheckRange;
+	ri.Cvar_SetDescription = Cvar_SetDescription;
+	ri.Cvar_VariableIntegerValue = Cvar_VariableIntegerValue;
 
 	// cinematic stuff
 

@@ -526,7 +526,7 @@ static qboolean R_LoadMD4( model_t *mod, void *buffer, const char *mod_name ) {
 
 void RE_BeginRegistration( glconfig_t *glconfigOut )
 {
-
+	ri.Printf(PRINT_ALL, "----- RE_BeginRegistration -----\n");
 	R_Init();
 
 	*glconfigOut = glConfig;

@@ -137,7 +137,7 @@ void R_SetWinMode(int mode, unsigned int width, unsigned int height, unsigned in
 void R_InitDisplayResolution( void )
 {
     // leilei - -2 is so convenient for modern day PCs
-    r_mode = ri.Cvar_Get( "r_mode", "-2", CVAR_ARCHIVE | CVAR_LATCH );
+
     r_customwidth = ri.Cvar_Get( "r_customwidth", "960", CVAR_ARCHIVE | CVAR_LATCH );
     r_customheight = ri.Cvar_Get( "r_customheight", "540", CVAR_ARCHIVE | CVAR_LATCH );
     r_customaspect = ri.Cvar_Get( "r_customaspect", "1.78", CVAR_ARCHIVE | CVAR_LATCH );

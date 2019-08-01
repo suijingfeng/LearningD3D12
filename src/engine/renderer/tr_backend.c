@@ -1089,11 +1089,12 @@ void RB_ExecuteRenderCommands( const void *data )
 			backEnd.pc.msec = ri.Milliseconds() - t1;
 
 			// DX12
+			/*
 			if (com_errorEntered && (begin_frame_called && !end_frame_called))
 			{
 				dx_end_frame();
 			}
-
+			*/
 			return;
 		}
 	}

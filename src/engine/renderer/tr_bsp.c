@@ -1536,6 +1536,18 @@ static	void R_LoadPlanes( lump_t *l ) {
 	}
 }
 
+
+unsigned R_ColorBytes4(float r, float g, float b, float a) {
+	unsigned	i;
+
+	((byte *)&i)[0] = r * 255;
+	((byte *)&i)[1] = g * 255;
+	((byte *)&i)[2] = b * 255;
+	((byte *)&i)[3] = a * 255;
+
+	return i;
+}
+
 /*
 =================
 R_LoadFogs
@@ -1626,7 +1638,7 @@ static	void R_LoadFogs( lump_t *l, lump_t *brushesLump, lump_t *sidesLump ) {
 
 		out->parms = shader->fogParms;
 
-		out->colorInt = ColorBytes4 ( shader->fogParms.color[0] * tr.identityLight, 
+		out->colorInt = R_ColorBytes4 ( shader->fogParms.color[0] * tr.identityLight, 
 			                          shader->fogParms.color[1] * tr.identityLight, 
 			                          shader->fogParms.color[2] * tr.identityLight, 1.0 );
 
