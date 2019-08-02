@@ -109,6 +109,30 @@ void FastNormalize2f( const float* v, float* out)
 }
 
 
+void R_SetPlaneSignbits(cplane_t * const out)
+{
+	int	bits = 0;
+
+	// for fast box on planeside test
+
+	if (out->normal[0] < 0)
+	{
+		bits |= 1;
+	}
+	if (out->normal[1] < 0)
+	{
+		bits |= 2;
+	}
+	if (out->normal[2] < 0)
+	{
+		bits |= 4;
+	}
+
+	out->signbits = bits;
+}
+
+
+
 //
 // common function replacements for modular renderer
 // 

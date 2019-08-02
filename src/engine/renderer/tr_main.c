@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "R_SortDrawSurfs.h"
 #include "dx_world.h"
 
+extern void R_SetPlaneSignbits(cplane_t * const out);
+
 trGlobals_t		tr;
 
 static const float s_flipMatrix[16] = {
@@ -515,7 +517,7 @@ void R_SetupFrustum (void) {
 	for (i=0 ; i<4 ; i++) {
 		tr.viewParms.frustum[i].type = PLANE_NON_AXIAL;
 		tr.viewParms.frustum[i].dist = DotProduct (tr.viewParms.or.origin, tr.viewParms.frustum[i].normal);
-		SetPlaneSignbits( &tr.viewParms.frustum[i] );
+		R_SetPlaneSignbits( &tr.viewParms.frustum[i] );
 	}
 }
 

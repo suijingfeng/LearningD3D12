@@ -74,7 +74,7 @@ char * R_Strlwr( char * const s1 );
 
 void R_StripExtension(const char *in, char *out, int destsize);
 
-
+void R_SetPlaneSignbits(cplane_t * const out);
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *plane);
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
 
