@@ -339,7 +339,7 @@ void DX_CreateDevice(IDXGIFactory2* const pFactory, ID3D12Device** const ppDevic
 			
 			printWideStr(desc.Description);
 
-			// printOutputInfo(pHardwareAdapter);
+			printOutputInfo(pHardwareAdapter);
 
 			ri.Printf(PRINT_ALL, "\n");
 
