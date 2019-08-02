@@ -2363,14 +2363,11 @@ void CL_InitRef( void )
 	{
 		Com_Error(ERR_FATAL, "Can't load symbol GetRefAPI: GetRefAPI");
 	}
-<<<<<<< HEAD
-=======
 	else
 	{
-		Com_Printf(" GetRefAPI: %p success.\n", GetRefAPI);
+		Com_Printf(" Find dll enterpoint GetRefAPI success.\n");
 	}
 
->>>>>>> temp
 #endif
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
