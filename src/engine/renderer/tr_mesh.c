@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_mesh.c: triangle model functions
 
 #include "tr_local.h"
+#include "tr_common.h"
 
 static float ProjectRadius( float r, vec3_t location )
 {
@@ -168,7 +169,7 @@ static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs)
 		corner[i] = a > b ? a : b;
 	}
 
-	return VectorLength(corner);
+	return VectorLengthf(corner);
 }
 /*
 =================

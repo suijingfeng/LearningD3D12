@@ -81,6 +81,12 @@ void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
 
 void VectorCross( const vec3_t v1, const vec3_t v2, vec3_t cross );
 void VectorPerp(const float src[3], float dst[3]);
+
+static inline float VectorLengthf(const float v[3])
+{
+	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+}
+
 float MakeTwoPerpVectors(const float forward[3], float right[3], float up[3]);
 void Q_strncpyz(char *dest, const char *src, int destsize);
 

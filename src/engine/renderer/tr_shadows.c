@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "dx_world.h"
-
+#include "tr_common.h"
 /*
 
   for a projection shadow:
@@ -208,7 +208,7 @@ void RB_ShadowTessEnd( void )
 
 		VectorSubtract( v2, v1, d1 );
 		VectorSubtract( v3, v1, d2 );
-		CrossProduct( d1, d2, normal );
+		VectorCross( d1, d2, normal );
 
 		d = DotProduct( normal, lightDir );
 		if ( d > 0 ) {

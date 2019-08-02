@@ -502,7 +502,7 @@ void RB_SurfaceRailCore( void ) {
 	VectorNormalize( v1 );
 	VectorSubtract( end, backEnd.viewParms.or.origin, v2 );
 	VectorNormalize( v2 );
-	CrossProduct( v1, v2, right );
+	VectorCross( v1, v2, right );
 	VectorNormalize( right );
 
 	DoRailCore( start, end, right, len, r_railCoreWidth->integer );
@@ -534,7 +534,7 @@ void RB_SurfaceLightningBolt( void ) {
 	VectorNormalize( v1 );
 	VectorSubtract( end, backEnd.viewParms.or.origin, v2 );
 	VectorNormalize( v2 );
-	CrossProduct( v1, v2, right );
+	VectorCross( v1, v2, right );
 	VectorNormalize( right );
 
 	for ( i = 0 ; i < 4 ; i++ ) {

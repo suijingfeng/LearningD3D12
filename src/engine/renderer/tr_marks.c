@@ -295,7 +295,7 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 		VectorSubtract(points[(i+1)%numPoints], points[i], v1);
 		VectorAdd(points[i], projection, v2);
 		VectorSubtract(points[i], v2, v2);
-		CrossProduct(v1, v2, normals[i]);
+		VectorCross(v1, v2, normals[i]);
 		VectorNorm(normals[i]);
 		dists[i] = DotProduct(normals[i], points[i]);
 	}
@@ -303,7 +303,12 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 	VectorCopy(projectionDir, normals[numPoints]);
 	dists[numPoints] = DotProduct(normals[numPoints], points[0]) - 32;
 	VectorCopy(projectionDir, normals[numPoints+1]);
-	VectorInverse(normals[numPoints+1]);
+	
+	int nextpoint = numPoints + 1;
+	
+	normals[nextpoint][0] = -normals[nextpoint][0];
+	normals[nextpoint][1] = -normals[nextpoint][1];
+	normals[nextpoint][2] = -normals[nextpoint][2];
 	dists[numPoints+1] = DotProduct(normals[numPoints+1], points[0]) - 20;
 	numPlanes = numPoints + 2;
 
@@ -356,7 +361,7 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 					// check the normal of this triangle
 					VectorSubtract(clipPoints[0][0], clipPoints[0][1], v1);
 					VectorSubtract(clipPoints[0][2], clipPoints[0][1], v2);
-					CrossProduct(v1, v2, normal);
+					VectorCross(v1, v2, normal);
 					VectorNorm(normal);
 					if (DotProduct(normal, projectionDir) < -0.1) {
 						// add the fragments of this triangle
@@ -380,7 +385,7 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 					// check the normal of this triangle
 					VectorSubtract(clipPoints[0][0], clipPoints[0][1], v1);
 					VectorSubtract(clipPoints[0][2], clipPoints[0][1], v2);
-					CrossProduct(v1, v2, normal);
+					VectorCross(v1, v2, normal);
 					VectorNorm(normal);
 					if (DotProduct(normal, projectionDir) < -0.05) {
 						// add the fragments of this triangle
@@ -408,7 +413,7 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 			/*
 			VectorSubtract(clipPoints[0][0], clipPoints[0][1], v1);
 			VectorSubtract(clipPoints[0][2], clipPoints[0][1], v2);
-			CrossProduct(v1, v2, normal);
+			VectorCross(v1, v2, normal);
 			VectorNormalize(normal);
 			if (DotProduct(normal, projectionDir) > -0.5) continue;
 			*/

@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "tr_common.h"
+
 
 extern char* R_SkipPath(char *pathname);
 
@@ -658,7 +660,9 @@ void R_AddWorldSurfaces (void) {
 	R_MarkLeaves ();
 
 	// clear out the visible min/max
-	ClearBounds( tr.viewParms.visBounds[0], tr.viewParms.visBounds[1] );
+	
+	tr.viewParms.visBounds[0][0] = tr.viewParms.visBounds[0][1] = tr.viewParms.visBounds[0][2] = 99999;
+	tr.viewParms.visBounds[1][0] = tr.viewParms.visBounds[1][1] = tr.viewParms.visBounds[1][2] = -99999;
 
 	// perform frustum culling and add all the potentially visible surfaces
 	if ( tr.refdef.num_dlights > 32 ) {

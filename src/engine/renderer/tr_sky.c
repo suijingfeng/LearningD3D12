@@ -729,7 +729,7 @@ void RB_StageIteratorSky( void )
 	{
         float modelMatrix_original[16];
 
-		memcpy(modelMatrix_original, dx_world.modelview_transform, sizeof(float[16]));
+		memcpy(modelMatrix_original, dx_world.modelview_transform, 16*sizeof(float));
 
         float skybox_translate[16] = {
             1, 0, 0, 0,
@@ -748,7 +748,7 @@ void RB_StageIteratorSky( void )
 		DrawSkyBox( tess.shader );
 		qglPopMatrix();
 
-		memcpy(dx_world.modelview_transform, modelMatrix_original, sizeof(float[16]));
+		memcpy(dx_world.modelview_transform, modelMatrix_original, 16*sizeof(float));
 	}
 
 	// generate the vertexes for all the clouds, which will be drawn

@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
-
+#include "tr_common.h"
 /*
 
   THIS ENTIRE FILE IS BACK END
@@ -593,7 +593,7 @@ static void ComputeColors( shaderStage_t *pStage )
 				vec3_t v;
 
 				VectorSubtract( tess.xyz[i], backEnd.viewParms.or.origin, v );
-				len = VectorLength( v );
+				len = VectorLengthf( v );
 
 				len /= tess.shader->portalRange;
 

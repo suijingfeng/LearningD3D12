@@ -271,7 +271,7 @@ void DeformText( const char *text ) {
 	height[0] = 0;
 	height[1] = 0;
 	height[2] = -1;
-	CrossProduct( tess.normal[0], height, width );
+	VectorCross( tess.normal[0], height, width );
 
 	// find the midpoint of the box
 	VectorClear( mid );
@@ -383,7 +383,7 @@ static void AutospriteDeform( void ) {
 		mid[2] = 0.25f * (xyz[2] + xyz[6] + xyz[10] + xyz[14]);
 
 		VectorSubtract( xyz, mid, delta );
-		radius = VectorLength( delta ) * 0.707f;		// / sqrt(2)
+		radius = VectorLengthf( delta ) * 0.707f;		// / sqrt(2)
 
 		VectorScale( leftDir, radius, left );
 		VectorScale( upDir, radius, up );
@@ -395,7 +395,7 @@ static void AutospriteDeform( void ) {
 	  // compensate for scale in the axes if necessary
   	if ( backEnd.currentEntity->e.nonNormalizedAxes ) {
       float axisLength;
-		  axisLength = VectorLength( backEnd.currentEntity->e.axis[0] );
+		  axisLength = VectorLengthf( backEnd.currentEntity->e.axis[0] );
   		if ( !axisLength ) {
 	  		axisLength = 0;
   		} else {
@@ -496,7 +496,7 @@ static void Autosprite2Deform( void ) {
 		VectorSubtract( mid[1], mid[0], major );
 
 		// cross this with the view direction to get minor axis
-		CrossProduct( major, forward, minor );
+		VectorCross( major, forward, minor );
 		VectorNormalize( minor );
 		
 		// re-project the points

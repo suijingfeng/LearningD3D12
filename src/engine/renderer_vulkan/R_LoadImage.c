@@ -71,8 +71,7 @@ R_LoadNSE(const char * const pName, unsigned char **pic, int *width, int *height
     // no ext now
 
 
-    uint32_t i; 
-    for(i = 0; i < IMG_EXT_CNT; ++i)
+    for(unsigned int i = 0; i < IMG_EXT_CNT; ++i)
     {
         // strncpy(pPt, ExTable[i], 5); 
         pPt[0] = ExTable[i][0];

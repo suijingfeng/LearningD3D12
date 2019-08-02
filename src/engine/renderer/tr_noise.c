@@ -31,7 +31,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static float s_noise_table[NOISE_SIZE];
 static int s_noise_perm[NOISE_SIZE];
 
+#ifndef LERP
 #define LERP( a, b, w ) ( a * ( 1.0f - w ) + b * w )
+#endif
 
 static float GetNoiseValue( int x, int y, int z, int t )
 {

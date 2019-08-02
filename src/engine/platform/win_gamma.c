@@ -55,7 +55,7 @@ qboolean win_checkHardwareGamma( void )
 				( HIBYTE( s_oldHardwareGamma[1][255] ) <= HIBYTE( s_oldHardwareGamma[1][0] ) ) ||
 				( HIBYTE( s_oldHardwareGamma[2][255] ) <= HIBYTE( s_oldHardwareGamma[2][0] ) ) )
 		{
-			deviceSupportsGamma = qfalse;
+
 			Com_Printf( "WARNING: device has broken gamma support, generated gamma.dat\n" );
 		}
 

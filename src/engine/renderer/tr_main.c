@@ -304,7 +304,7 @@ void R_RotateForEntity( const trRefEntity_t *ent, const viewParms_t *viewParms,
 
 	// compensate for scale in the axes if necessary
 	if ( ent->e.nonNormalizedAxes ) {
-		axisLength = VectorLength( ent->e.axis[0] );
+		axisLength = VectorLengthf( ent->e.axis[0] );
 		if ( !axisLength ) {
 			axisLength = 0;
 		} else {
@@ -642,7 +642,7 @@ qboolean R_GetPortalOrientations( drawSurf_t *drawSurf, int entityNum,
 
 	VectorCopy( plane.normal, surface->axis[0] );
 	VectorPerp( surface->axis[1], surface->axis[0] );
-	CrossProduct( surface->axis[0], surface->axis[1], surface->axis[2] );
+	VectorCross( surface->axis[0], surface->axis[1], surface->axis[2] );
 
 	// locate the portal entity closest to this plane.
 	// origin will be the origin of the portal, origin2 will be
@@ -698,21 +698,21 @@ qboolean R_GetPortalOrientations( drawSurf_t *drawSurf, int entityNum,
 				d = (tr.refdef.time/1000.0f) * e->e.frame;
 				VectorCopy( camera->axis[1], transformed );
 				PointRotateAroundVector( camera->axis[1], camera->axis[0], transformed, d );
-				CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
+				VectorCross( camera->axis[0], camera->axis[1], camera->axis[2] );
 			} else {
 				// bobbing rotate, with skinNum being the rotation offset
 				d = sin( tr.refdef.time * 0.003f );
 				d = e->e.skinNum + d * 4;
 				VectorCopy( camera->axis[1], transformed );
 				PointRotateAroundVector( camera->axis[1], camera->axis[0], transformed, d );
-				CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
+				VectorCross( camera->axis[0], camera->axis[1], camera->axis[2] );
 			}
 		}
 		else if ( e->e.skinNum ) {
 			d = e->e.skinNum;
 			VectorCopy( camera->axis[1], transformed );
 			PointRotateAroundVector( camera->axis[1], camera->axis[0], transformed, d );
-			CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
+			VectorCross( camera->axis[0], camera->axis[1], camera->axis[2] );
 		}
 		*mirror = qfalse;
 		return qtrue;
@@ -861,11 +861,12 @@ static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf, vec4_t clipDest[128
 	{
 		vec3_t normal;
 		float dot;
-		float len;
+
 
 		VectorSubtract( tess.xyz[tess.indexes[i]], tr.viewParms.or.origin, normal );
 
-		len = VectorLengthSquared( normal );			// lose the sqrt
+		float len = normal[0]*normal[0]+ normal[1] * normal[1]+ normal[2] * normal[2];
+		// lose the sqrt
 		if ( len < shortest )
 		{
 			shortest = len;
@@ -1196,8 +1197,8 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 		transform_to_eye_space(&points[3*i], pb);
 		vec3_t q;
 		VectorSubtract(pb, pa, q);
-		CrossProduct(q, p, n);
-		if (VectorLength(n) > 1e-5)
+		VectorCross(q, p, n);
+		if (VectorLengthf(n) > 1e-5)
 			break;
 	}
 	if (DotProduct(n, pa) >= 0)

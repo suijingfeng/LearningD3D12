@@ -176,6 +176,8 @@ typedef int intptr_t;
 #include <ctype.h>
 #include <limits.h>
 
+/*
+
 #ifdef _MSC_VER
   #include <io.h>
 
@@ -193,6 +195,11 @@ typedef int intptr_t;
   #include <stdint.h>
 #endif
 
+*/
+
+
+/*
+
 #if defined( _WIN32 ) || defined( _WIN64 )
   // vsnprintf is ISO/IEC 9899:1999
   // abstracting this to make it portable
@@ -205,6 +212,8 @@ typedef int intptr_t;
   #define Q_snprintf snprintf
 
 #endif
+
+*/
 
 #endif
 
@@ -413,7 +422,7 @@ extern	vec4_t		colorLtGrey;
 extern	vec4_t		colorMdGrey;
 extern	vec4_t		colorDkGrey;
 
-#define NUMBER_OF_COLORS 9
+#define NUMBER_OF_COLORS 8
 #define Q_COLOR_ESCAPE	'^'
 #define Q_IsColorString(p)      ((p) && *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) >= '0' && *((p)+1) <= '8') // ^[0-8]
 
@@ -425,7 +434,7 @@ extern	vec4_t		colorDkGrey;
 #define COLOR_CYAN      '5'
 #define COLOR_MAGENTA   '6'
 #define COLOR_WHITE     '7'
-#define COLOR_MENU      '8'
+// #define COLOR_MENU      '8'
 #define ColorIndexForNumber(c) ((c) % NUMBER_OF_COLORS)
 #define ColorIndex(c) (ColorIndexForNumber((c) - '0'))
 

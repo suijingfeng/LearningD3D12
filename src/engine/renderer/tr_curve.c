@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tr_local.h"
-
+#include "tr_common.h"
 /*
 
 This file does all of the processing necessary to turn a raw grid of points
@@ -129,7 +129,7 @@ static	int	neighbors[8][2] = {
 	wrapWidth = qfalse;
 	for ( i = 0 ; i < height ; i++ ) {
 		VectorSubtract( ctrl[i][0].xyz, ctrl[i][width-1].xyz, delta );
-		len = VectorLengthSquared( delta );
+		len =  delta[0]*delta[0]+ delta[1] * delta[1] + delta[2] * delta[2];
 		if ( len > 1.0 ) {
 			break;
 		}
@@ -141,7 +141,7 @@ static	int	neighbors[8][2] = {
 	wrapHeight = qfalse;
 	for ( i = 0 ; i < width ; i++ ) {
 		VectorSubtract( ctrl[0][i].xyz, ctrl[height-1][i].xyz, delta );
-		len = VectorLengthSquared( delta );
+		len = delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2];
 		if ( len > 1.0 ) {
 			break;
 		}
@@ -197,7 +197,7 @@ static	int	neighbors[8][2] = {
 				if ( !good[k] || !good[(k+1)&7] ) {
 					continue;	// didn't get two points
 				}
-				CrossProduct( around[(k+1)&7], around[k], normal );
+				VectorCross( around[(k+1)&7], around[k], normal );
 				if ( VectorNormalize2( normal, normal ) == 0 ) {
 					continue;
 				}
@@ -320,7 +320,12 @@ srfGridMesh_t *R_CreateSurfaceGridMesh(int width, int height,
 	grid->width = width;
 	grid->height = height;
 	grid->surfaceType = SF_GRID;
-	ClearBounds( grid->meshBounds[0], grid->meshBounds[1] );
+	
+	// ClearBounds( grid->meshBounds[0], grid->meshBounds[1] );
+
+	grid->meshBounds[0][0] = grid->meshBounds[0][1] = grid->meshBounds[0][2] = 99999;
+	grid->meshBounds[1][0] = grid->meshBounds[1][1] = grid->meshBounds[1][2] = -99999;
+
 	for ( i = 0 ; i < width ; i++ ) {
 		for ( j = 0 ; j < height ; j++ ) {
 			vert = &grid->verts[j*width+i];
@@ -333,7 +338,7 @@ srfGridMesh_t *R_CreateSurfaceGridMesh(int width, int height,
 	VectorAdd( grid->meshBounds[0], grid->meshBounds[1], grid->localOrigin );
 	VectorScale( grid->localOrigin, 0.5f, grid->localOrigin );
 	VectorSubtract( grid->meshBounds[0], grid->localOrigin, tmpVec );
-	grid->meshRadius = VectorLength( tmpVec );
+	grid->meshRadius = VectorLengthf( tmpVec );
 
 	VectorCopy( grid->localOrigin, grid->lodOrigin );
 	grid->lodRadius = grid->meshRadius;
@@ -364,7 +369,7 @@ srfGridMesh_t *R_SubdividePatchToGrid( int width, int height,
 	float		len, maxLen;
 	int			dir;
 	int			t;
-	MAC_STATIC drawVert_t	ctrl[MAX_GRID_SIZE][MAX_GRID_SIZE];
+	drawVert_t	ctrl[MAX_GRID_SIZE][MAX_GRID_SIZE];
 	float		errorTable[2][MAX_GRID_SIZE];
 
 	for ( i = 0 ; i < width ; i++ ) {
@@ -411,7 +416,7 @@ srfGridMesh_t *R_SubdividePatchToGrid( int width, int height,
 				d = DotProduct( midxyz, dir );
 				VectorScale( dir, d, projected );
 				VectorSubtract( midxyz, projected, midxyz2);
-				len = VectorLengthSquared( midxyz2 );			// we will do the sqrt later
+				len =  midxyz2[0] * midxyz2[0]+ midxyz2[1] * midxyz2[1]+ midxyz2[2] * midxyz2[2];			// we will do the sqrt later
 				if ( len > maxLen ) {
 					maxLen = len;
 				}
@@ -523,7 +528,7 @@ R_GridInsertColumn
 srfGridMesh_t *R_GridInsertColumn( srfGridMesh_t *grid, int column, int row, vec3_t point, float loderror ) {
 	int i, j;
 	int width, height, oldwidth;
-	MAC_STATIC drawVert_t ctrl[MAX_GRID_SIZE][MAX_GRID_SIZE];
+	drawVert_t ctrl[MAX_GRID_SIZE][MAX_GRID_SIZE];
 	float errorTable[2][MAX_GRID_SIZE];
 	float lodRadius;
 	vec3_t lodOrigin;
@@ -577,7 +582,7 @@ R_GridInsertRow
 srfGridMesh_t *R_GridInsertRow( srfGridMesh_t *grid, int row, int column, vec3_t point, float loderror ) {
 	int i, j;
 	int width, height, oldheight;
-	MAC_STATIC drawVert_t ctrl[MAX_GRID_SIZE][MAX_GRID_SIZE];
+	drawVert_t ctrl[MAX_GRID_SIZE][MAX_GRID_SIZE];
 	float errorTable[2][MAX_GRID_SIZE];
 	float lodRadius;
 	vec3_t lodOrigin;

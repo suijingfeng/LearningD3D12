@@ -2225,15 +2225,15 @@ return NULL if not found
 If found, it will return a valid shader
 =====================
 */
-static char *FindShaderInShaderText( const char *shadername ) {
+static char * FindShaderInShaderText( const char *shadername ) 
+{
 
 	char *token, *p;
 
-	int i, hash;
+	int hash = generateHashValue(shadername, MAX_SHADERTEXT_HASH);
 
-	hash = generateHashValue(shadername, MAX_SHADERTEXT_HASH);
-
-	for (i = 0; shaderTextHashTable[hash][i]; i++) {
+	for (int i = 0; shaderTextHashTable[hash][i]; ++i)
+	{
 		p = shaderTextHashTable[hash][i];
 		token = R_ParseExt(&p, qtrue);
 		if ( isNonCaseStringEqual( token, shadername ) ) {
@@ -2782,12 +2782,12 @@ static void ScanAndLoadShaderFiles( void )
 	}
 
 	// load and parse shader files
-	for ( i = 0; i < numShaders; i++ )
+	for ( i = 0; i < numShaders; ++i )
 	{
 		char filename[MAX_QPATH];
 
 		snprintf( filename, sizeof( filename ), "scripts/%s", shaderFiles[i] );
-		// ri.Printf( PRINT_ALL, "...loading '%s'\n", filename );
+		ri.Printf( PRINT_ALL, "...loading '%s'\n", filename );
 		sum += ri.FS_ReadFile( filename, (void **)&buffers[i] );
 		if ( !buffers[i] ) {
 			ri.Error( ERR_DROP, "Couldn't load %s", filename );
@@ -2813,7 +2813,8 @@ static void ScanAndLoadShaderFiles( void )
 	memset(shaderTextHashTableSizes, 0, sizeof(shaderTextHashTableSizes));
 	size = 0;
 	//
-	for ( i = 0; i < numShaders; i++ ) {
+	for ( i = 0; i < numShaders; ++i )
+	{
 		// pointer to the first shader file
 		p = buffers[i];
 		// look for label

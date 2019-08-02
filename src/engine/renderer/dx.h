@@ -1,4 +1,6 @@
-#pragma once
+#ifndef DX_COMMON_H_
+#define DX_COMMON_H_
+
 #include <d3d12.h>
 
 enum DX_Shader_Type {
@@ -85,6 +87,7 @@ void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Dept
 void dx_begin_frame();
 void dx_end_frame();
 
+
 struct Dx_Instance
 {
 	bool active = false;
@@ -158,3 +161,6 @@ struct Dx_Instance
 	ID3D12PipelineState* surface_debug_pipeline_outline = nullptr;
 	ID3D12PipelineState* images_debug_pipeline = nullptr;
 };
+
+
+#endif

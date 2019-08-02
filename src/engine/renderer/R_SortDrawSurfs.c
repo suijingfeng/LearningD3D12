@@ -137,7 +137,6 @@ and have relationship with ENDIAN ?
 ===============
 */
 
-#define Q3_LITTLE_ENDIAN 1
 
 static void Algo_RadixSort( drawSurf_t * const source, const int size )
 {
