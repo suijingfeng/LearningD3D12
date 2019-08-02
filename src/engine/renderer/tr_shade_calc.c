@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade_calc.c
 
 #include "tr_local.h"
-
+#include "tr_common.h"
 
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ myftol( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
 
@@ -188,7 +188,7 @@ void RB_CalcDeformNormals( deformStage_t *ds ) {
 			tess.shaderTime * ds->deformationWave.frequency );
 		normal[ 2 ] += ds->deformationWave.amplitude * scale;
 
-		VectorNormalizeFast( normal );
+		VectorNorm( normal );
 	}
 }
 
@@ -389,7 +389,7 @@ static void AutospriteDeform( void ) {
 		VectorScale( upDir, radius, up );
 
 		if ( backEnd.viewParms.isMirror ) {
-			VectorSubtract( vec3_origin, left, left );
+			VectorSubtract( ORIGIN, left, left );
 		}
 
 	  // compensate for scale in the axes if necessary
@@ -898,7 +898,7 @@ void RB_CalcEnvironmentTexCoords( float *st )
 	for (i = 0 ; i < tess.numVertexes ; i++, v += 4, normal += 4, st += 2 ) 
 	{
 		VectorSubtract (backEnd.or.viewOrigin, v, viewer);
-		VectorNormalizeFast (viewer);
+		VectorNorm (viewer);
 
 		d = DotProduct (normal, viewer);
 
@@ -1045,7 +1045,7 @@ void RB_CalcSpecularAlpha( unsigned char *alphas )
 
 		VectorSubtract( lightOrigin, v, lightDir );
 
-		VectorNormalizeFast( lightDir );
+		VectorNorm( lightDir );
 
 		// calculate the specular color
 		d = DotProduct (normal, lightDir);

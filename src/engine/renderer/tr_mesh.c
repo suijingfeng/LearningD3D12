@@ -156,7 +156,20 @@ static int R_CullModel( md3Header_t *header, trRefEntity_t *ent ) {
 	}
 }
 
+static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs)
+{
+	int		i;
+	vec3_t	corner;
+	float	a, b;
 
+	for (i = 0; i<3; i++) {
+		a = fabs(mins[i]);
+		b = fabs(maxs[i]);
+		corner[i] = a > b ? a : b;
+	}
+
+	return VectorLength(corner);
+}
 /*
 =================
 R_ComputeLOD
@@ -184,7 +197,7 @@ int R_ComputeLOD( trRefEntity_t *ent ) {
 
 		frame += ent->e.frame;
 
-		radius = RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
+		radius = R_RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
 
 		if ( ( projectedRadius = ProjectRadius( radius, ent->e.origin ) ) != 0 )
 		{

@@ -140,24 +140,34 @@ cvar_t	*r_brightness;
 
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
 {
+
+
 	if ( shouldBeIntegral )
 	{
 		if ( ( int ) cv->value != cv->integer )
 		{
 			ri.Printf( PRINT_WARNING, "WARNING: cvar '%s' must be integral (%f)\n", cv->name, cv->value );
-			ri.Cvar_Set( cv->name, va( "%d", cv->integer ) );
+			char buf[32] = { 0 };
+			sprintf(buf, "%d", cv->integer);
+			ri.Cvar_Set( cv->name, buf );
 		}
 	}
 
 	if ( cv->value < minVal )
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: cvar '%s' out of range (%f < %f)\n", cv->name, cv->value, minVal );
-		ri.Cvar_Set( cv->name, va( "%f", minVal ) );
+		char buf[32] = { 0 };
+		sprintf(buf, "%f", minVal);
+		ri.Cvar_Set( cv->name, buf );
 	}
 	else if ( cv->value > maxVal )
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: cvar '%s' out of range (%f > %f)\n", cv->name, cv->value, maxVal );
-		ri.Cvar_Set( cv->name, va( "%f", maxVal ) );
+		
+		char buf[32] = { 0 };
+		sprintf(buf, "%f", maxVal);
+		
+		ri.Cvar_Set( cv->name, buf);
 	}
 }
 
@@ -210,7 +220,7 @@ void GL_CheckErrors( void )
             strcpy( s, "GL_OUT_OF_MEMORY" );
             break;
         default:
-            Com_sprintf( s, sizeof(s), "%i", err);
+            snprintf( s, sizeof(s), "%i", err);
             break;
     }
 
@@ -405,8 +415,8 @@ void R_Register( void )
 	r_brightness = ri.Cvar_Get("r_brightness", "2.0", CVAR_LATCH | CVAR_ARCHIVE);
 	r_gpuIndex = ri.Cvar_Get("r_gpuIndex", "0", CVAR_LATCH | CVAR_ARCHIVE );
 
-	r_maxpolys = ri.Cvar_Get( "r_maxpolys", va("%d", MAX_POLYS), 0);
-	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", va("%d", MAX_POLYVERTS), 0);
+	r_maxpolys = ri.Cvar_Get( "r_maxpolys", "1200", 0);
+	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", "6000", 0);
 
 	// make sure all the commands added here are also
 	// removed in R_Shutdown

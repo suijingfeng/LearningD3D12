@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_sky.c
 #include "tr_local.h"
 #include "dx_world.h"
+#include "tr_common.h"
 
 #define SKY_SUBDIVISIONS		8
 #define HALF_SKY_SUBDIVISIONS	(SKY_SUBDIVISIONS/2)
@@ -78,7 +79,7 @@ static void AddSkyPolygon (int nump, vec3_t vecs)
 	};
 
 	// decide which face it maps to
-	VectorCopy (vec3_origin, v);
+	VectorCopy (ORIGIN, v);
 	for (i=0, vp=vecs ; i<nump ; i++, vp+=3)
 	{
 		VectorAdd (vp, v, v);

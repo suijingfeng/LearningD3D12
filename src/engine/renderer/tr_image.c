@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "dx_image.h"
 #include "dx_world.h"
+#include "tr_common.h"
 
 static void* q3_stbi_malloc(size_t size) {
     return ri.Malloc((int)size);
@@ -123,7 +124,7 @@ void GL_TextureMode( const char *string ) {
 	int i;
 
 	for ( i=0 ; i< 6 ; i++ ) {
-		if ( !Q_stricmp( modes[i].name, string ) ) {
+		if ( isNonCaseStringEqual( modes[i].name, string ) ) {
 			break;
 		}
 	}
@@ -1403,7 +1404,7 @@ void R_LoadImage( const char *name, byte **pic, int *width, int *height ) {
 		return;
 	}
 
-	if ( !Q_stricmp( name+len-4, ".tga" ) ) {
+	if ( isNonCaseStringEqual( name+len-4, ".tga" ) ) {
 	  LoadTGA( name, pic, width, height );            // try tga first
     if (!*pic) {                                    //
 		  char altname[MAX_QPATH];                      // try jpg in place of tga 
@@ -1414,11 +1415,11 @@ void R_LoadImage( const char *name, byte **pic, int *width, int *height ) {
       altname[len-1] = 'g';
 			LoadJPG( altname, pic, width, height );
 		}
-  } else if ( !Q_stricmp(name+len-4, ".pcx") ) {
+  } else if ( isNonCaseStringEqual(name+len-4, ".pcx") ) {
     LoadPCX32( name, pic, width, height );
-	} else if ( !Q_stricmp( name+len-4, ".bmp" ) ) {
+	} else if ( isNonCaseStringEqual( name+len-4, ".bmp" ) ) {
 		LoadBMP( name, pic, width, height );
-	} else if ( !Q_stricmp( name+len-4, ".jpg" ) ) {
+	} else if ( isNonCaseStringEqual( name+len-4, ".jpg" ) ) {
 		LoadJPG( name, pic, width, height );
 	}
 }
@@ -2042,7 +2043,7 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 	// see if the skin is already loaded
 	for ( hSkin = 1; hSkin < tr.numSkins ; hSkin++ ) {
 		skin = tr.skins[hSkin];
-		if ( !Q_stricmp( skin->name, name ) ) {
+		if ( isNonCaseStringEqual( skin->name, name ) ) {
 			if( skin->numSurfaces == 0 ) {
 				return 0;		// default skin
 			}
@@ -2088,7 +2089,7 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 			break;
 		}
 		// lowercase the surface name so skin compares are faster
-		Q_strlwr( surfName );
+		R_Strlwr( surfName );
 
 		if ( *text_p == ',' ) {
 			text_p++;

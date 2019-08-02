@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_surf.c
 #include "tr_local.h"
-
+#include "tr_common.h"
 /*
 
   THIS ENTIRE FILE IS BACK END
@@ -104,7 +104,7 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 
 
 	// constant normal all the way around
-	VectorSubtract( vec3_origin, backEnd.viewParms.or.axis[0], normal );
+	VectorSubtract( ORIGIN, backEnd.viewParms.or.axis[0], normal );
 
 	tess.normal[ndx][0] = tess.normal[ndx+1][0] = tess.normal[ndx+2][0] = tess.normal[ndx+3][0] = normal[0];
 	tess.normal[ndx][1] = tess.normal[ndx+1][1] = tess.normal[ndx+2][1] = tess.normal[ndx+3][1] = normal[1];
@@ -174,7 +174,7 @@ static void RB_SurfaceSprite( void ) {
 		VectorMA( up, s * radius, backEnd.viewParms.or.axis[1], up );
 	}
 	if ( backEnd.viewParms.isMirror ) {
-		VectorSubtract( vec3_origin, left, left );
+		VectorSubtract( ORIGIN, left, left );
 	}
 
 	RB_AddQuadStamp( backEnd.currentEntity->e.origin, left, up, backEnd.currentEntity->e.shaderRGBA );
@@ -308,13 +308,13 @@ void RB_SurfaceBeam( void )
 	if ( VectorNormalize( normalized_direction ) == 0 )
 		return;
 
-	PerpendicularVector( perpvec, normalized_direction );
+	VectorPerp( perpvec, normalized_direction );
 
 	VectorScale( perpvec, 4, perpvec );
 
 	for ( i = 0; i < NUM_BEAM_SEGS ; i++ )
 	{
-		RotatePointAroundVector( start_points[i], normalized_direction, perpvec, (360.0/NUM_BEAM_SEGS)*i );
+		PointRotateAroundVector( start_points[i], normalized_direction, perpvec, (360.0/NUM_BEAM_SEGS)*i );
 //		VectorAdd( start_points[i], origin, start_points[i] );
 		VectorAdd( start_points[i], direction, end_points[i] );
 	}
@@ -467,7 +467,7 @@ void RB_SurfaceRailRings( void ) {
 	// compute variables
 	VectorSubtract( end, start, vec );
 	len = VectorNormalize( vec );
-	MakeNormalVectors( vec, right, up );
+	MakeTwoPerpVectors( vec, right, up );
 	numSegs = ( len ) / r_railSegmentLength->value;
 	if ( numSegs <= 0 ) {
 		numSegs = 1;
@@ -541,7 +541,7 @@ void RB_SurfaceLightningBolt( void ) {
 		vec3_t	temp;
 
 		DoRailCore( start, end, right, len, 8 );
-		RotatePointAroundVector( temp, vec, right, 45 );
+		PointRotateAroundVector( temp, vec, right, 45 );
 		VectorCopy( temp, right );
 	}
 }
@@ -554,52 +554,12 @@ void RB_SurfaceLightningBolt( void ) {
 */
 static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 {
-//    assert(count);
-        
-#if idppc
-    {
-        register float half = 0.5;
-        register float one  = 1.0;
-        float *components = (float *)normals;
-        
-        // Vanilla PPC code, but since PPC has a reciprocal square root estimate instruction,
-        // runs *much* faster than calling sqrt().  We'll use a single Newton-Raphson
-        // refinement step to get a little more precision.  This seems to yeild results
-        // that are correct to 3 decimal places and usually correct to at least 4 (sometimes 5).
-        // (That is, for the given input range of about 0.6 to 2.0).
-        do {
-            float x, y, z;
-            float B, y0, y1;
-            
-            x = components[0];
-            y = components[1];
-            z = components[2];
-            components += 4;
-            B = x*x + y*y + z*z;
-
-#ifdef __GNUC__            
-            asm("frsqrte %0,%1" : "=f" (y0) : "f" (B));
-#else
-			y0 = __frsqrte(B);
-#endif
-            y1 = y0 + half*y0*(one - B*y0*y0);
-
-            x = x * y1;
-            y = y * y1;
-            components[-4] = x;
-            z = z * y1;
-            components[-3] = y;
-            components[-2] = z;
-        } while(count--);
-    }
-#else // No assembly version for this architecture, or C_ONLY defined
-	// given the input, it's safe to call VectorNormalizeFast
+// No assembly version for this architecture, or C_ONLY defined
+	// given the input, it's safe to call VectorNorm
     while (count--) {
-        VectorNormalizeFast(normals[0]);
+        VectorNorm(normals[0]);
         normals++;
     }
-#endif
-
 }
 
 

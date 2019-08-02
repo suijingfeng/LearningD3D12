@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef TR_COMMON_H
 #define TR_COMMON_H
 
-#include "../qcommon/q_shared.h"
+
 #include "../renderercommon/tr_public.h"
 
 
@@ -73,13 +73,14 @@ char* R_SkipPath(char *pathname);
 char * R_Strlwr( char * const s1 );
 
 void R_StripExtension(const char *in, char *out, int destsize);
+void R_DefaultExtension(char *path, int maxSize, const char *extension);
 
 void R_SetPlaneSignbits(cplane_t * const out);
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *plane);
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
 
 void VectorCross( const vec3_t v1, const vec3_t v2, vec3_t cross );
-void VectorPerp( const vec3_t src, vec3_t dst );
+void VectorPerp(const float src[3], float dst[3]);
 float MakeTwoPerpVectors(const float forward[3], float right[3], float up[3]);
 void Q_strncpyz(char *dest, const char *src, int destsize);
 

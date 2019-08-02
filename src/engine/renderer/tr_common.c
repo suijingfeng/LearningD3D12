@@ -62,7 +62,27 @@ void R_StripExtension(const char *in, char *out, int destsize)
     out[destsize-1] = '\0';
 }
 
+void R_DefaultExtension(char *path, int maxSize, const char *extension)
+{
+	char	oldPath[MAX_QPATH];
+	char    *src;
 
+	//
+	// if path doesn't have a .EXT, append extension
+	// (extension should include the .)
+	//
+	src = path + (int)strlen(path) - 1;
+
+	while (*src != '/' && src != path) {
+		if (*src == '.') {
+			return;                 // it has an extension
+		}
+		src--;
+	}
+
+	strncpy(oldPath, path, sizeof(oldPath));
+	snprintf(path, maxSize, "%s%s", oldPath, extension);
+}
 /*
 char* getExtension( const char *name )
 {
@@ -330,8 +350,8 @@ char * R_Strlwr( char * const s1 )
 void PointRotateAroundVector(float* res, const float* vec, const float* p, const float degrees)
 {
     float rad = DEG2RAD( degrees );
-    float cos_th = cos( rad );
-    float sin_th = sin( rad );
+    float cos_th = cosf( rad );
+    float sin_th = sinf( rad );
     float k[3];
 
 	// writing it this way allows gcc to recognize that rsqrt can be used
@@ -541,8 +561,7 @@ void ClearBounds(vec3_t mins, vec3_t maxs)
 }
 
 
-
-qboolean SpheresIntersect(vec3_t origin1, float radius1, vec3_t origin2, float radius2)
+qboolean SpheresIntersect(float origin1[3], float radius1, float origin2[3], float radius2)
 {
 	float radiusSum = radius1 + radius2;
 	vec3_t diff;
@@ -557,7 +576,7 @@ qboolean SpheresIntersect(vec3_t origin1, float radius1, vec3_t origin2, float r
 	return qfalse;
 }
 
-void BoundingSphereOfSpheres(vec3_t origin1, float radius1, vec3_t origin2, float radius2, vec3_t origin3, float *radius3)
+void BoundingSphereOfSpheres(float origin1[3], float radius1, float origin2[3], float radius2, float origin3[3], float *radius3)
 {
 	vec3_t diff;
 

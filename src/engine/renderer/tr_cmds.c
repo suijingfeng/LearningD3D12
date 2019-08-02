@@ -285,7 +285,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 	
 /*
 	This is not applied to dx12, leave it here as a doc
-	if ( !Q_stricmp( r_drawBuffer->string, "GL_FRONT" ) )
+	if ( isNonCaseStringEqual( r_drawBuffer->string, "GL_FRONT" ) )
 	{
 		cmd->buffer = (int)GL_FRONT;
 	} 
