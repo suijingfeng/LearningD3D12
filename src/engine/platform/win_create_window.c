@@ -190,7 +190,7 @@ static void win_destroyWindowImpl(void)
 
 
 
-void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
+void WinSys_Init(struct glconfig_s * const pConfig, void **pContext)
 {
 
 	win_createWindowImpl();
@@ -219,7 +219,7 @@ void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 }
 
 
-void GLimp_Shutdown(void)
+void WinSys_Shutdown(void)
 {
 	win_destroyWindowImpl();
 
@@ -234,7 +234,7 @@ void GLimp_Shutdown(void)
 }
 
 
-void GLimp_EndFrame(void)
+void WinSys_EndFrame(void)
 {
 	;
 }

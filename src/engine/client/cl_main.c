@@ -2360,7 +2360,6 @@ void CL_InitRef( void )
 	{
 		Com_Error(ERR_FATAL, "Can't load symbol GetRefAPI: GetRefAPI");
 	}
-
 #endif
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
@@ -2380,7 +2379,9 @@ void CL_InitRef( void )
 #endif
 	ri.Hunk_AllocateTempMemory = Hunk_AllocateTempMemory;
 	ri.Hunk_FreeTempMemory = Hunk_FreeTempMemory;
+
 	ri.CM_DrawDebugSurface = CM_DrawDebugSurface;
+
 	ri.FS_ReadFile = FS_ReadFile;
 	ri.FS_FreeFile = FS_FreeFile;
 	ri.FS_WriteFile = FS_WriteFile;
@@ -2397,11 +2398,11 @@ void CL_InitRef( void )
 	ri.CIN_PlayCinematic = CIN_PlayCinematic;
 	ri.CIN_RunCinematic = CIN_RunCinematic;
 
-	ri.GLimpInit = GLimp_Init;
-	ri.GLimpShutdown = GLimp_Shutdown;
-	ri.GLimpEndFrame = GLimp_EndFrame;
-	ri.GLimpSetGamma = GLimp_SetGamma;
-	ri.pfnLog = Impl_Logging;
+	ri.GLimpInit = WinSys_Init;
+	ri.GLimpShutdown = WinSys_Shutdown;
+	ri.GLimpEndFrame = WinSys_EndFrame;
+	ri.GLimpSetGamma = WinSys_SetGamma;
+	ri.pfnLog = FileSys_Logging;
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 
