@@ -43,7 +43,7 @@ typedef struct {
 	int		bit;				// for bitwise reads and writes
 } msg_t;
 
-void MSG_Init (msg_t *buf, byte *data, int length);
+void MSG_Init (msg_t * const buf, byte * const data, int length);
 void MSG_InitOOB( msg_t *buf, byte *data, int length );
 void MSG_Clear (msg_t *buf);
 void MSG_WriteData (msg_t *buf, const void *data, int length);
@@ -451,7 +451,7 @@ void 	Cvar_Set( const char *var_name, const char *value );
 void Cvar_SetLatched( const char *var_name, const char *value);
 // don't set the cvar immediately
 
-void	Cvar_SetValue( const char *var_name, float value );
+void	Cvar_SetValue( const char *const var_name, float value );
 // expands value to a string and calls Cvar_Set
 
 float	Cvar_VariableValue( const char *var_name );
@@ -975,7 +975,7 @@ char * Sys_DefaultInstallPath(void);
 char * Sys_DefaultHomePath(void);
 
 char ** Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs );
-void	Sys_FreeFileList( char **list );
+void	Sys_FreeFileList( char ** const list );
 
 
 qboolean Sys_LowPhysicalMemory();

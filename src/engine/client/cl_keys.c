@@ -1026,16 +1026,18 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 	// update auto-repeat status and BUTTON_ANY status
 	keys[key].down = down;
 
-	if (down) {
+	if (down)
+	{
 		keys[key].repeats++;
-		if ( keys[key].repeats == 1) {
-			((int&)anykeydown)++;
+		if ( keys[key].repeats == 1)
+		{
+			anykeydown++;
 		}
 	} else {
 		keys[key].repeats = 0;
-		((int&)anykeydown)--;
+		anykeydown--;
 		if (anykeydown < 0) {
-			(int&)anykeydown = 0;
+			anykeydown = 0;
 		}
 	}
 

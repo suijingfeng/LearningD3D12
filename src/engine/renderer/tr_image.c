@@ -321,7 +321,6 @@ void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only
 {
 	if ( only_gamma )
 	{
-/*
 		if ( !glConfig.deviceSupportsGamma )
 		{
 
@@ -335,7 +334,6 @@ void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only
 				p[2] = s_gammatable[p[2]];
 			}
 		}
-*/
 	}
 	else
 	{
@@ -353,7 +351,6 @@ void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only
 				p[2] = s_intensitytable[p[2]];
 			}
 		}
-/*
 		else
 		{
 			for (int i=0 ; i<c ; ++i, p+=4)
@@ -363,7 +360,6 @@ void R_LightScaleTexture( unsigned *in, int inwidth, int inheight, qboolean only
 				p[2] = s_gammatable[s_intensitytable[p[2]]];
 			}
 		}
-*/
 	}
 }
 
@@ -1857,12 +1853,10 @@ void R_SetColorMappings( void )
 		s_intensitytable[i] = j;
 	}
 
-/*
 	if ( glConfig.deviceSupportsGamma )
 	{
 		ri.GLimpSetGamma( s_gammatable, s_gammatable, s_gammatable );
 	}
-*/
 }
 
 /*

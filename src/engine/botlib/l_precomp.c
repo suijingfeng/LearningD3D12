@@ -661,25 +661,27 @@ void PC_FreeDefine(define_t *define)
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
+
+
+
+struct builtinStruct
+{
+	char *string;
+	int builtin;
+} builtin[] = { // bk001204 - brackets
+	{ "__LINE__",	BUILTIN_LINE },
+	{ "__FILE__",	BUILTIN_FILE },
+	{ "__DATE__",	BUILTIN_DATE },
+	{ "__TIME__",	BUILTIN_TIME },
+//		{ "__STDC__", BUILTIN_STDC },
+	{ NULL, 0 }
+};
+
 void PC_AddBuiltinDefines(source_t *source)
 {
 	int i;
 	define_t *define;
-	struct builtinStruct
-	{
-		char *string;
-		int builtin;
 
-		builtinStruct(char* istring, int ibuiltin)
-			: string(istring), builtin(ibuiltin) {}
-	} builtin[] = { // bk001204 - brackets
-		{ "__LINE__",	BUILTIN_LINE },
-		{ "__FILE__",	BUILTIN_FILE },
-		{ "__DATE__",	BUILTIN_DATE },
-		{ "__TIME__",	BUILTIN_TIME },
-//		{ "__STDC__", BUILTIN_STDC },
-		{ NULL, 0 }
-	};
 
 	for (i = 0; builtin[i].string; i++)
 	{

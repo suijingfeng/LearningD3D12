@@ -523,7 +523,7 @@ int NET_IPSocket( char *net_interface, int port ) {
 
 	address.sin_family = AF_INET;
 
-	if( bind( newsocket, (const sockaddr*) (void *)&address, sizeof(address) ) == SOCKET_ERROR ) {
+	if( bind( newsocket, (const struct sockaddr*) (void *)&address, sizeof(address) ) == SOCKET_ERROR ) {
 		Com_Printf( "WARNING: UDP_OpenSocket: bind: %s\n", NET_ErrorString() );
 		closesocket( newsocket );
 		return 0;
@@ -807,7 +807,8 @@ int NET_IPXSocket( int port ) {
 	}
 
 	// make it non-blocking
-	if( ioctlsocket( newsocket, FIONBIO, &(u_long&)_true ) == SOCKET_ERROR ) {
+	if( ioctlsocket( newsocket, FIONBIO, &_true ) == SOCKET_ERROR )
+	{
 		Com_Printf( "WARNING: IPX_Socket: ioctl FIONBIO: %s\n", NET_ErrorString() );
 		return 0;
 	}
@@ -828,7 +829,7 @@ int NET_IPXSocket( int port ) {
 		address.sa_socket = htons( (short)port );
 	}
 
-	if( bind( newsocket, (const sockaddr*) (void *)&address, sizeof(address) ) == SOCKET_ERROR ) {
+	if( bind( newsocket, (const struct sockaddr*) (void *)&address, sizeof(address) ) == SOCKET_ERROR ) {
 		Com_Printf( "WARNING: IPX_Socket: bind: %s\n", NET_ErrorString() );
 		closesocket( newsocket );
 		return 0;

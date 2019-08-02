@@ -4,7 +4,7 @@
 
 // need to complete ...
 static FILE* log_fp;
-static bool isLoggingAlreadyEnabled = false;
+static int isLoggingAlreadyEnabled = 0;
 
 static void fnToggleLogging_f(void);
 
@@ -50,10 +50,10 @@ void win_EndLoging(void)
 void fnToggleLogging_f(void)
 {
 	// return if we're already active
-	if (isLoggingAlreadyEnabled == true)
+	if (isLoggingAlreadyEnabled == 1)
 	{
 		// toggled
-		isLoggingAlreadyEnabled = false;
+		isLoggingAlreadyEnabled = 0;
 
 		if (log_fp)
 		{
@@ -68,7 +68,7 @@ void fnToggleLogging_f(void)
 	}
 	else
 	{
-		isLoggingAlreadyEnabled = true;
+		isLoggingAlreadyEnabled = 1;
 
 		if (!log_fp)
 		{
