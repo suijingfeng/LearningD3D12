@@ -102,6 +102,7 @@
     <ClCompile Include="..\src\engine\renderer\dx_utils.cpp" />
     <ClCompile Include="..\src\engine\renderer\dx_world.c" />
     <ClCompile Include="..\src\engine\renderer\R_GetMicroSeconds.c" />
+    <ClCompile Include="..\src\engine\renderer\R_Parser.c" />
     <ClCompile Include="..\src\engine\renderer\R_SortDrawSurfs.c" />
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\multi_texture_add_ge80_ps.cpp" />
     <ClCompile Include="..\src\engine\renderer\shaders\hlsl_compiled\multi_texture_add_gt0_ps.cpp" />

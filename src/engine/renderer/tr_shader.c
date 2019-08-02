@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
-
+#include "R_Parser.h"
 // tr_shader.c -- this file deals with the parsing and definition of shaders
 
 static char *s_shaderText;
@@ -1435,7 +1435,7 @@ static qboolean ParseShader( char **text )
 		}
 		// skip stuff that only the QuakeEdRadient needs
 		else if ( !Q_stricmpn( token, "qer", 3 ) ) {
-			SkipRestOfLine( text );
+			R_SkipRestOfLine( text );
 			continue;
 		}
 		// sun parms
@@ -1472,7 +1472,7 @@ static qboolean ParseShader( char **text )
 			continue;
 		}
 		else if ( !Q_stricmp( token, "tesssize" ) ) {
-			SkipRestOfLine( text );
+			R_SkipRestOfLine( text );
 			continue;
 		}
 		else if ( !Q_stricmp( token, "clampTime" ) ) {
@@ -1483,7 +1483,7 @@ static qboolean ParseShader( char **text )
     }
 		// skip stuff that only the q3map needs
 		else if ( !Q_stricmpn( token, "q3map", 5 ) ) {
-			SkipRestOfLine( text );
+			R_SkipRestOfLine( text );
 			continue;
 		}
 		// skip stuff that only q3map or the server needs
@@ -1535,7 +1535,7 @@ static qboolean ParseShader( char **text )
 			shader.fogParms.depthForOpaque = atof( token );
 
 			// skip any old gradient directions
-			SkipRestOfLine( text );
+			R_SkipRestOfLine( text );
 			continue;
 		}
 		// portal
@@ -2253,7 +2253,7 @@ static char *FindShaderInShaderText( const char *shadername ) {
 		}
 		else {
 			// skip the definition
-			SkipBracedSection( &p );
+			R_SkipBracedSection( &p );
 		}
 	}
 
@@ -2819,7 +2819,7 @@ static void ScanAndLoadShaderFiles( void )
 			hash = generateHashValue(token, MAX_SHADERTEXT_HASH);
 			shaderTextHashTableSizes[hash]++;
 			size++;
-			SkipBracedSection(&p);
+			R_SkipBracedSection(&p);
 			// if we passed the pointer to the next shader file
 			if ( i < numShaders - 1 ) {
 				if ( p > buffers[i+1] ) {
@@ -2854,7 +2854,7 @@ static void ScanAndLoadShaderFiles( void )
 			hash = generateHashValue(token, MAX_SHADERTEXT_HASH);
 			shaderTextHashTable[hash][shaderTextHashTableSizes[hash]++] = oldp;
 
-			SkipBracedSection(&p);
+			R_SkipBracedSection(&p);
 			// if we passed the pointer to the next shader file
 			if ( i < numShaders - 1 ) {
 				if ( p > buffers[i+1] ) {

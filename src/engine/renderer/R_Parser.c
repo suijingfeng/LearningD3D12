@@ -1,4 +1,7 @@
-#include "ref_import.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "tr_local.h"
 
 /*
 ============================================================================
@@ -292,5 +295,5 @@ qboolean R_SkipBracedSection(char ** program)
 		}
 	} while( depth && *program );
 
-	return ( depth == 0 );
+	return (qboolean)( depth == 0 );
 }
