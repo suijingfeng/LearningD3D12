@@ -126,7 +126,7 @@ static void R_Vk_Dx_RenderShadowEdges( ID3D12PipelineState* dx_pipeline)
 		if (count > (SHADER_MAX_VERTEXES - 1) / 4)
 			count = (SHADER_MAX_VERTEXES - 1) / 4;
 
-		Com_Memcpy(tess.xyz, extrudedEdges[i*4], 4 * count * sizeof(vec4_t));
+		memcpy(tess.xyz, extrudedEdges[i*4], 4 * count * sizeof(vec4_t));
 		tess.numVertexes = count * 4;
 
 		for (int k = 0; k < count; k++) {
@@ -188,7 +188,7 @@ void RB_ShadowTessEnd( void )
 	}
 
 	// decide which triangles face the light
-	Com_Memset( numEdgeDefs, 0, 4 * tess.numVertexes );
+	memset( numEdgeDefs, 0, 4 * tess.numVertexes );
 
 	int numTris = tess.numIndexes / 3;
 	for (int i = 0 ; i < numTris ; ++i )
@@ -348,8 +348,8 @@ void RB_ShadowFinish( void ) {
 
 		// set backEnd.or.modelMatrix to identity matrix
 		float tmp[16];
-		Com_Memcpy(tmp, dx_world.modelview_transform, 64);
-		Com_Memset(dx_world.modelview_transform, 0, 64);
+		memcpy(tmp, dx_world.modelview_transform, 64);
+		memset(dx_world.modelview_transform, 0, 64);
 		dx_world.modelview_transform[0] = 1.0f;
 		dx_world.modelview_transform[5] = 1.0f;
 		dx_world.modelview_transform[10] = 1.0f;
@@ -358,7 +358,7 @@ void RB_ShadowFinish( void ) {
 		dx_bind_geometry();
 		dx_shade_geometry(dx.shadow_finish_pipeline, false, DX_Depth_Range::normal, true, false);
 
-		Com_Memcpy(dx_world.modelview_transform, tmp, 64);
+		memcpy(dx_world.modelview_transform, tmp, 64);
 
 
 		tess.numIndexes = 0;

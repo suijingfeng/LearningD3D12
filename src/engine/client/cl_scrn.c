@@ -415,7 +415,9 @@ void SCR_DrawDebugGraph (void)
 SCR_Init
 ==================
 */
-void SCR_Init( void ) {
+void SCR_Init( void )
+{
+	
 	cl_timegraph = Cvar_Get ("timegraph", "0", CVAR_CHEAT);
 	cl_debuggraph = Cvar_Get ("debuggraph", "0", CVAR_CHEAT);
 	cl_graphheight = Cvar_Get ("graphheight", "32", CVAR_CHEAT);

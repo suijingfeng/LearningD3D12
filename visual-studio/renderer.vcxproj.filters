@@ -149,6 +149,9 @@
     <ClCompile Include="..\src\engine\renderer\dx_world.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\engine\renderer\tr_common.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\engine\renderer\dx.h">

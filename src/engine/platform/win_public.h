@@ -38,10 +38,10 @@ typedef struct WinVars_s {
 	int				desktopWidth;
 	int				desktopHeight;
 
-	bool			isFullScreen;
+	int				isFullScreen;
 
-	bool			activeApp;
-	bool			isMinimized;
+	int				activeApp;
+	int 			isMinimized;
 	OSVERSIONINFO	osversion;
 
 	// when we get a windows message, we store the time off so keyboard processing

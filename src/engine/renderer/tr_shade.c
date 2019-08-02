@@ -108,7 +108,7 @@ static void DrawTris (shaderCommands_t *input)
 
 static void D3D12_DrawTris(shaderCommands_t * const input)
 {
-	Com_Memset(input->svars.colors, tr.identityLightByte, input->numVertexes * 4);
+	memset(input->svars.colors, tr.identityLightByte, input->numVertexes * 4);
 	auto pipeline = backEnd.viewParms.isMirror ? dx.tris_mirror_debug_pipeline : dx.tris_debug_pipeline;
 	dx_shade_geometry(pipeline, false, DX_Depth_Range::force_zero, true, false);
 }
@@ -148,8 +148,8 @@ static void DrawNormals (shaderCommands_t * const input)
 static void D3D12_DrawNormals(shaderCommands_t * const input)
 {
 	vec4_t xyz[SHADER_MAX_VERTEXES];
-	Com_Memcpy(xyz, input->xyz, input->numVertexes * sizeof(vec4_t));
-	Com_Memset(input->svars.colors, tr.identityLightByte, SHADER_MAX_VERTEXES * sizeof(color4ub_t));
+	memcpy(xyz, input->xyz, input->numVertexes * sizeof(vec4_t));
+	memset(input->svars.colors, tr.identityLightByte, SHADER_MAX_VERTEXES * sizeof(color4ub_t));
 
 	int numVertexes = input->numVertexes;
 	int i = 0;
@@ -459,17 +459,17 @@ static void ComputeColors( shaderStage_t *pStage )
 	switch ( pStage->rgbGen )
 	{
 		case CGEN_IDENTITY:
-			Com_Memset( tess.svars.colors, 0xff, tess.numVertexes * 4 );
+			memset( tess.svars.colors, 0xff, tess.numVertexes * 4 );
 			break;
 		default:
 		case CGEN_IDENTITY_LIGHTING:
-			Com_Memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
+			memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
 			break;
 		case CGEN_LIGHTING_DIFFUSE:
 			RB_CalcDiffuseColor( ( unsigned char * ) tess.svars.colors );
 			break;
 		case CGEN_EXACT_VERTEX:
-			Com_Memcpy( tess.svars.colors, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
+			memcpy( tess.svars.colors, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
 			break;
 		case CGEN_CONST:
 			for ( i = 0; i < tess.numVertexes; i++ ) {
@@ -479,7 +479,7 @@ static void ComputeColors( shaderStage_t *pStage )
 		case CGEN_VERTEX:
 			if ( tr.identityLight == 1 )
 			{
-				Com_Memcpy( tess.svars.colors, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
+				memcpy( tess.svars.colors, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
 			}
 			else
 			{
@@ -656,7 +656,7 @@ static void ComputeTexCoords( shaderStage_t *pStage ) {
 		switch ( pStage->bundle[b].tcGen )
 		{
 		case TCGEN_IDENTITY:
-			Com_Memset( tess.svars.texcoords[b], 0, sizeof( float ) * 2 * tess.numVertexes );
+			memset( tess.svars.texcoords[b], 0, sizeof( float ) * 2 * tess.numVertexes );
 			break;
 		case TCGEN_TEXTURE:
 			for ( i = 0 ; i < tess.numVertexes ; i++ ) {

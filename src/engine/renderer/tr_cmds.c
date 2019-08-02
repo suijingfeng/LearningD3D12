@@ -32,8 +32,8 @@ void R_PerformanceCounters( void )
 {
 	if ( !r_speeds->integer ) {
 		// clear the counters even if we aren't printing
-		Com_Memset( &tr.pc, 0, sizeof( tr.pc ) );
-		Com_Memset( &backEnd.pc, 0, sizeof( backEnd.pc ) );
+		memset( &tr.pc, 0, sizeof( tr.pc ) );
+		memset( &backEnd.pc, 0, sizeof( backEnd.pc ) );
 		return;
 	}
 
@@ -63,8 +63,8 @@ void R_PerformanceCounters( void )
 		ri.Printf( PRINT_ALL, "zFar: %.0f\n", tr.viewParms.zFar );
 	}
 
-	Com_Memset( &tr.pc, 0, sizeof( tr.pc ) );
-	Com_Memset( &backEnd.pc, 0, sizeof( backEnd.pc ) );
+	memset( &tr.pc, 0, sizeof( tr.pc ) );
+	memset( &backEnd.pc, 0, sizeof( backEnd.pc ) );
 }
 
 

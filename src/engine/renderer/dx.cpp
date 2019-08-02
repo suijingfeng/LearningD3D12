@@ -809,7 +809,7 @@ void dx_shutdown()
 
 	dx.device->Release();
 
-	Com_Memset(&dx, 0, sizeof(dx));
+	memset(&dx, 0, sizeof(dx));
 }
 
 void dx_release_resources()
@@ -828,7 +828,7 @@ void dx_release_resources()
 		}
 	}
 
-	Com_Memset(&dx_world, 0, sizeof(dx_world));
+	memset(&dx_world, 0, sizeof(dx_world));
 
 	// Reset geometry buffer's current offsets.
 	dx.xyz_elements = 0;
@@ -1440,7 +1440,7 @@ void dx_bind_geometry()
 			ri.Error(ERR_DROP, "dx_bind_geometry: vertex buffer overflow (xyz)\n");
 
 		byte* dst = dx.vertex_buffer_ptr + XYZ_OFFSET + dx.xyz_elements * sizeof(vec4_t);
-		Com_Memcpy(dst, tess.xyz, tess.numVertexes * sizeof(vec4_t));
+		memcpy(dst, tess.xyz, tess.numVertexes * sizeof(vec4_t));
 
 		uint32_t xyz_offset = XYZ_OFFSET + dx.xyz_elements * sizeof(vec4_t);
 
@@ -1461,7 +1461,7 @@ void dx_bind_geometry()
 			ri.Error(ERR_DROP, "dx_bind_geometry: index buffer overflow\n");
 
 		byte* dst = dx.index_buffer_ptr + dx.index_buffer_offset;
-		Com_Memcpy(dst, tess.indexes, indexes_size);
+		memcpy(dst, tess.indexes, indexes_size);
 
 		D3D12_INDEX_BUFFER_VIEW index_view;
 		index_view.BufferLocation = dx.geometry_buffer->GetGPUVirtualAddress() + VERTEX_BUFFER_SIZE + dx.index_buffer_offset;
@@ -1526,7 +1526,7 @@ void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture,
 			ri.Error(ERR_DROP, "vulkan: vertex buffer overflow (color)\n");
 
 		byte* dst = dx.vertex_buffer_ptr + COLOR_OFFSET + dx.color_st_elements * sizeof(color4ub_t);
-		Com_Memcpy(dst, tess.svars.colors, tess.numVertexes * sizeof(color4ub_t));
+		memcpy(dst, tess.svars.colors, tess.numVertexes * sizeof(color4ub_t));
 	}
 	// st0
 	{
@@ -1534,7 +1534,7 @@ void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture,
 			ri.Error(ERR_DROP, "vulkan: vertex buffer overflow (st0)\n");
 
 		byte* dst = dx.vertex_buffer_ptr + ST0_OFFSET + dx.color_st_elements * sizeof(vec2_t);
-		Com_Memcpy(dst, tess.svars.texcoords[0], tess.numVertexes * sizeof(vec2_t));
+		memcpy(dst, tess.svars.texcoords[0], tess.numVertexes * sizeof(vec2_t));
 	}
 	// st1
 	if (multitexture) {
@@ -1542,7 +1542,7 @@ void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture,
 			ri.Error(ERR_DROP, "vulkan: vertex buffer overflow (st1)\n");
 
 		byte* dst = dx.vertex_buffer_ptr + ST1_OFFSET + dx.color_st_elements * sizeof(vec2_t);
-		Com_Memcpy(dst, tess.svars.texcoords[1], tess.numVertexes * sizeof(vec2_t));
+		memcpy(dst, tess.svars.texcoords[1], tess.numVertexes * sizeof(vec2_t));
 	}
 
 	//

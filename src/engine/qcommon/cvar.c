@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Foobar; if not, write to the Free Software
+along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
@@ -827,6 +827,41 @@ Cvar_InfoStringBuffer
 */
 void Cvar_InfoStringBuffer( int bit, char* buff, int buffsize ) {
 	Q_strncpyz(buff,Cvar_InfoString(bit),buffsize);
+}
+
+
+/*
+=====================
+Cvar_CheckRange
+=====================
+*/
+void Cvar_CheckRange( cvar_t *var, float min, float max, qboolean integral )
+{
+	var->validate = qtrue;
+	var->min = min;
+	var->max = max;
+	var->integral = integral;
+
+	// Force an initial range check
+	Cvar_Set( var->name, var->string );
+}
+
+
+/*
+=====================
+Cvar_SetDescription
+=====================
+*/
+void Cvar_SetDescription( cvar_t *var, const char *var_description )
+{
+	if( var_description && var_description[0] != '\0' )
+	{
+		if( var->description != NULL )
+		{
+			Z_Free( var->description );
+		}
+		var->description = CopyString( var_description );
+	}
 }
 
 /*
