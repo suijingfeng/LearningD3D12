@@ -38,6 +38,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../platform/win_public.h"
 
+
 cvar_t	*cl_nodelta;
 cvar_t	*cl_debugMove;
 
@@ -2340,7 +2341,7 @@ void CL_InitRef( void )
 #ifdef USE_RENDERER_DLOPEN
 
 	GetRefAPI_t	GetRefAPI;
-	char dllName[MAX_OSPATH] = "renderer_vulkan.dll";
+	char dllName[MAX_OSPATH] = "renderer.dll";
 
 	Com_Printf("\n-------- USE_RENDERER_DLOPEN --------\n");
 

@@ -617,7 +617,7 @@ GetRefAPI
 */
 
 #ifdef USE_RENDERER_DLOPEN
-__declspec(dllexport) refexport_t * GetRefAPI(int apiVersion, refimport_t *rimp)
+extern "C" __declspec(dllexport) refexport_t * GetRefAPI(int apiVersion, refimport_t *rimp)
 #else
 refexport_t* GetRefAPI(int apiVersion, refimport_t *rimp)
 #endif
