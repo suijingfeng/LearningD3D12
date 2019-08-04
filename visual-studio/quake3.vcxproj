@@ -478,9 +478,6 @@
       <Project>{a410161f-ae9f-485d-a01f-5294891430a6}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="renderer.vcxproj">
-      <Project>{ab424155-fbed-4d8d-b007-5b6cf93ea395}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\engine\platform\oa3.ico" />

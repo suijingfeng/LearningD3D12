@@ -158,14 +158,17 @@ typedef struct {
 
 
 	// GLimp
-	void (* GLimpInit)(struct glconfig_s * const glConfig, void ** pContext);
+	void (* GLimpInit)(glconfig_t * const glConfig, void ** pContext);
 	void (* GLimpShutdown)(void);
 	void (* GLimpEndFrame)(void);
 	void (* GLimpMinimize)(void);
 	void (* GLimpSetGamma)(unsigned char red[256], unsigned char green[256], unsigned char blue[256]);
 	void (* pfnLog)(char * const pComment);
+
 	// system stuff
 	void (* Sys_SetEnv)( const char *name, const char *value );
+//	void (* Sys_GLimpSafeInit)(void);
+//	void (* Sys_GLimpInit)(void);
 	qboolean (* Sys_LowPhysicalMemory)(void);
 } refimport_t;
 

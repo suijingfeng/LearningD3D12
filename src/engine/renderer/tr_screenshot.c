@@ -36,9 +36,9 @@ void RB_TakeScreenshot(int x, int y, int width, int height, char *fileName)
 	buffer[15] = height >> 8;
 	buffer[16] = 24;	// pixel size
 
-	if (get_render_api() == RENDER_API_DX) { // DX12
-		ri.Printf(PRINT_WARNING, "RT_TakeScreenshot is not implemented for DX12");
-	}
+
+	ri.Printf(PRINT_WARNING, "RT_TakeScreenshot is not implemented for DX12");
+	
 
 	// swap rgb to bgr
 	uint32_t c = 18 + width * height * 3;
@@ -67,9 +67,9 @@ void RB_TakeScreenshotJPEG(int x, int y, int width, int height, char *fileName)
 {
 	byte* buffer = (byte*)ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight * 4);;
 
-	if (get_render_api() == RENDER_API_DX) { // DX12
-		ri.Printf(PRINT_WARNING, "RT_TakeScreenshotJPEG is not implemented for DX12");
-	}
+
+	ri.Printf(PRINT_WARNING, "RT_TakeScreenshotJPEG is not implemented for DX12");
+
 
 	// gamma correct
 	if ((tr.overbrightBits > 0) && glConfig.deviceSupportsGamma) {
@@ -203,9 +203,9 @@ void R_LevelShot(void) {
 	buffer[14] = 128;
 	buffer[16] = 24;	// pixel size
 
-	if (get_render_api() == RENDER_API_DX) { // DX12
-		ri.Printf(PRINT_WARNING, "R_LevelShot is not implemented for DX12");
-	}
+
+	ri.Printf(PRINT_WARNING, "R_LevelShot is not implemented for DX12");
+
 
 	// resample from source
 	xScale = glConfig.vidWidth / 512.0f;

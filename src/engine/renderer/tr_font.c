@@ -308,19 +308,15 @@ typedef union {
 	float	ffred;
 } poor;
 
-float readFloat() {
+float readFloat()
+{
 	poor	me;
-#if idppc
-	me.fred[0] = fdFile[fdOffset+3];
-	me.fred[1] = fdFile[fdOffset+2];
-	me.fred[2] = fdFile[fdOffset+1];
-	me.fred[3] = fdFile[fdOffset+0];
-#else
+
 	me.fred[0] = fdFile[fdOffset+0];
 	me.fred[1] = fdFile[fdOffset+1];
 	me.fred[2] = fdFile[fdOffset+2];
 	me.fred[3] = fdFile[fdOffset+3];
-#endif
+
 	fdOffset += 4;
 	return me.ffred;
 }

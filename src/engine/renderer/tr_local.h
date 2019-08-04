@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_shared.h"
 #include "../qcommon/qfiles.h"
-#include "../qcommon/qcommon.h"
+
 #include "tr_public.h"
 
 #include "qgl.h"
@@ -921,7 +921,7 @@ typedef struct {
 
 extern backEndState_t	backEnd;
 extern trGlobals_t	tr;
-extern bool			gl_active;		// set to true if OpenGL is used for rendering
+extern const qboolean gl_active;		// set to true if OpenGL is used for rendering
 extern glconfig_t	glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
 extern glstate_t	glState;		// outside of TR since it shouldn't be cleared during ref re-init
 
@@ -929,12 +929,6 @@ extern glstate_t	glState;		// outside of TR since it shouldn't be cleared during
 // DX12
 extern Dx_Instance	dx;				// shouldn't be cleared during ref re-init
 
-
-enum RenderApi {
-	RENDER_API_DX
-};
-
-RenderApi get_render_api();
 
 //
 // cvars

@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // let me think about a while before remove this dependency!
 
 
-bool		gl_active;
+const qboolean gl_active = qfalse;
 glconfig_t	glConfig;
 glstate_t	glState;
 
@@ -158,12 +158,6 @@ static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean sh
 		ri.Cvar_Set( cv->name, va( "%f", maxVal ) );
 	}
 }
-
-RenderApi get_render_api()
-{
-	return RENDER_API_DX; // use default (d3d12) if invalid r_renderAPI value is specified
-}
-
 
 
 /*
@@ -602,7 +596,6 @@ GetRefAPI
 
 @@@@@@@@@@@@@@@@@@@@@
 */
-
 #ifdef USE_RENDERER_DLOPEN
 extern "C" __declspec(dllexport) refexport_t * QDECL GetRefAPI(int apiVersion, refimport_t *rimp)
 #else

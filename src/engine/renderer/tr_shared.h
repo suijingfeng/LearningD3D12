@@ -23,46 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __Q_SHARED_H_
 #define __Q_SHARED_H_
 
-// tr_shared.h -- included first by ALL program modules.
-// A user mod should never modify this file
-
-#define	Q3_VERSION		"OpenArena d3d12 edition, suijingfeng, 18949883232@163.com"
-// 1.32 released 7-10-2002
-
-#define MAX_TEAMNAME 32
-
-#ifdef _WIN32
-
-#pragma warning(disable : 4018)     // signed/unsigned mismatch
-//#pragma warning(disable : 4032)
-//#pragma warning(disable : 4051)
-//#pragma warning(disable : 4057)		// slightly different base types
-//#pragma warning(disable : 4100)		// unreferenced formal parameter
-// #pragma warning(disable : 4115)
-#pragma warning(disable : 4125)		// decimal digit terminates octal escape sequence
-#pragma warning(disable : 4127)		// conditional expression is constant
-//#pragma warning(disable : 4136)
-#pragma warning(disable : 4152)		// nonstandard extension, function/data pointer conversion in expression
-//#pragma warning(disable : 4201)
-//#pragma warning(disable : 4214)
-#pragma warning(disable : 4244)		// possible lose presion
-#pragma warning(disable : 4142)		// benign redefinition
-//#pragma warning(disable : 4305)	// truncation from const double to float
-//#pragma warning(disable : 4310)	// cast truncates constant value
-//#pragma warning(disable:  4505) 	// unreferenced local function has been removed
-//#pragma warning(disable : 4514)
-#pragma warning(disable : 4702)		// unreachable code
-#pragma warning(disable : 4711)		// selected for automatic inline expansion
-#pragma warning(disable : 4220)		// varargs matches remaining parameters
-
-// <artem>
-#pragma warning(disable : 4996)		// the function or variable may be unsafe
-// </artem>
-
-//#pragma intrinsic( memset, memcpy )
-#endif
-
-
 
 #include <assert.h>
 #include <math.h>
@@ -74,34 +34,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <ctype.h>
 #include <limits.h>
 
-
-// this is the define for determining if we have an asm version of a C function
-#if (defined _M_IX86 || defined __i386__) && !defined __sun__  && !defined __LCC__
-#define id386	1
-#else
-#define id386	0
-#endif
-
-#if (defined(powerc) || defined(powerpc) || defined(ppc) || defined(__ppc) || defined(__ppc__)) && !defined(C_ONLY)
-#define idppc	1
-#if defined(__VEC__)
-#define idppc_altivec 1
-#else
-#define idppc_altivec 0
-#endif
-#else
-#define idppc	0
-#define idppc_altivec 0
-#endif
-
-
-short   ShortSwap(short l);
-int		LongSwap(int l);
-float	FloatSwap(const float *f);
+// tr_shared.h -- included first by ALL program modules.
+// A user mod should never modify this file
 
 //======================= WIN32 DEFINES =================================
-
-#ifdef WIN32
+#ifdef _WIN32
+#pragma warning(disable : 4018)     // signed/unsigned mismatch
+#pragma warning(disable : 4244)		// possible lose presion
+#pragma warning(disable : 4996)		// the function or variable may be unsafe
+//#pragma intrinsic( memset, memcpy )
 
 #define	MAC_STATIC
 
@@ -111,16 +52,19 @@ float	FloatSwap(const float *f);
 
 #define ID_INLINE __inline 
 
-static ID_INLINE short BigShort( short l) { return ShortSwap(l); }
 #define LittleShort
-static ID_INLINE int BigLong(int l) { LongSwap(l); }
 #define LittleLong
-static ID_INLINE float BigFloat(const float *l) { FloatSwap(l); }
 #define LittleFloat
 
 #define	PATH_SEP '\\'
 
 #endif
+
+
+
+short   ShortSwap(short l);
+int		LongSwap(int l);
+float	FloatSwap(const float *f);
 
 
 typedef unsigned char byte;
@@ -247,13 +191,7 @@ void *Hunk_AllocDebug( int size, ha_pref preference, char *label, char *file, in
 void *Hunk_Alloc( int size, ha_pref preference );
 #endif
 
-#ifdef __linux__
-// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=371
-// custom Snd_Memset implementation for glibc memset bug workaround
-void Snd_Memset (void* dest, const int val, const size_t count);
-#else
-#define Snd_Memset Com_Memset
-#endif
+
 
 #if !( defined __VECTORC )
 void Com_Memset (void* dest, const int val, const size_t count);
@@ -293,7 +231,7 @@ typedef	int	fixed16_t;
 #endif
 
 #define NUMVERTEXNORMALS	162
-extern	vec3_t	bytedirs[NUMVERTEXNORMALS];
+
 
 // all drawing is done to a 640*480 virtual screen size
 // and will be automatically scaled to the real resolution
@@ -368,14 +306,9 @@ float Q_fabs( float f );
 float Q_rsqrt( float f );		// reciprocal square root
 
 
-
-
 signed char ClampChar( int i );
 signed short ClampShort( int i );
 
-// this isn't a real cheap function to call!
-int DirToByte( vec3_t dir );
-void ByteToDir( int b, vec3_t dir );
 
 #define SQRTFAST( x ) ( (x) * Q_rsqrt( x ) )
 
@@ -483,7 +416,20 @@ void AnglesToAxis( const vec3_t angles, vec3_t axis[3] );
 void AxisClear( vec3_t axis[3] );
 void AxisCopy( vec3_t in[3], vec3_t out[3] );
 
-void SetPlaneSignbits( struct cplane_s *out );
+
+// plane_t structure
+// !!! if this is changed, it must be changed in asm code too !!!
+typedef struct cplane_s {
+	vec3_t	normal;
+	float	dist;
+	byte	type;			// for fast side tests: 0,1,2 = axial, 3 = nonaxial
+	byte	signbits;		// signx + (signy<<1) + (signz<<2), used as lookup during collision
+	byte	pad[2];
+} cplane_t;
+
+
+
+void SetPlaneSignbits( cplane_t *out );
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *plane);
 
 float	AngleMod(float a);
@@ -553,11 +499,8 @@ void	COM_MatchToken( char**buf_p, char *match );
 void SkipBracedSection (char **program);
 void SkipRestOfLine ( char **data );
 
-void Parse1DMatrix (char **buf_p, int x, float *m);
-void Parse2DMatrix (char **buf_p, int y, int x, float *m);
-void Parse3DMatrix (char **buf_p, int z, int y, int x, float *m);
 
-void	QDECL Com_sprintf (char *dest, int size, const char *fmt, ...);
+void QDECL Com_sprintf (char *dest, int size, const char *fmt, ...);
 
 
 // mode parm for FS_FOpenFile
@@ -593,10 +536,6 @@ char	*Q_strrchr( const char* string, int c );
 void	Q_strncpyz( char *dest, const char *src, int destsize );
 void	Q_strcat( char *dest, int size, const char *src );
 
-// strlen that discounts Quake color sequences
-int Q_PrintStrlen( const char *string );
-// removes color sequences from string
-char *Q_CleanStr( char *string );
 
 //=============================================
 
@@ -615,36 +554,16 @@ typedef struct
 } qint64;
 
 //=============================================
-/*
-short	BigShort(short l);
-short	LittleShort(short l);
-int		BigLong (int l);
-int		LittleLong (int l);
-qint64  BigLong64 (qint64 l);
-qint64  LittleLong64 (qint64 l);
-float	BigFloat (const float *l);
-float	LittleFloat (const float *l);
 
-void	Swap_Init (void);
-*/
-char	* QDECL va(char *format, ...);
+char * QDECL va(char *format, ...);
 
 //=============================================
 
-//
-// key / value info strings
-//
-char *Info_ValueForKey( const char *s, const char *key );
-void Info_RemoveKey( char *s, const char *key );
-void Info_RemoveKey_big( char *s, const char *key );
-void Info_SetValueForKey( char *s, const char *key, const char *value );
-void Info_SetValueForKey_Big( char *s, const char *key, const char *value );
-qboolean Info_Validate( const char *s );
-void Info_NextPair( const char **s, char *key, char *value );
+
 
 // this is only here so the functions in q_shared.c and bg_*.c can link
-void	QDECL Com_Error( int level, const char *error, ... );
-void	QDECL Com_Printf( const char *msg, ... );
+void QDECL Com_Error( int level, const char *error, ... );
+void QDECL Com_Printf( const char *msg, ... );
 
 
 /*
@@ -694,16 +613,15 @@ typedef struct cvar_s {
 
 #define	MAX_CVAR_VALUE_STRING	256
 
-typedef int	cvarHandle_t;
 
 // the modules that run in the virtual machine can't access the cvar_t directly,
 // so they must ask for structured updates
 typedef struct {
-	cvarHandle_t	handle;
-	int			modificationCount;
-	float		value;
-	int			integer;
-	char		string[MAX_CVAR_VALUE_STRING];
+	int		handle;
+	int		modificationCount;
+	float	value;
+	int		integer;
+	char	string[MAX_CVAR_VALUE_STRING];
 } vmCvar_t;
 
 /*
@@ -732,15 +650,7 @@ PlaneTypeForNormal
 
 #define PlaneTypeForNormal(x) (x[0] == 1.0 ? PLANE_X : (x[1] == 1.0 ? PLANE_Y : (x[2] == 1.0 ? PLANE_Z : PLANE_NON_AXIAL) ) )
 
-// plane_t structure
-// !!! if this is changed, it must be changed in asm code too !!!
-typedef struct cplane_s {
-	vec3_t	normal;
-	float	dist;
-	byte	type;			// for fast side tests: 0,1,2 = axial, 3 = nonaxial
-	byte	signbits;		// signx + (signy<<1) + (signz<<2), used as lookup during collision
-	byte	pad[2];
-} cplane_t;
+
 
 
 // a trace is returned when a box is swept through the world
@@ -772,30 +682,7 @@ typedef struct {
 	vec3_t		axis[3];
 } orientation_t;
 
-//=====================================================================
 
-
-// in order from highest priority to lowest
-// if none of the catchers are active, bound key strings will be executed
-#define KEYCATCH_CONSOLE		0x0001
-#define	KEYCATCH_UI					0x0002
-#define	KEYCATCH_MESSAGE		0x0004
-#define	KEYCATCH_CGAME			0x0008
-
-
-// sound channels
-// channel 0 never willingly overrides
-// other channels will allways override a playing sound on that channel
-typedef enum {
-	CHAN_AUTO,
-	CHAN_LOCAL,		// menu sounds, etc
-	CHAN_WEAPON,
-	CHAN_VOICE,
-	CHAN_ITEM,
-	CHAN_BODY,
-	CHAN_LOCAL_SOUND,	// chat messages, etc
-	CHAN_ANNOUNCER		// announcer voices, etc
-} soundChannel_t;
 
 
 /*
@@ -805,50 +692,12 @@ typedef enum {
 
 ========================================================================
 */
-
-#define	ANGLE2SHORT(x)	((int)((x)*65536/360) & 65535)
-#define	SHORT2ANGLE(x)	((x)*(360.0/65536))
-
-#define	SNAPFLAG_RATE_DELAYED	1
-#define	SNAPFLAG_NOT_ACTIVE		2	// snapshot used during connection and for zombies
-#define SNAPFLAG_SERVERCOUNT	4	// toggled every map_restart so transitions can be detected
-
-//
-// per-level limits
-//
-#define	MAX_CLIENTS			64		// absolute limit
-#define MAX_LOCATIONS		64
-
 #define	GENTITYNUM_BITS		10		// don't need to send any more
 #define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)
-
-// entitynums are communicated with GENTITY_BITS, so any reserved
-// values that are going to be communcated over the net need to
-// also be in this range
-#define	ENTITYNUM_NONE		(MAX_GENTITIES-1)
 #define	ENTITYNUM_WORLD		(MAX_GENTITIES-2)
-#define	ENTITYNUM_MAX_NORMAL	(MAX_GENTITIES-2)
 
 
-#define	MAX_MODELS			256		// these are sent over the net as 8 bits
-#define	MAX_SOUNDS			256		// so they cannot be blindly increased
 
-
-#define	MAX_CONFIGSTRINGS	1024
-
-// these are the only configstrings that the system reserves, all the
-// other ones are strictly for servergame to clientgame communication
-#define	CS_SERVERINFO		0		// an info string with all the serverinfo cvars
-#define	CS_SYSTEMINFO		1		// an info string for server system to client system configuration (timescale, etc)
-
-#define	RESERVED_CONFIGSTRINGS	2	// game can't modify below this, only the system can
-
-#define	MAX_GAMESTATE_CHARS	16000
-typedef struct {
-	int			stringOffsets[MAX_CONFIGSTRINGS];
-	char		stringData[MAX_GAMESTATE_CHARS];
-	int			dataCount;
-} gameState_t;
 
 //=========================================================
 
@@ -861,85 +710,6 @@ typedef struct {
 #define	MAX_PS_EVENTS			2
 
 #define PS_PMOVEFRAMECOUNTBITS	6
-
-// playerState_t is the information needed by both the client and server
-// to predict player motion and actions
-// nothing outside of pmove should modify these, or some degree of prediction error
-// will occur
-
-// you can't add anything to this without modifying the code in msg.c
-
-// playerState_t is a full superset of entityState_t as it is used by players,
-// so if a playerState_t is transmitted, the entityState_t can be fully derived
-// from it.
-typedef struct playerState_s {
-	int			commandTime;	// cmd->serverTime of last executed command
-	int			pm_type;
-	int			bobCycle;		// for view bobbing and footstep generation
-	int			pm_flags;		// ducked, jump_held, etc
-	int			pm_time;
-
-	vec3_t		origin;
-	vec3_t		velocity;
-	int			weaponTime;
-	int			gravity;
-	int			speed;
-	int			delta_angles[3];	// add to command angles to get view direction
-									// changed by spawns, rotating objects, and teleporters
-
-	int			groundEntityNum;// ENTITYNUM_NONE = in air
-
-	int			legsTimer;		// don't change low priority animations until this runs out
-	int			legsAnim;		// mask off ANIM_TOGGLEBIT
-
-	int			torsoTimer;		// don't change low priority animations until this runs out
-	int			torsoAnim;		// mask off ANIM_TOGGLEBIT
-
-	int			movementDir;	// a number 0 to 7 that represents the reletive angle
-								// of movement to the view angle (axial and diagonals)
-								// when at rest, the value will remain unchanged
-								// used to twist the legs during strafing
-
-	vec3_t		grapplePoint;	// location of grapple to pull towards if PMF_GRAPPLE_PULL
-
-	int			eFlags;			// copied to entityState_t->eFlags
-
-	int			eventSequence;	// pmove generated events
-	int			events[MAX_PS_EVENTS];
-	int			eventParms[MAX_PS_EVENTS];
-
-	int			externalEvent;	// events set on player from another source
-	int			externalEventParm;
-	int			externalEventTime;
-
-	int			clientNum;		// ranges from 0 to MAX_CLIENTS-1
-	int			weapon;			// copied to entityState_t->weapon
-	int			weaponstate;
-
-	vec3_t		viewangles;		// for fixed views
-	int			viewheight;
-
-	// damage feedback
-	int			damageEvent;	// when it changes, latch the other parms
-	int			damageYaw;
-	int			damagePitch;
-	int			damageCount;
-
-	int			stats[MAX_STATS];
-	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
-	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
-	int			ammo[MAX_WEAPONS];
-
-	int			generic1;
-	int			loopSound;
-	int			jumppad_ent;	// jumppad entity hit this frame
-
-	// not communicated over the net at all
-	int			ping;			// server to game info for scoreboard
-	int			pmove_framecount;	// FIXME: don't transmit over the network
-	int			jumppad_frame;
-	int			entityEventSequence;
-} playerState_t;
 
 
 //====================================================================
@@ -1114,12 +884,6 @@ typedef struct qtime_s {
 } qtime_t;
 
 
-// server browser sources
-// TTimo: AS_MPLAYER is no longer used
-#define AS_LOCAL			0
-#define AS_MPLAYER		1
-#define AS_GLOBAL			2
-#define AS_FAVORITES	3
 
 
 // cinematic states
@@ -1133,27 +897,6 @@ typedef enum {
 	FMV_ID_WAIT
 } e_status;
 
-typedef enum _flag_status {
-	FLAG_ATBASE = 0,
-	FLAG_TAKEN,			// CTF
-	FLAG_TAKEN_RED,		// One Flag CTF
-	FLAG_TAKEN_BLUE,	// One Flag CTF
-	FLAG_DROPPED
-} flagStatus_t;
-
-
-
-#define	MAX_GLOBAL_SERVERS				4096
-#define	MAX_OTHER_SERVERS					128
-#define MAX_PINGREQUESTS					32
-#define MAX_SERVERSTATUSREQUESTS	16
-
-#define SAY_ALL		0
-#define SAY_TEAM	1
-#define SAY_TELL	2
-
-#define CDKEY_LEN 16
-#define CDCHKSUM_LEN 2
 
 
 #endif	// __Q_SHARED_H

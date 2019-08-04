@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 //
-// q_math.c -- stateless support routines that are included in each code module
+// tr_math.c -- stateless support routines that are included in each code module
 #include "tr_shared.h"
 
 
@@ -53,90 +53,6 @@ vec4_t	g_color_table[8] =
 	};
 
 
-vec3_t	bytedirs[NUMVERTEXNORMALS] =
-{
-{-0.525731f, 0.000000f, 0.850651f}, {-0.442863f, 0.238856f, 0.864188f}, 
-{-0.295242f, 0.000000f, 0.955423f}, {-0.309017f, 0.500000f, 0.809017f}, 
-{-0.162460f, 0.262866f, 0.951056f}, {0.000000f, 0.000000f, 1.000000f}, 
-{0.000000f, 0.850651f, 0.525731f}, {-0.147621f, 0.716567f, 0.681718f}, 
-{0.147621f, 0.716567f, 0.681718f}, {0.000000f, 0.525731f, 0.850651f}, 
-{0.309017f, 0.500000f, 0.809017f}, {0.525731f, 0.000000f, 0.850651f}, 
-{0.295242f, 0.000000f, 0.955423f}, {0.442863f, 0.238856f, 0.864188f}, 
-{0.162460f, 0.262866f, 0.951056f}, {-0.681718f, 0.147621f, 0.716567f}, 
-{-0.809017f, 0.309017f, 0.500000f},{-0.587785f, 0.425325f, 0.688191f}, 
-{-0.850651f, 0.525731f, 0.000000f},{-0.864188f, 0.442863f, 0.238856f}, 
-{-0.716567f, 0.681718f, 0.147621f},{-0.688191f, 0.587785f, 0.425325f}, 
-{-0.500000f, 0.809017f, 0.309017f}, {-0.238856f, 0.864188f, 0.442863f}, 
-{-0.425325f, 0.688191f, 0.587785f}, {-0.716567f, 0.681718f, -0.147621f}, 
-{-0.500000f, 0.809017f, -0.309017f}, {-0.525731f, 0.850651f, 0.000000f}, 
-{0.000000f, 0.850651f, -0.525731f}, {-0.238856f, 0.864188f, -0.442863f}, 
-{0.000000f, 0.955423f, -0.295242f}, {-0.262866f, 0.951056f, -0.162460f}, 
-{0.000000f, 1.000000f, 0.000000f}, {0.000000f, 0.955423f, 0.295242f}, 
-{-0.262866f, 0.951056f, 0.162460f}, {0.238856f, 0.864188f, 0.442863f}, 
-{0.262866f, 0.951056f, 0.162460f}, {0.500000f, 0.809017f, 0.309017f}, 
-{0.238856f, 0.864188f, -0.442863f},{0.262866f, 0.951056f, -0.162460f}, 
-{0.500000f, 0.809017f, -0.309017f},{0.850651f, 0.525731f, 0.000000f}, 
-{0.716567f, 0.681718f, 0.147621f}, {0.716567f, 0.681718f, -0.147621f}, 
-{0.525731f, 0.850651f, 0.000000f}, {0.425325f, 0.688191f, 0.587785f}, 
-{0.864188f, 0.442863f, 0.238856f}, {0.688191f, 0.587785f, 0.425325f}, 
-{0.809017f, 0.309017f, 0.500000f}, {0.681718f, 0.147621f, 0.716567f}, 
-{0.587785f, 0.425325f, 0.688191f}, {0.955423f, 0.295242f, 0.000000f}, 
-{1.000000f, 0.000000f, 0.000000f}, {0.951056f, 0.162460f, 0.262866f}, 
-{0.850651f, -0.525731f, 0.000000f},{0.955423f, -0.295242f, 0.000000f}, 
-{0.864188f, -0.442863f, 0.238856f}, {0.951056f, -0.162460f, 0.262866f}, 
-{0.809017f, -0.309017f, 0.500000f}, {0.681718f, -0.147621f, 0.716567f}, 
-{0.850651f, 0.000000f, 0.525731f}, {0.864188f, 0.442863f, -0.238856f}, 
-{0.809017f, 0.309017f, -0.500000f}, {0.951056f, 0.162460f, -0.262866f}, 
-{0.525731f, 0.000000f, -0.850651f}, {0.681718f, 0.147621f, -0.716567f}, 
-{0.681718f, -0.147621f, -0.716567f},{0.850651f, 0.000000f, -0.525731f}, 
-{0.809017f, -0.309017f, -0.500000f}, {0.864188f, -0.442863f, -0.238856f}, 
-{0.951056f, -0.162460f, -0.262866f}, {0.147621f, 0.716567f, -0.681718f}, 
-{0.309017f, 0.500000f, -0.809017f}, {0.425325f, 0.688191f, -0.587785f}, 
-{0.442863f, 0.238856f, -0.864188f}, {0.587785f, 0.425325f, -0.688191f}, 
-{0.688191f, 0.587785f, -0.425325f}, {-0.147621f, 0.716567f, -0.681718f}, 
-{-0.309017f, 0.500000f, -0.809017f}, {0.000000f, 0.525731f, -0.850651f}, 
-{-0.525731f, 0.000000f, -0.850651f}, {-0.442863f, 0.238856f, -0.864188f}, 
-{-0.295242f, 0.000000f, -0.955423f}, {-0.162460f, 0.262866f, -0.951056f}, 
-{0.000000f, 0.000000f, -1.000000f}, {0.295242f, 0.000000f, -0.955423f}, 
-{0.162460f, 0.262866f, -0.951056f}, {-0.442863f, -0.238856f, -0.864188f}, 
-{-0.309017f, -0.500000f, -0.809017f}, {-0.162460f, -0.262866f, -0.951056f}, 
-{0.000000f, -0.850651f, -0.525731f}, {-0.147621f, -0.716567f, -0.681718f}, 
-{0.147621f, -0.716567f, -0.681718f}, {0.000000f, -0.525731f, -0.850651f}, 
-{0.309017f, -0.500000f, -0.809017f}, {0.442863f, -0.238856f, -0.864188f}, 
-{0.162460f, -0.262866f, -0.951056f}, {0.238856f, -0.864188f, -0.442863f}, 
-{0.500000f, -0.809017f, -0.309017f}, {0.425325f, -0.688191f, -0.587785f}, 
-{0.716567f, -0.681718f, -0.147621f}, {0.688191f, -0.587785f, -0.425325f}, 
-{0.587785f, -0.425325f, -0.688191f}, {0.000000f, -0.955423f, -0.295242f}, 
-{0.000000f, -1.000000f, 0.000000f}, {0.262866f, -0.951056f, -0.162460f}, 
-{0.000000f, -0.850651f, 0.525731f}, {0.000000f, -0.955423f, 0.295242f}, 
-{0.238856f, -0.864188f, 0.442863f}, {0.262866f, -0.951056f, 0.162460f}, 
-{0.500000f, -0.809017f, 0.309017f}, {0.716567f, -0.681718f, 0.147621f}, 
-{0.525731f, -0.850651f, 0.000000f}, {-0.238856f, -0.864188f, -0.442863f}, 
-{-0.500000f, -0.809017f, -0.309017f}, {-0.262866f, -0.951056f, -0.162460f}, 
-{-0.850651f, -0.525731f, 0.000000f}, {-0.716567f, -0.681718f, -0.147621f}, 
-{-0.716567f, -0.681718f, 0.147621f}, {-0.525731f, -0.850651f, 0.000000f}, 
-{-0.500000f, -0.809017f, 0.309017f}, {-0.238856f, -0.864188f, 0.442863f}, 
-{-0.262866f, -0.951056f, 0.162460f}, {-0.864188f, -0.442863f, 0.238856f}, 
-{-0.809017f, -0.309017f, 0.500000f}, {-0.688191f, -0.587785f, 0.425325f}, 
-{-0.681718f, -0.147621f, 0.716567f}, {-0.442863f, -0.238856f, 0.864188f}, 
-{-0.587785f, -0.425325f, 0.688191f}, {-0.309017f, -0.500000f, 0.809017f}, 
-{-0.147621f, -0.716567f, 0.681718f}, {-0.425325f, -0.688191f, 0.587785f}, 
-{-0.162460f, -0.262866f, 0.951056f}, {0.442863f, -0.238856f, 0.864188f}, 
-{0.162460f, -0.262866f, 0.951056f}, {0.309017f, -0.500000f, 0.809017f}, 
-{0.147621f, -0.716567f, 0.681718f}, {0.000000f, -0.525731f, 0.850651f}, 
-{0.425325f, -0.688191f, 0.587785f}, {0.587785f, -0.425325f, 0.688191f}, 
-{0.688191f, -0.587785f, 0.425325f}, {-0.955423f, 0.295242f, 0.000000f}, 
-{-0.951056f, 0.162460f, 0.262866f}, {-1.000000f, 0.000000f, 0.000000f}, 
-{-0.850651f, 0.000000f, 0.525731f}, {-0.955423f, -0.295242f, 0.000000f}, 
-{-0.951056f, -0.162460f, 0.262866f}, {-0.864188f, 0.442863f, -0.238856f}, 
-{-0.951056f, 0.162460f, -0.262866f}, {-0.809017f, 0.309017f, -0.500000f}, 
-{-0.864188f, -0.442863f, -0.238856f}, {-0.951056f, -0.162460f, -0.262866f}, 
-{-0.809017f, -0.309017f, -0.500000f}, {-0.681718f, 0.147621f, -0.716567f}, 
-{-0.681718f, -0.147621f, -0.716567f}, {-0.850651f, 0.000000f, -0.525731f}, 
-{-0.688191f, 0.587785f, -0.425325f}, {-0.587785f, 0.425325f, -0.688191f}, 
-{-0.425325f, 0.688191f, -0.587785f}, {-0.425325f, -0.688191f, -0.587785f}, 
-{-0.587785f, -0.425325f, -0.688191f}, {-0.688191f, -0.587785f, -0.425325f}
-};
 
 //==============================================================
 
@@ -153,62 +69,6 @@ float	Q_crandom( int *seed ) {
 	return 2.0 * ( Q_random( seed ) - 0.5 );
 }
 
-#ifdef __LCC__
-
-int VectorCompare( const vec3_t v1, const vec3_t v2 ) {
-	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2]) {
-		return 0;
-	}			
-	return 1;
-}
-
-vec_t VectorLength( const vec3_t v ) {
-	return (vec_t)sqrt (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-}
-
-vec_t VectorLengthSquared( const vec3_t v ) {
-	return (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-}
-
-vec_t Distance( const vec3_t p1, const vec3_t p2 ) {
-	vec3_t	v;
-
-	VectorSubtract (p2, p1, v);
-	return VectorLength( v );
-}
-
-vec_t DistanceSquared( const vec3_t p1, const vec3_t p2 ) {
-	vec3_t	v;
-
-	VectorSubtract (p2, p1, v);
-	return v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
-}
-
-// fast vector normalize routine that does not check to make sure
-// that length != 0, nor does it return length, uses rsqrt approximation
-void VectorNormalizeFast( vec3_t v )
-{
-	float ilength;
-
-	ilength = Q_rsqrt( DotProduct( v, v ) );
-
-	v[0] *= ilength;
-	v[1] *= ilength;
-	v[2] *= ilength;
-}
-
-void VectorInverse( vec3_t v ){
-	v[0] = -v[0];
-	v[1] = -v[1];
-	v[2] = -v[2];
-}
-
-void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross ) {
-	cross[0] = v1[1]*v2[2] - v1[2]*v2[1];
-	cross[1] = v1[2]*v2[0] - v1[0]*v2[2];
-	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
-}
-#endif
 
 //=======================================================
 
@@ -233,38 +93,6 @@ signed short ClampShort( int i ) {
 }
 
 
-// this isn't a real cheap function to call!
-int DirToByte( vec3_t dir ) {
-	int		i, best;
-	float	d, bestd;
-
-	if ( !dir ) {
-		return 0;
-	}
-
-	bestd = 0;
-	best = 0;
-	for (i=0 ; i<NUMVERTEXNORMALS ; i++)
-	{
-		d = DotProduct (dir, bytedirs[i]);
-		if (d > bestd)
-		{
-			bestd = d;
-			best = i;
-		}
-	}
-
-	return best;
-}
-
-void ByteToDir( int b, vec3_t dir ) {
-	if ( b < 0 || b >= NUMVERTEXNORMALS ) {
-		VectorCopy( vec3_origin, dir );
-		return;
-	}
-	VectorCopy (bytedirs[b], dir);
-}
-
 
 unsigned ColorBytes3 (float r, float g, float b) {
 	unsigned	i;
@@ -287,10 +115,9 @@ unsigned ColorBytes4 (float r, float g, float b, float a) {
 	return i;
 }
 
-float NormalizeColor( const vec3_t in, vec3_t out ) {
-	float	max;
-	
-	max = in[0];
+float NormalizeColor( const vec3_t in, vec3_t out ) 
+{
+	float max = in[0];
 	if ( in[1] > max ) {
 		max = in[1];
 	}
@@ -317,7 +144,8 @@ Returns false if the triangle is degenrate.
 The normal will point out of the clock for clockwise ordered points
 =====================
 */
-qboolean PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c ) {
+qboolean PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c )
+{
 	vec3_t	d1, d2;
 
 	VectorSubtract( b, a, d1 );
@@ -338,8 +166,8 @@ RotatePointAroundVector
 This is not implemented very well...
 ===============
 */
-void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point,
-							 float degrees ) {
+void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
+{
 	float	m[3][3];
 	float	im[3][3];
 	float	zrot[3][3];
@@ -463,7 +291,8 @@ void vectoangles( const vec3_t value1, vec3_t angles ) {
 AnglesToAxis
 =================
 */
-void AnglesToAxis( const vec3_t angles, vec3_t axis[3] ) {
+void AnglesToAxis( const vec3_t angles, vec3_t axis[3] )
+{
 	vec3_t	right;
 
 	// angle vectors returns "right" instead of "y axis"
@@ -471,7 +300,8 @@ void AnglesToAxis( const vec3_t angles, vec3_t axis[3] ) {
 	VectorSubtract( vec3_origin, right, axis[1] );
 }
 
-void AxisClear( vec3_t axis[3] ) {
+void AxisClear( vec3_t axis[3] )
+{
 	axis[0][0] = 1;
 	axis[0][1] = 0;
 	axis[0][2] = 0;
@@ -483,7 +313,8 @@ void AxisClear( vec3_t axis[3] ) {
 	axis[2][2] = 1;
 }
 
-void AxisCopy( vec3_t in[3], vec3_t out[3] ) {
+void AxisCopy( vec3_t in[3], vec3_t out[3] )
+{
 	VectorCopy( in[0], out[0] );
 	VectorCopy( in[1], out[1] );
 	VectorCopy( in[2], out[2] );
@@ -491,17 +322,12 @@ void AxisCopy( vec3_t in[3], vec3_t out[3] ) {
 
 void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal )
 {
-	float d;
+
 	vec3_t n;
-	float inv_denom;
+	float inv_denom = 1.0f / DotProduct( normal, normal );
 
-	inv_denom =  DotProduct( normal, normal );
-#ifndef Q3_VM
-	assert( Q_fabs(inv_denom) != 0.0f ); // bk010122 - zero vectors get here
-#endif
-	inv_denom = 1.0f / inv_denom;
 
-	d = DotProduct( normal, p ) * inv_denom;
+	float d = DotProduct( normal, p ) * inv_denom;
 
 	n[0] = normal[0] * inv_denom;
 	n[1] = normal[1] * inv_denom;
@@ -520,16 +346,15 @@ Given a normalized forward vector, create two
 other perpendicular vectors
 ================
 */
-void MakeNormalVectors( const vec3_t forward, vec3_t right, vec3_t up) {
-	float		d;
-
+void MakeNormalVectors( const vec3_t forward, vec3_t right, vec3_t up)
+{
 	// this rotate and negate guarantees a vector
 	// not colinear with the original
 	right[1] = -forward[0];
 	right[2] = forward[1];
 	right[0] = forward[2];
 
-	d = DotProduct (right, forward);
+	float d = DotProduct (right, forward);
 	VectorMA (right, -d, forward, right);
 	VectorNormalize (right);
 	CrossProduct (right, forward, up);
@@ -545,10 +370,7 @@ void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out )
 
 //============================================================================
 
-#if !idppc
-/*
-** float q_rsqrt( float number )
-*/
+
 float Q_rsqrt( float number )
 {
 	long i;
@@ -563,11 +385,6 @@ float Q_rsqrt( float number )
 	y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
 //	y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
 
-#ifndef Q3_VM
-#ifdef __linux__
-	assert( !isnan(y) ); // bk010122 - FPE?
-#endif
-#endif
 	return y;
 }
 
@@ -576,7 +393,7 @@ float Q_fabs( float f ) {
 	tmp &= 0x7FFFFFFF;
 	return * ( float * ) &tmp;
 }
-#endif
+
 
 //============================================================
 
@@ -738,9 +555,6 @@ int BoxOnPlaneSide2 (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 ==================
 */
 
-#if !( (defined __linux__ || __FreeBSD__) && (defined __i386__) && (!defined C_ONLY)) // rb010123
-
-#if defined __LCC__ || defined C_ONLY || !id386 || defined __VECTORC
 
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 {
@@ -805,242 +619,8 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 
 	return sides;
 }
-#else
-#pragma warning( disable: 4035 )
 
-__declspec( naked ) int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
-{
-	static int bops_initialized;
-	static int Ljmptab[8];
 
-	__asm {
-
-		push ebx
-			
-		cmp bops_initialized, 1
-		je  initialized
-		mov bops_initialized, 1
-		
-		mov Ljmptab[0*4], offset Lcase0
-		mov Ljmptab[1*4], offset Lcase1
-		mov Ljmptab[2*4], offset Lcase2
-		mov Ljmptab[3*4], offset Lcase3
-		mov Ljmptab[4*4], offset Lcase4
-		mov Ljmptab[5*4], offset Lcase5
-		mov Ljmptab[6*4], offset Lcase6
-		mov Ljmptab[7*4], offset Lcase7
-			
-initialized:
-
-		mov edx,dword ptr[4+12+esp]
-		mov ecx,dword ptr[4+4+esp]
-		xor eax,eax
-		mov ebx,dword ptr[4+8+esp]
-		mov al,byte ptr[17+edx]
-		cmp al,8
-		jge Lerror
-		fld dword ptr[0+edx]
-		fld st(0)
-		jmp dword ptr[Ljmptab+eax*4]
-Lcase0:
-		fmul dword ptr[ebx]
-		fld dword ptr[0+4+edx]
-		fxch st(2)
-		fmul dword ptr[ecx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[4+ebx]
-		fld dword ptr[0+8+edx]
-		fxch st(2)
-		fmul dword ptr[4+ecx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[8+ebx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul dword ptr[8+ecx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase1:
-		fmul dword ptr[ecx]
-		fld dword ptr[0+4+edx]
-		fxch st(2)
-		fmul dword ptr[ebx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[4+ebx]
-		fld dword ptr[0+8+edx]
-		fxch st(2)
-		fmul dword ptr[4+ecx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[8+ebx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul dword ptr[8+ecx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase2:
-		fmul dword ptr[ebx]
-		fld dword ptr[0+4+edx]
-		fxch st(2)
-		fmul dword ptr[ecx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[4+ecx]
-		fld dword ptr[0+8+edx]
-		fxch st(2)
-		fmul dword ptr[4+ebx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[8+ebx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul dword ptr[8+ecx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase3:
-		fmul dword ptr[ecx]
-		fld dword ptr[0+4+edx]
-		fxch st(2)
-		fmul dword ptr[ebx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[4+ecx]
-		fld dword ptr[0+8+edx]
-		fxch st(2)
-		fmul dword ptr[4+ebx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[8+ebx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul dword ptr[8+ecx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase4:
-		fmul dword ptr[ebx]
-		fld dword ptr[0+4+edx]
-		fxch st(2)
-		fmul dword ptr[ecx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[4+ebx]
-		fld dword ptr[0+8+edx]
-		fxch st(2)
-		fmul dword ptr[4+ecx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[8+ecx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul dword ptr[8+ebx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase5:
-		fmul dword ptr[ecx]
-		fld dword ptr[0+4+edx]
-		fxch st(2)
-		fmul dword ptr[ebx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[4+ebx]
-		fld dword ptr[0+8+edx]
-		fxch st(2)
-		fmul dword ptr[4+ecx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[8+ecx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul dword ptr[8+ebx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase6:
-		fmul dword ptr[ebx]
-		fld dword ptr[0+4+edx]
-		fxch st(2)
-		fmul dword ptr[ecx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[4+ecx]
-		fld dword ptr[0+8+edx]
-		fxch st(2)
-		fmul dword ptr[4+ebx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[8+ecx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul dword ptr[8+ebx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase7:
-		fmul dword ptr[ecx]
-		fld dword ptr[0+4+edx]
-		fxch st(2)
-		fmul dword ptr[ebx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[4+ecx]
-		fld dword ptr[0+8+edx]
-		fxch st(2)
-		fmul dword ptr[4+ebx]
-		fxch st(2)
-		fld st(0)
-		fmul dword ptr[8+ecx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul dword ptr[8+ebx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-LSetSides:
-		faddp st(2),st(0)
-		fcomp dword ptr[12+edx]
-		xor ecx,ecx
-		fnstsw ax
-		fcomp dword ptr[12+edx]
-		and ah,1
-		xor ah,1
-		add cl,ah
-		fnstsw ax
-		and ah,1
-		add ah,ah
-		add cl,ah
-		pop ebx
-		mov eax,ecx
-		ret
-Lerror:
-		int 3
-	}
-}
-#pragma warning( default: 4035 )
-
-#endif
-#endif
 
 /*
 =================
@@ -1116,17 +696,14 @@ vec_t VectorNormalize2( const vec3_t v, vec3_t out) {
 
 	if (length)
 	{
-#ifndef Q3_VM // bk0101022 - FPE related
-//	  assert( ((Q_fabs(v[0])!=0.0f) || (Q_fabs(v[1])!=0.0f) || (Q_fabs(v[2])!=0.0f)) );
-#endif
+
 		ilength = 1/length;
 		out[0] = v[0]*ilength;
 		out[1] = v[1]*ilength;
 		out[2] = v[2]*ilength;
-	} else {
-#ifndef Q3_VM // bk0101022 - FPE related
-//	  assert( ((Q_fabs(v[0])==0.0f) && (Q_fabs(v[1])==0.0f) && (Q_fabs(v[2])==0.0f)) );
-#endif
+	}
+	else
+	{
 		VectorClear( out );
 	}
 		
@@ -1213,7 +790,8 @@ int	PlaneTypeForNormal (vec3_t normal) {
 MatrixMultiply
 ================
 */
-void MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3]) {
+void MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3])
+{
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
 				in1[0][2] * in2[2][0];
 	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] +
@@ -1235,7 +813,8 @@ void MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3]) {
 }
 
 
-void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) {
+void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
+{
 	float		angle;
 	static float		sr, sp, sy, cr, cp, cy;
 	// static to help MS compiler fp bugs
@@ -1304,5 +883,3 @@ void PerpendicularVector( vec3_t dst, const vec3_t src )
 	*/
 	VectorNormalize( dst );
 }
-
-
