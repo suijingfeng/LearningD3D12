@@ -24,15 +24,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TR_TYPES_H
 
 
-#define	MAX_DLIGHTS		32			// can't be increased, because bit flags are used on surfaces
-#define	MAX_ENTITIES	1023		// can't be increased without changing drawsurf bit packing
+#define	MAX_DLIGHTS		32		// can't be increased, because bit flags are used on surfaces
+#define	REFENTITYNUM_BITS	10		// can't be increased without changing drawsurf bit packing
+#define	REFENTITYNUM_MASK	((1<<REFENTITYNUM_BITS) - 1)
+// the last N-bit number (2^REFENTITYNUM_BITS - 1) is reserved for the special world refentity,
+//  and this is reflected by the value of MAX_REFENTITIES (which therefore is not a power-of-2)
+#define	MAX_REFENTITIES		((1<<REFENTITYNUM_BITS) - 1)
+#define	REFENTITYNUM_WORLD	((1<<REFENTITYNUM_BITS) - 1)
 
 // renderfx flags
-#define	RF_MINLIGHT			1		// allways have some light (viewmodel, some items)
+#define	RF_MINLIGHT		1		// allways have some light (viewmodel, some items)
 #define	RF_THIRD_PERSON		2		// don't draw through eyes, only mirrors (player bodies, chat sprites)
 #define	RF_FIRST_PERSON		4		// only draw through eyes (view weapon, damage blood blob)
 #define	RF_DEPTHHACK		8		// for view weapon Z crunching
-#define	RF_NOSHADOW			64		// don't add stencil shadows
+
+#define RF_CROSSHAIR		0x0010		// This item is a cross hair and will draw over everything similar to
+						// DEPTHHACK in stereo rendering mode, with the difference that the
+						// projection matrix won't be hacked to reduce the stereo separation as
+						// is done for the gun.
+
+#define	RF_NOSHADOW		64		// don't add stencil shadows
 
 #define RF_LIGHTING_ORIGIN	128		// use refEntity->lightingOrigin instead of refEntity->origin
 						// for lighting.  This allows entities to sink into the floor
@@ -144,25 +155,29 @@ typedef enum {
 */
 typedef enum {
 	TC_NONE,
-	TC_S3TC
+	TC_S3TC,  // this is for the GL_S3_s3tc extension.
+	TC_S3TC_ARB  // this is for the GL_EXT_texture_compression_s3tc extension.
 } textureCompression_t;
 
-	
-// <artem>
-// glDriverType_t is not used by the engine and quake3 game anymore.
-// Single value (GLDRV_ICD) is left only for compatibility with other mods.
 typedef enum {
-	GLDRV_ICD // driver is integrated with window system
+	GLDRV_ICD,					// driver is integrated with window system
+								// WARNING: there are tests that check for > GLDRV_ICD for minidriverness,
+								// > GLDRV_ICD for minidriverness, so this
+								// should always be the lowest value in this
+								// enum set
+	GLDRV_STANDALONE,			// driver is a non-3Dfx standalone driver
+	GLDRV_VOODOO				// driver is a 3Dfx standalone driver
 } glDriverType_t;
-// </artem>
 
-// <artem>
-// glHardwareType_t is not used by the engine and quake3 game anymore.
-// Single value (GLHW_GENERIC) is left only for compatibility with other mods.
 typedef enum {
-	GLHW_GENERIC // where everthing works the way it should
+	GLHW_GENERIC,			// where everything works the way it should
+	GLHW_3DFX_2D3D,			// Voodoo Banshee or Voodoo3, relevant since if this is
+							// the hardware type then there can NOT exist a secondary
+							// display adapter
+	GLHW_RIVA128,			// where you can't interpolate alpha
+	GLHW_RAGEPRO,			// where you can't modulate alpha on alpha textures
+	GLHW_PERMEDIA2			// where you don't have src*dst
 } glHardwareType_t;
-// </artem>
 
 typedef struct glconfig_s {
 	char					renderer_string[MAX_STRING_CHARS];
@@ -171,19 +186,12 @@ typedef struct glconfig_s {
 	char					extensions_string[BIG_INFO_STRING];
 
 	int						maxTextureSize;			// queried from GL
-	int						maxActiveTextures;		// multitexture ability
+	int						numTextureUnits;		// multitexture ability
 
 	int						colorBits, depthBits, stencilBits;
 
-	// <artem>
-	// Obsolete. Should be here for compatibility with other mods.
-	glDriverType_t UNUSED_driverType;
-	// </artem>
-
-	// <artem>
-	// Obsolete. Should be here for compatibility with other mods.
-	glHardwareType_t UNUSED_hardwareType;
-	// </artem>
+	glDriverType_t			driverType;
+	glHardwareType_t		hardwareType;
 
 	qboolean				deviceSupportsGamma;
 	textureCompression_t	textureCompression;
@@ -195,17 +203,14 @@ typedef struct glconfig_s {
 	// normal screens should be 4/3, but wide aspect monitors may be 16/9
 	float					windowAspect;
 
-    // <artem>
-    // Obsolete. Should be here for compatibility with other mods.
-    int UNUSED_displayFrequency;
-    // </artem>
+	int						displayFrequency;
 
 	// synonymous with "does rendering consume the entire screen?", therefore
 	// a Voodoo or Voodoo2 will have this set to TRUE, as will a Win32 ICD that
 	// used CDS.
 	qboolean				isFullscreen;
 	qboolean				stereoEnabled;
-	qboolean				smpActive;		// dual processor
+	qboolean				smpActive;		// UNUSED, present for compatibility
 } glconfig_t;
 
 #endif	// __TR_TYPES_H

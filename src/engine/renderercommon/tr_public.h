@@ -158,7 +158,7 @@ typedef struct {
 
 
 	// GLimp
-	void (* GLimpInit)(glconfig_t * const glConfig, void ** pContext);
+	void (* GLimpInit)(struct glconfig_s * const glConfig, void ** pContext);
 	void (* GLimpShutdown)(void);
 	void (* GLimpEndFrame)(void);
 	void (* GLimpMinimize)(void);

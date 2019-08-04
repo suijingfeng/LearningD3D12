@@ -26,6 +26,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <windows.h>
 
+
+struct glconfig_s;
+
 typedef struct WinVars_s {
 	
 	HINSTANCE		reflib_library;		// Handle to refresh DLL 
@@ -38,10 +41,10 @@ typedef struct WinVars_s {
 	int				desktopWidth;
 	int				desktopHeight;
 
-	bool			isFullScreen;
+	int				isFullScreen;
 
-	bool			activeApp;
-	bool			isMinimized;
+	int 			activeApp;
+	int				isMinimized;
 	OSVERSIONINFO	osversion;
 
 	// when we get a windows message, we store the time off so keyboard processing
@@ -57,8 +60,6 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 
 ====================================================================
 */
-
-struct glconfig_s;
 
 void GLimp_Init(struct glconfig_s * const pConfig, void ** pContext);
 void GLimp_Shutdown(void);

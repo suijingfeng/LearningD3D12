@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 // q_shared.c -- stateless support routines that are included in each code dll
 #include "tr_shared.h"
-#include "tr_public.h"
+#include "../renderercommon/tr_public.h"
 
 extern refimport_t	ri;
 

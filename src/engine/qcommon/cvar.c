@@ -414,7 +414,7 @@ void Cvar_SetLatched( const char *var_name, const char *value) {
 Cvar_SetValue
 ============
 */
-void Cvar_SetValue( const char * const var_name, float value)
+void Cvar_SetValue( const char * var_name, float value)
 {
 	char val[32];
 
@@ -827,6 +827,47 @@ Cvar_InfoStringBuffer
 */
 void Cvar_InfoStringBuffer( int bit, char* buff, int buffsize ) {
 	Q_strncpyz(buff,Cvar_InfoString(bit),buffsize);
+}
+
+
+/*
+=====================
+Cvar_CheckRange
+=====================
+*/
+void Cvar_CheckRange( cvar_t *var, float min, float max, qboolean integral )
+{
+// suijingfeng, place hold, fast debug
+/*
+	var->validate = qtrue;
+	var->min = min;
+	var->max = max;
+	var->integral = integral;
+
+	// Force an initial range check
+	Cvar_Set( var->name, var->string );
+*/
+}
+
+
+/*
+=====================
+Cvar_SetDescription
+=====================
+*/
+void Cvar_SetDescription( cvar_t *var, const char *var_description )
+{
+// suijingfeng, place hold, fast debug
+/*
+	if( var_description && var_description[0] != '\0' )
+	{
+		if( var->description != NULL )
+		{
+			Z_Free( var->description );
+		}
+		var->description = CopyString( var_description );
+	}
+*/
 }
 
 /*

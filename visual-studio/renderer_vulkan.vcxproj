@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{D62893FB-4FD8-4205-89A7-7266AD30C39A}</ProjectGuid>
+    <RootNamespace>renderervulkan</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetExt>.dll</TargetExt>
+    <OutDir>$(ProjectDir)..\bin\$(PlatformName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)..\bin\$(PlatformName)\$(Configuration)\intermediate\$(ProjectName)\</IntDir>
+    <TargetName>renderer_vulkan_x86_64</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>STANDALONE;USE_RENDERER_DLOPEN;USE_INTERNAL_JPEG;NDEBUG;_MSC_VER;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
+      <CompileAsManaged>false</CompileAsManaged>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\visual-studio\libjpeg.vcxproj">
+      <Project>{427b70af-cf9e-423d-9c83-456c16599b1e}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\engine\renderer_vulkan\FixRenderCommandList.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\glConfig.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\matrix_multiplication.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\RB_DebugGraphics.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\RB_DeformGeometry.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\RB_DrawNormals.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\RB_DrawTris.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\RB_RenderDrawSurfList.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\RB_ShowImages.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\RB_SurfaceAnim.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\ref_import.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\render_export.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\RE_RegisterModel.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_FindShader.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_GetMicroSeconds.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ImageBMP.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ImageJPG.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ImagePCX.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ImagePNG.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ImageProcess.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ImageTGA.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_LerpTag.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_LoadImage.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_LoadMD3.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_LoadMDR.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ModelBounds.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_Parser.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_Portal.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_PortalPlane.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_PrintMat.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_Puff.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_RotateForViewer.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ShaderCommands.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_ShaderText.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_SortAlgorithm.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_SortDrawSurfs.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\R_StretchRaw.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\shaders\Compiled\multi_texture_add_frag.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\shaders\Compiled\multi_texture_clipping_plane_vert.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\shaders\Compiled\multi_texture_mul_frag.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\shaders\Compiled\multi_texture_vert.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\shaders\Compiled\single_texture_clipping_plane_vert.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\shaders\Compiled\single_texture_frag.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\shaders\Compiled\single_texture_vert.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_animation.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_backend.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_bsp.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_cmds.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_common.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_Cull.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_curve.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_cvar.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_flares.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_fog.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_font.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_globals.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_image.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_init.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_light.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_main.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_marks.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_mesh.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_model.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_model_iqm.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_noise.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_scene.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_shade.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_shader.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_sky.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_surface.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\tr_world.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_buffers.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_cinematic.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_cmd.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_debug_pipelines.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_descriptor_sets.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_frame.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_global_stage_pipelines.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_image.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_image_sampler2.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_impl.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_init.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_instance.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_khr_display.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_pipelines.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_screenshot.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_shaders.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_shade_geometry.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_swapchain.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_utils.c" />
+    <ClCompile Include="..\src\engine\renderer_vulkan\vk_validation.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\engine\renderer_vulkan\FixRenderCommandList.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\glConfig.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\icon_oa.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\matrix_multiplication.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\RB_DebugGraphics.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\RB_DeformGeometry.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\RB_DrawNormals.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\RB_DrawTris.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\RB_RenderDrawSurfList.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\RB_ShowImages.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\RB_SurfaceAnim.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\ref_import.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\render_export.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_FindShader.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_GetMicroSeconds.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_ImageJPG.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_ImageProcess.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_LoadImage.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_Parser.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_Portal.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_PortalPlane.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_PrintMat.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_Puff.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_RotateForViewer.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_ShaderCommands.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_ShaderCommonDef.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_ShaderStage.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_ShaderText.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_SortAlgorithm.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\R_SortDrawSurfs.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\srfPoly_type.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\srfSurfaceFace_type.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\srfTriangles_type.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\stb_image.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\stb_image_resize.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\stb_image_write.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\surface_type.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\trRefDef.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_backend.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_cmds.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_common.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_Cull.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_curve.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_cvar.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_flares.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_fog.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_font.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_globals.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_image.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_light.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_main.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_model.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_noise.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_scene.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_shade.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_shader.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_sky.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_surface.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_wave.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\tr_world.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\viewParms.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\VKimpl.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_buffers.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_cinematic.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_cmd.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_descriptor_sets.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_frame.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_image.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_image_sampler.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_init.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_instance.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_khr_display.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_pipelines.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_screenshot.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_shaders.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_shade_geometry.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_swapchain.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_utils.h" />
+    <ClInclude Include="..\src\engine\renderer_vulkan\vk_validation.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

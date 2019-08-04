@@ -65,7 +65,8 @@ static void win_createWindowImpl( void )
 
 	int	stylebits;
 
-
+	RECT r;
+	int x, y, w, h;
 
 	if ( win_fullscreen->integer )
 	{
@@ -74,21 +75,37 @@ static void win_createWindowImpl( void )
 		g_wv.winWidth = g_wv.desktopWidth;
 		g_wv.winHeight = g_wv.desktopHeight;
 
-		g_wv.isFullScreen = true;
+		g_wv.isFullScreen = 1;
 		Cvar_Set("r_fullscreen", "1");
 		Com_Printf(" Fullscreen mode. \n");
+		x = 0;
+		y = 0;
+		w = g_wv.desktopWidth;
+		h = g_wv.desktopWidth;
 	}
 	else
 	{
 		stylebits = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 
-		int mode = R_GetModeInfo(&width, &height, win_mode->integer, g_wv.desktopWidth, g_wv.desktopHeight);
- 
 
+		int mode = R_GetModeInfo(&width, &height, win_mode->integer, g_wv.desktopWidth, g_wv.desktopHeight);
+		
 		g_wv.winWidth = width;
 		g_wv.winHeight = height;
-		g_wv.isFullScreen = false;
-		
+		g_wv.isFullScreen = 0;
+
+	
+		r.left = 0;
+		r.top = 0;
+		r.right = width;
+		r.bottom = height;
+
+		AdjustWindowRect(&r, stylebits, FALSE);
+
+		x = CW_USEDEFAULT;
+		y = CW_USEDEFAULT;
+		w = r.right - r.left;
+		h = r.bottom - r.top;
 		Cvar_Set("r_fullscreen", "0");
 		Com_Printf(" windowed mode: %d. \n", mode);
 	}
@@ -101,9 +118,9 @@ static void win_createWindowImpl( void )
 	// register the window class if necessary
 	//
 
-	static bool isWinRegistered = false;
+	static int isWinRegistered = 0;
 
-	if (isWinRegistered != true)
+	if (isWinRegistered != 1)
 	{
 		WNDCLASS wc;
 
@@ -125,10 +142,11 @@ static void win_createWindowImpl( void )
 			Com_Error(ERR_FATAL, "create main window: could not register window class");
 		}
 
-		isWinRegistered = true;
+		isWinRegistered = 1;
 
 		Com_Printf(" Window class registered. \n");
 	}
+
 
 
 	HWND hwnd = CreateWindowEx(
@@ -138,7 +156,7 @@ static void win_createWindowImpl( void )
 		// The following are the window styles. After the window has been
 		// created, these styles cannot be modified, except as noted.
 		stylebits,
-		CW_USEDEFAULT, CW_USEDEFAULT, g_wv.winWidth, g_wv.winHeight,
+		x, y, w, h,
 		NULL,
 		NULL,
 		// A handle to the instance of the module to be associated with the window
@@ -192,6 +210,26 @@ static void win_destroyWindowImpl(void)
 
 void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 {
+	// These values force the UI to disable driver selection
+	pConfig->driverType = GLDRV_ICD;
+	pConfig->hardwareType = GLHW_GENERIC;
+
+	// Only using SDL_SetWindowBrightness to determine if hardware gamma is supported
+	pConfig->deviceSupportsGamma = qtrue;
+
+	pConfig->textureEnvAddAvailable = 0; // not used
+	pConfig->textureCompression = TC_NONE; // not used
+	// init command buffers and SMP
+	pConfig->stereoEnabled = 0;
+	pConfig->smpActive = qfalse; // not used
+
+	// hardcode it
+	pConfig->colorBits = 32;
+	pConfig->depthBits = 24;
+	pConfig->stencilBits = 8;
+	pConfig->stereoEnabled = qfalse;
+	pConfig->smpActive = qfalse;
+	pConfig->displayFrequency = 60;
 
 	win_createWindowImpl();
 	
@@ -203,15 +241,8 @@ void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 	pConfig->vidHeight = g_wv.winHeight;
 	pConfig->windowAspect = (float)g_wv.winWidth / (float)g_wv.winHeight;
 	pConfig->isFullscreen = g_wv.isFullScreen ? qtrue : qfalse;
-	pConfig->stereoEnabled = qfalse;
-	pConfig->smpActive = qfalse;
-	pConfig->UNUSED_displayFrequency = 60;
-	pConfig->deviceSupportsGamma = qtrue;
 
-	// allways enable stencil
-	pConfig->stencilBits = 8;
-	pConfig->depthBits = 24;
-	pConfig->colorBits = 32;
+
 	pConfig->deviceSupportsGamma = win_checkHardwareGamma();
 
 	////

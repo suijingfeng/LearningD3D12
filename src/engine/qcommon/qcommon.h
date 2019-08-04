@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // msg.c
 //
 typedef struct {
-	qboolean	allowoverflow;	// if false, do a Com_Error
+	qboolean	allowoverflow;	// if 0, do a Com_Error
 	qboolean	overflowed;		// set to true if the buffer size failed (with allowoverflow set)
 	qboolean	oob;			// set to true if the buffer size failed (with allowoverflow set)
 	byte	*data;
@@ -43,7 +43,7 @@ typedef struct {
 	int		bit;				// for bitwise reads and writes
 } msg_t;
 
-void MSG_Init (msg_t *buf, byte *data, int length);
+void MSG_Init (msg_t * const buf, byte * const data, int length);
 void MSG_InitOOB( msg_t *buf, byte *data, int length );
 void MSG_Clear (msg_t *buf);
 void MSG_WriteData (msg_t *buf, const void *data, int length);
@@ -451,7 +451,7 @@ void 	Cvar_Set( const char *var_name, const char *value );
 void Cvar_SetLatched( const char *var_name, const char *value);
 // don't set the cvar immediately
 
-void	Cvar_SetValue( const char *var_name, float value );
+void	Cvar_SetValue( const char * var_name, float value );
 // expands value to a string and calls Cvar_Set
 
 float	Cvar_VariableValue( const char *var_name );
@@ -486,6 +486,8 @@ char	*Cvar_InfoString_Big( int bit );
 // returns an info string containing all the cvars that have the given bit set
 // in their flags ( CVAR_USERINFO, CVAR_SERVERINFO, CVAR_SYSTEMINFO, etc )
 void	Cvar_InfoStringBuffer( int bit, char *buff, int buffsize );
+void Cvar_CheckRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral );
+void Cvar_SetDescription( cvar_t *var, const char *var_description );
 
 void	Cvar_Restart_f( void );
 
@@ -969,7 +971,7 @@ char * Sys_DefaultInstallPath(void);
 char * Sys_DefaultHomePath(void);
 
 char ** Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs );
-void	Sys_FreeFileList( char **list );
+void	Sys_FreeFileList( char ** const list );
 
 
 qboolean Sys_LowPhysicalMemory();

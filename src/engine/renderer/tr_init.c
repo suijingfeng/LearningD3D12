@@ -456,7 +456,6 @@ void R_Init( void )
 	}
 
 
-	
 	//
 	// init function tables
 	//

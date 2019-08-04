@@ -87,6 +87,11 @@ cvar_t	*cl_guidServerUniq;
 cvar_t	*cl_serverStatusResendTime;
 cvar_t	*cl_trn;
 
+
+#ifdef USE_RENDERER_DLOPEN
+cvar_t	*cl_renderer;
+#endif
+
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
@@ -2337,12 +2342,13 @@ void CL_InitRef( void )
 #ifdef USE_RENDERER_DLOPEN
 
 	GetRefAPI_t	GetRefAPI;
-	char dllName[MAX_OSPATH] = "renderer.dll";
+	char dllName[MAX_OSPATH] = "renderer_vulkan.dll";
 
 	Com_Printf("\n-------- USE_RENDERER_DLOPEN --------\n");
 
-	// cl_renderer = Cvar_Get("cl_renderer", "vulkan", CVAR_ARCHIVE | CVAR_LATCH | CVAR_PROTECTED);
-	// Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_renderer->string);
+	cl_renderer = Cvar_Get("cl_renderer", "d3d12", CVAR_ARCHIVE | CVAR_LATCH );
+
+	Com_sprintf(dllName, sizeof(dllName), "renderer_%s_x86_64.dll", cl_renderer->string);
 
 	HMODULE rendererLib = LoadLibrary(dllName);
 	if (!rendererLib)
@@ -2359,6 +2365,10 @@ void CL_InitRef( void )
 	if (!GetRefAPI)
 	{
 		Com_Error(ERR_FATAL, "Can't load symbol GetRefAPI: GetRefAPI");
+	}
+	else
+	{
+		Com_Printf(" Find dll enterpoint GetRefAPI success.\n");
 	}
 
 #endif
@@ -2380,7 +2390,12 @@ void CL_InitRef( void )
 #endif
 	ri.Hunk_AllocateTempMemory = Hunk_AllocateTempMemory;
 	ri.Hunk_FreeTempMemory = Hunk_FreeTempMemory;
+
+
+	ri.CM_ClusterPVS = CM_ClusterPVS;
+
 	ri.CM_DrawDebugSurface = CM_DrawDebugSurface;
+
 	ri.FS_ReadFile = FS_ReadFile;
 	ri.FS_FreeFile = FS_FreeFile;
 	ri.FS_WriteFile = FS_WriteFile;
@@ -2390,6 +2405,11 @@ void CL_InitRef( void )
 	ri.FS_FileExists = FS_FileExists;
 	ri.Cvar_Get = Cvar_Get;
 	ri.Cvar_Set = Cvar_Set;
+	// suijingfeng, addtion
+	ri.Cvar_SetValue = Cvar_SetValue;
+	ri.Cvar_CheckRange = Cvar_CheckRange;
+	ri.Cvar_SetDescription = Cvar_SetDescription;
+	ri.Cvar_VariableIntegerValue = Cvar_VariableIntegerValue;
 
 	// cinematic stuff
 
@@ -3531,7 +3551,7 @@ void CL_ShowIP_f(void) {
 
 /*
 =================
-bool CL_CDKeyValidate
+int CL_CDKeyValidate
 =================
 */
 qboolean CL_CDKeyValidate( const char *key, const char *checksum ) {

@@ -109,7 +109,7 @@ static void ConClear( void )
 static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	char *cmdString;
-	static bool s_timePolarity;
+	static int s_timePolarity;
 
 	switch ( uMsg )
 	{
