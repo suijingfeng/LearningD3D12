@@ -388,11 +388,6 @@ float Q_rsqrt( float number )
 	return y;
 }
 
-float Q_fabs( float f ) {
-	int tmp = * ( int * ) &f;
-	tmp &= 0x7FFFFFFF;
-	return * ( float * ) &tmp;
-}
 
 
 //============================================================

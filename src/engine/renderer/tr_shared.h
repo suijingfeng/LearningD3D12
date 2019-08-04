@@ -302,7 +302,6 @@ extern	vec3_t	axisDefault[3];
 #define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
 
 
-float Q_fabs( float f );
 float Q_rsqrt( float f );		// reciprocal square root
 
 
@@ -561,9 +560,7 @@ char * QDECL va(char *format, ...);
 
 
 
-// this is only here so the functions in q_shared.c and bg_*.c can link
-void QDECL Com_Error( int level, const char *error, ... );
-void QDECL Com_Printf( const char *msg, ... );
+
 
 
 /*
