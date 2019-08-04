@@ -28,7 +28,7 @@ void RB_TakeScreenshot(int x, int y, int width, int height, char *fileName)
 {
 	byte* buffer = (byte*)ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight * 3 + 18);
 
-	Com_Memset(buffer, 0, 18);
+	memset(buffer, 0, 18);
 	buffer[2] = 2;		// uncompressed type
 	buffer[12] = width & 255;
 	buffer[13] = width >> 8;
@@ -197,7 +197,7 @@ void R_LevelShot(void) {
 	source = (byte*)ri.Hunk_AllocateTempMemory(glConfig.vidWidth * glConfig.vidHeight * 3);
 
 	buffer = (byte*)ri.Hunk_AllocateTempMemory(128 * 128 * 3 + 18);
-	Com_Memset(buffer, 0, 18);
+	memset(buffer, 0, 18);
 	buffer[2] = 2;		// uncompressed type
 	buffer[12] = 128;
 	buffer[14] = 128;

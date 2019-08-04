@@ -22,6 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 // q_shared.c -- stateless support routines that are included in each code dll
 #include "tr_shared.h"
+#include "tr_public.h"
+
+extern refimport_t	ri;
+
 
 float Com_Clamp( float min, float max, float value ) {
 	if ( value < min ) {
@@ -32,6 +36,7 @@ float Com_Clamp( float min, float max, float value ) {
 	}
 	return value;
 }
+
 
 
 /*
@@ -233,7 +238,7 @@ void COM_ParseError( char *format, ... )
 	vsprintf (string, format, argptr);
 	va_end (argptr);
 
-	Com_Printf("ERROR: %s, line %d: %s\n", com_parsename, com_lines, string);
+	ri.Printf(PRINT_ALL,"ERROR: %s, line %d: %s\n", com_parsename, com_lines, string);
 }
 
 void COM_ParseWarning( char *format, ... )
@@ -245,7 +250,7 @@ void COM_ParseWarning( char *format, ... )
 	vsprintf (string, format, argptr);
 	va_end (argptr);
 
-	Com_Printf("WARNING: %s, line %d: %s\n", com_parsename, com_lines, string);
+	ri.Printf(PRINT_ALL,"WARNING: %s, line %d: %s\n", com_parsename, com_lines, string);
 }
 
 /*
@@ -444,7 +449,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 
 	if (len == MAX_TOKEN_CHARS)
 	{
-//		Com_Printf ("Token exceeded %i chars, discarded.\n", MAX_TOKEN_CHARS);
+//		ri.Printf(PRINT_ALL,"Token exceeded %i chars, discarded.\n", MAX_TOKEN_CHARS);
 		len = 0;
 	}
 	com_token[len] = 0;
@@ -465,7 +470,7 @@ void COM_MatchToken( char **buf_p, char *match ) {
 
 	token = COM_Parse( buf_p );
 	if ( strcmp( token, match ) ) {
-		Com_Error( ERR_DROP, "MatchToken: %s != %s", token, match );
+		ri.Error( ERR_DROP, "MatchToken: %s != %s", token, match );
 	}
 }
 
@@ -623,13 +628,13 @@ Safe strncpy that ensures a trailing zero
 void Q_strncpyz( char *dest, const char *src, int destsize ) {
   // bk001129 - also NULL dest
   if ( !dest ) {
-    Com_Error( ERR_FATAL, "Q_strncpyz: NULL dest" );
+    ri.Error( ERR_FATAL, "Q_strncpyz: NULL dest" );
   }
 	if ( !src ) {
-		Com_Error( ERR_FATAL, "Q_strncpyz: NULL src" );
+		ri.Error( ERR_FATAL, "Q_strncpyz: NULL src" );
 	}
 	if ( destsize < 1 ) {
-		Com_Error(ERR_FATAL,"Q_strncpyz: destsize < 1" ); 
+		ri.Error(ERR_FATAL,"Q_strncpyz: destsize < 1" ); 
 	}
 
 	strncpy( dest, src, destsize-1 );
@@ -728,7 +733,7 @@ void Q_strcat( char *dest, int size, const char *src ) {
 
 	l1 = (int)strlen( dest );
 	if ( l1 >= size ) {
-		Com_Error( ERR_FATAL, "Q_strcat: already overflowed" );
+		ri.Error( ERR_FATAL, "Q_strcat: already overflowed" );
 	}
 	Q_strncpyz( dest + l1, src, size - l1 );
 }
@@ -787,11 +792,14 @@ void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...) {
 	va_start (argptr,fmt);
 	len = vsprintf (bigbuffer,fmt,argptr);
 	va_end (argptr);
+	
+
 	if ( len >= sizeof( bigbuffer ) ) {
-		Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
+		ri.Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
 	}
+
 	if (len >= size) {
-		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
+		ri.Printf (PRINT_ALL, "Com_sprintf: overflow of %i in %i\n", len, size);
 #ifdef	_DEBUG
 		__debugbreak();
 #endif
@@ -855,7 +863,7 @@ char *Info_ValueForKey( const char *s, const char *key ) {
 	}
 
 	if ( (int)strlen( s ) >= BIG_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_ValueForKey: oversize infostring" );
+		ri.Error( ERR_DROP, "Info_ValueForKey: oversize infostring" );
 	}
 
 	valueindex ^= 1;
@@ -946,7 +954,7 @@ void Info_RemoveKey( char *s, const char *key ) {
 	char	*o;
 
 	if ( (int)strlen( s ) >= MAX_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_RemoveKey: oversize infostring" );
+		ri.Error( ERR_DROP, "Info_RemoveKey: oversize infostring" );
 	}
 
 	if (strchr (key, '\\')) {
@@ -1001,7 +1009,7 @@ void Info_RemoveKey_Big( char *s, const char *key ) {
 	char	*o;
 
 	if ( (int)strlen( s ) >= BIG_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_RemoveKey_Big: oversize infostring" );
+		ri.Error( ERR_DROP, "Info_RemoveKey_Big: oversize infostring" );
 	}
 
 	if (strchr (key, '\\')) {
@@ -1076,24 +1084,24 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 	char	newi[MAX_INFO_STRING];
 
 	if ( (int)strlen( s ) >= MAX_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
+		ri.Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
 	}
 
 	if (strchr (key, '\\') || strchr (value, '\\'))
 	{
-		Com_Printf ("Can't use keys or values with a \\\n");
+		ri.Printf(PRINT_ALL,"Can't use keys or values with a \\\n");
 		return;
 	}
 
 	if (strchr (key, ';') || strchr (value, ';'))
 	{
-		Com_Printf ("Can't use keys or values with a semicolon\n");
+		ri.Printf(PRINT_ALL,"Can't use keys or values with a semicolon\n");
 		return;
 	}
 
 	if (strchr (key, '\"') || strchr (value, '\"'))
 	{
-		Com_Printf ("Can't use keys or values with a \"\n");
+		ri.Printf(PRINT_ALL,"Can't use keys or values with a \"\n");
 		return;
 	}
 
@@ -1105,7 +1113,7 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 
 	if (strlen(newi) + (int)strlen(s) > MAX_INFO_STRING)
 	{
-		Com_Printf ("Info string length exceeded\n");
+		ri.Printf(PRINT_ALL,"Info string length exceeded\n");
 		return;
 	}
 
@@ -1124,24 +1132,24 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 	char	newi[BIG_INFO_STRING];
 
 	if ( (int)strlen( s ) >= BIG_INFO_STRING ) {
-		Com_Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
+		ri.Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
 	}
 
 	if (strchr (key, '\\') || strchr (value, '\\'))
 	{
-		Com_Printf ("Can't use keys or values with a \\\n");
+		ri.Printf (PRINT_ALL, "Can't use keys or values with a \\\n");
 		return;
 	}
 
 	if (strchr (key, ';') || strchr (value, ';'))
 	{
-		Com_Printf ("Can't use keys or values with a semicolon\n");
+		ri.Printf(PRINT_ALL,"Can't use keys or values with a semicolon\n");
 		return;
 	}
 
 	if (strchr (key, '\"') || strchr (value, '\"'))
 	{
-		Com_Printf ("Can't use keys or values with a \"\n");
+		ri.Printf(PRINT_ALL,"Can't use keys or values with a \"\n");
 		return;
 	}
 
@@ -1153,7 +1161,7 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 
 	if (strlen(newi) + (int)strlen(s) > BIG_INFO_STRING)
 	{
-		Com_Printf ("BIG Info string length exceeded\n");
+		ri.Printf(PRINT_ALL,"BIG Info string length exceeded\n");
 		return;
 	}
 

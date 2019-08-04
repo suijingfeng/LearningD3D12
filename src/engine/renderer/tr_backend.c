@@ -578,7 +578,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 
 			// DX12
-			Com_Memcpy(dx_world.modelview_transform, backEnd.or.modelMatrix, 64);
+			memcpy(dx_world.modelview_transform, backEnd.or.modelMatrix, 64);
 
 			//
 			// change depthrange if needed
@@ -611,7 +611,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 
 	// DX12
-	Com_Memcpy(dx_world.modelview_transform, backEnd.viewParms.world.modelMatrix, 64);
+	memcpy(dx_world.modelview_transform, backEnd.viewParms.world.modelMatrix, 64);
 
 	if ( depthRange ) {
 		qglDepthRange (0, 1);
@@ -955,7 +955,7 @@ void DX_Show_Images(void)
 
 		GL_Bind( image );
 
-		Com_Memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
+		memset( tess.svars.colors, tr.identityLightByte, tess.numVertexes * 4 );
 
 		tess.numIndexes = 6;
 		tess.numVertexes = 4;
@@ -1088,12 +1088,13 @@ void RB_ExecuteRenderCommands( const void *data )
 			// stop rendering on this thread
 			backEnd.pc.msec = ri.Milliseconds() - t1;
 
+			/*
 			// DX12
 			if (com_errorEntered && (begin_frame_called && !end_frame_called))
 			{
 				dx_end_frame();
 			}
-
+			*/
 			return;
 		}
 	}

@@ -93,7 +93,7 @@ qhandle_t RE_RegisterModel( const char *name ) {
 	}
 
 	if ( (int)strlen( name ) >= MAX_QPATH ) {
-		Com_Printf( "Model name exceeds MAX_QPATH\n" );
+		ri.Printf(PRINT_ALL, "Model name exceeds MAX_QPATH\n" );
 		return 0;
 	}
 
@@ -241,7 +241,7 @@ static qboolean R_LoadMD3 (model_t *mod, int lod, void *buffer, const char *mod_
 	mod->dataSize += size;
 	mod->md3[lod] = (md3Header_t*) ri.Hunk_Alloc( size, h_low );
 
-	Com_Memcpy (mod->md3[lod], buffer, LittleLong(pinmodel->ofsEnd) );
+	memcpy (mod->md3[lod], buffer, LittleLong(pinmodel->ofsEnd) );
 
     LL(mod->md3[lod]->ident);
     LL(mod->md3[lod]->version);
@@ -399,7 +399,7 @@ static qboolean R_LoadMD4( model_t *mod, void *buffer, const char *mod_name ) {
 	mod->dataSize += size;
 	md4 = mod->md4 = (md4Header_t*) ri.Hunk_Alloc( size, h_low );
 
-	Com_Memcpy( md4, buffer, LittleLong(pinmodel->ofsEnd) );
+	memcpy( md4, buffer, LittleLong(pinmodel->ofsEnd) );
 
     LL(md4->ident);
     LL(md4->version);

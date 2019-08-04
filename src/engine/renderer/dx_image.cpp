@@ -136,7 +136,7 @@ void dx_upload_image_data(ID3D12Resource* texture, int width, int height, int mi
 	{
 		byte* upload_subresource_base = pUpload_texture_data + regions[i].Offset;
 		for (int y = 0; y < h; y++) {
-			Com_Memcpy(upload_subresource_base + regions[i].Footprint.RowPitch * y, pixels, w * bytes_per_pixel);
+			memcpy(upload_subresource_base + regions[i].Footprint.RowPitch * y, pixels, w * bytes_per_pixel);
 			pixels += w * bytes_per_pixel;
 		}
 		w >>= 1;

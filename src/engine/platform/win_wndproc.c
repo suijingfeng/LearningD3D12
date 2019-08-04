@@ -286,7 +286,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		CREATESTRUCT * pCreate = (CREATESTRUCT *)lParam;
 		WinVars_t * pWinState = (WinVars_t *)pCreate->lpCreateParams;
 
-		// pWinState->hWnd = hWnd;
+		pWinState->hWnd = hWnd;
 
 		in_forceCharset = Cvar_Get("in_forceCharset", "1", CVAR_ARCHIVE);
 
