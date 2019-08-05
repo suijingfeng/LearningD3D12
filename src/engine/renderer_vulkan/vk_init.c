@@ -649,7 +649,6 @@ static void vk_loadDeviceFunctions(void)
 void vk_initialize(void * pWinContext)
 {
     // This function is responsible for initializing a valid Vulkan subsystem.
-    vk_createWindowImpl();
 
 	vk_getProcAddress();
 

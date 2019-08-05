@@ -206,7 +206,10 @@ static void win_destroyWindowImpl(void)
 	}
 }
 
-
+void win_minimizeImpl(void)
+{
+	;
+}
 
 void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 {
@@ -217,23 +220,24 @@ void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 	// Only using SDL_SetWindowBrightness to determine if hardware gamma is supported
 	pConfig->deviceSupportsGamma = qtrue;
 
-	pConfig->textureEnvAddAvailable = 0; // not used
+	pConfig->textureEnvAddAvailable = qfalse; // not used
 	pConfig->textureCompression = TC_NONE; // not used
 	// init command buffers and SMP
-	pConfig->stereoEnabled = 0;
+	pConfig->stereoEnabled = qfalse;
 	pConfig->smpActive = qfalse; // not used
 
 	// hardcode it
 	pConfig->colorBits = 32;
 	pConfig->depthBits = 24;
 	pConfig->stencilBits = 8;
-	pConfig->stereoEnabled = qfalse;
-	pConfig->smpActive = qfalse;
+
 	pConfig->displayFrequency = 60;
 
 	win_createWindowImpl();
 	
 	win_InitDisplayModel();
+	
+	Cmd_AddCommand("minimize", win_minimizeImpl);
 
 	win_InitLoging();
 
@@ -261,6 +265,7 @@ void GLimp_Shutdown(void)
 
 	win_EndDisplayModel();
 
+	Cmd_RemoveCommand("minimize");
 	win_EndLoging();
 }
 

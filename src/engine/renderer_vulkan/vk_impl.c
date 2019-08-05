@@ -1,19 +1,8 @@
-#if defined(_WIN32) || defined(_WIN64)
 
-#include <windows.h>
 #include "VKimpl.h"
-#include "../vulkan/vulkan_win32.h"
-
-#elif defined(__unix__) || defined(__linux) || defined(__linux__)
-
-#include <X11/Xutil.h>
-
-#endif
-
 
 #include "vk_instance.h"
 #include "tr_cvar.h"
-#include "icon_oa.h"
 #include "glConfig.h"
 #include "ref_import.h"
 
@@ -24,24 +13,17 @@ extern PFN_vkGetInstanceProcAddr qvkGetInstanceProcAddr;
 
 #if defined(_WIN32) || defined(_WIN64)
 
-PFN_vkCreateWin32SurfaceKHR	qvkCreateWin32SurfaceKHR;
-
 HINSTANCE vk_library_handle = NULL;		// Handle to refresh DLL 
-
-
 
 #elif defined(__unix__) || defined(__linux) || defined(__linux__)
 
-PFN_vkCreateXcbSurfaceKHR qvkCreateXcbSurfaceKHR;
-
-// WinVars_t * pXcbCtx = NULL;
-
 void * vk_library_handle = NULL; // instance of Vulkan library
 
-#else
+#elif defined(MACOS_X) || defined(__APPLE_CC__)
 
-// macos ?
-
+//
+// macos ? what ?
+//
 #endif
 
 
@@ -49,24 +31,52 @@ void* vk_getInstanceProcAddrImpl(void)
 {
 	ri.Printf(PRINT_ALL, " Initializing Vulkan subsystem \n");
     
+#if defined(_WIN32) || defined(_WIN64)
+
 	vk_library_handle = LoadLibrary("vulkan-1.dll");
 
 	if (vk_library_handle == NULL)
 	{
-		ri.Printf(PRINT_ALL, " Loading Vulkan DLL Failed. \n");
-		ri.Error(ERR_FATAL, " Could not loading %s\n", "vulkan-1.dll");
+		ri.Error(ERR_FATAL, " Could not loading vulkan-1.dll. \n", "");
 	}
 
 	ri.Printf( PRINT_ALL, "Loading vulkan DLL succeeded. \n" );
 
 	return GetProcAddress(vk_library_handle, "vkGetInstanceProcAddr");
+
+#elif defined(__unix__) || defined(__linux) || defined(__linux__)
+
+	vk_library_handle = dlopen("libvulkan.so.1", RTLD_NOW);
+
+	if (vk_library_handle == NULL)
+	{
+		ri.Error(ERR_FATAL, " Load libvulkan.so.1 failed. \n", dll_name);
+	}
+
+	ri.Printf(PRINT_ALL, "Loading vulkan DLL succeeded. \n");
+
+	ri.Printf(PRINT_ALL, " Get instance proc address. (using XCB)\n");
+
+	return dlsym(vk_library_handle, "vkGetInstanceProcAddr");
+
+#else
+
+	// macos ?
+
+#endif
 }
+
 
 void vk_cleanInstanceProcAddrImpl(void)
 {
+#if defined(_WIN32) || defined(_WIN64)
 	FreeLibrary(vk_library_handle);
-
+#elif defined(__unix__) || defined(__linux) || defined(__linux__)
+	dlclose(vk_library_handle);
+#else
+	// macos ?
 	vk_library_handle = NULL;
+#endif
 
 	ri.Printf(PRINT_ALL, " vulkan DLL freed. \n");
 }
@@ -81,11 +91,16 @@ void vk_cleanInstanceProcAddrImpl(void)
 // minimized), and so a swapchain cannot be created until the size changes.
 void vk_createSurfaceImpl(VkInstance hInstance, void * pCtx, VkSurfaceKHR* const pSurface)
 {
-
 	WinVars_t * pWinCtx = (WinVars_t*)pCtx;
 
-	qvkCreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR) 
+#if defined(_WIN32) || defined(_WIN64)
+	PFN_vkCreateWin32SurfaceKHR qvkCreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR)
 		qvkGetInstanceProcAddr( hInstance, "vkCreateWin32SurfaceKHR");
+
+	if (qvkCreateWin32SurfaceKHR == NULL)
+	{
+		ri.Error(ERR_FATAL, "Failed to find entrypoint vkCreateWin32SurfaceKHR\n");
+	}
 
 	VkWin32SurfaceCreateInfoKHR desc;
 	desc.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -101,29 +116,26 @@ void vk_createSurfaceImpl(VkInstance hInstance, void * pCtx, VkSurfaceKHR* const
 	desc.hwnd = pWinCtx->hWnd;
 	VK_CHECK( qvkCreateWin32SurfaceKHR(hInstance, &desc, NULL, pSurface) );
 
+#elif defined(__unix__) || defined(__linux) || defined(__linux__)
 
+	PFN_vkCreateXcbSurfaceKHR qvkCreateXcbSurfaceKHR = (PFN_vkCreateXcbSurfaceKHR)
+		qvkGetInstanceProcAddr(hInstance, "vkCreateXcbSurfaceKHR");
+
+	if (qvkCreateXcbSurfaceKHR == NULL)
+	{
+		ri.Error(ERR_FATAL, "Failed to find entrypoint vkCreateXcbSurfaceKHR\n");
+	}
+
+	VkXcbSurfaceCreateInfoKHR createInfo;
+
+	createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+	createInfo.pNext = NULL;
+	createInfo.flags = 0;
+	createInfo.connection = pWinCtx->connection;
+	createInfo.window = pWinCtx->hWnd;
+	qvkCreateXcbSurfaceKHR(hInstance, &createInfo, NULL, pSurface);
+
+#endif
 
 	R_SetWinMode(r_mode->integer, pWinCtx->desktopWidth, pWinCtx->desktopHeight, 60);
-
-
-}
-
-
-
-void vk_createWindowImpl(void)
-{
-
-}
-
-
-void vk_destroyWindowImpl(void)
-{
-	ri.GLimpShutdown();
-	ri.Printf(PRINT_ALL, " Destroying Vulkan window. \n");	
-}
-
-
-void vk_minimizeWindowImpl(void)
-{
-	;
 }

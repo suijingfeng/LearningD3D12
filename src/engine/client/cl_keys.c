@@ -43,7 +43,7 @@ int			chat_playerNum;
 
 qboolean	key_overstrikeMode;
 
-qboolean	anykeydown;
+int	anykeydown;
 qkey_t		keys[MAX_KEYS];
 
 
@@ -1029,11 +1029,13 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 	if (down) {
 		keys[key].repeats++;
 		if ( keys[key].repeats == 1) {
-			(anykeydown)++;
+			anykeydown++;
 		}
-	} else {
+	}
+	else
+	{
 		keys[key].repeats = 0;
-		(anykeydown)--;
+		anykeydown--;
 		if (anykeydown < 0) {
 			anykeydown = 0;
 		}

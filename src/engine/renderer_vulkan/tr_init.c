@@ -95,8 +95,6 @@ void R_Init( void )
 
 	ri.Cmd_AddCommand( "skinlist", R_SkinList_f );
 
-    ri.Cmd_AddCommand( "minimize", vk_minimizeWindowImpl );
-
     ri.Cmd_AddCommand( "pipelineList", R_PipelineList_f );
 
 
@@ -242,7 +240,9 @@ void RE_Shutdown( qboolean destroyWindow )
     if (destroyWindow)
     {
         vk_shutdown();
-        vk_destroyWindowImpl();
+
+		ri.GLimpShutdown();
+		ri.Printf(PRINT_ALL, " Destroying Vulkan window. \n");
         
         // It is cleared not for renderer_vulkan,
         // but fot rendergl1, renderergl2 to create the window

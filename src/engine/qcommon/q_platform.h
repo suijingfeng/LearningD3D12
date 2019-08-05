@@ -72,8 +72,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if defined(_WIN64) || defined( __WIN64__ ) 
 #define ARCH_STRING "x86_64"
-#elif defined _M_ALPHA
-#define ARCH_STRING "AXP"
 #endif
 
 #define Q3_LITTLE_ENDIAN
