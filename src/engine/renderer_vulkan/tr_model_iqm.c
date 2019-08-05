@@ -342,7 +342,7 @@ qboolean R_LoadIQM( model_t *mod, void *buffer, int filesize, const char *mod_na
 		LL( mesh->num_triangles );
 
 		if ( mesh->name < header->num_text ) {
-			Q_strncpyz( meshName, (char*)header + header->ofs_text + mesh->name, sizeof (meshName) );
+			strncpy( meshName, (char*)header + header->ofs_text + mesh->name, sizeof (meshName) );
 		} else {
 			meshName[0] = '\0';
 		}

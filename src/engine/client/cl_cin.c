@@ -1263,7 +1263,12 @@ redump:
 		}
 		return;
 	}
-	if (cinTable[currentHandle].inMemory && (cinTable[currentHandle].status != FMV_EOF)) { (cinTable[currentHandle].inMemory)--; framedata += 8; goto redump; }
+	if (cinTable[currentHandle].inMemory && (cinTable[currentHandle].status != FMV_EOF))
+	{
+		(cinTable[currentHandle].inMemory) = qfalse; 
+		framedata += 8;
+		goto redump;
+	}
 //
 // one more frame hits the dust
 //

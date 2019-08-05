@@ -787,68 +787,6 @@ void NET_OpenIP( void ) {
 }
 
 
-/*
-====================
-NET_IPXSocket
-====================
-*/
-int NET_IPXSocket( int port ) {
-	SOCKET				newsocket;
-	struct sockaddr_ipx	address;
-	int					_true = 1;
-	int					err;
-
-	if( ( newsocket = socket( AF_IPX, SOCK_DGRAM, NSPROTO_IPX ) ) == INVALID_SOCKET ) {
-		err = WSAGetLastError();
-		if (err != WSAEAFNOSUPPORT) {
-			Com_Printf( "WARNING: IPX_Socket: socket: %s\n", NET_ErrorString() );
-		}
-		return 0;
-	}
-
-	// make it non-blocking
-	if( ioctlsocket( newsocket, FIONBIO, &_true ) == SOCKET_ERROR ) {
-		Com_Printf( "WARNING: IPX_Socket: ioctl FIONBIO: %s\n", NET_ErrorString() );
-		return 0;
-	}
-
-	// make it broadcast capable
-	if( setsockopt( newsocket, SOL_SOCKET, SO_BROADCAST, (char *)&_true, sizeof( _true ) ) == SOCKET_ERROR ) {
-		Com_Printf( "WARNING: IPX_Socket: setsockopt SO_BROADCAST: %s\n", NET_ErrorString() );
-		return 0;
-	}
-
-	address.sa_family = AF_IPX;
-	memset( address.sa_netnum, 0, 4 );
-	memset( address.sa_nodenum, 0, 6 );
-	if( port == PORT_ANY ) {
-		address.sa_socket = 0;
-	}
-	else {
-		address.sa_socket = htons( (short)port );
-	}
-
-	if( bind( newsocket, (const struct sockaddr*) (void *)&address, sizeof(address) ) == SOCKET_ERROR ) {
-		Com_Printf( "WARNING: IPX_Socket: bind: %s\n", NET_ErrorString() );
-		closesocket( newsocket );
-		return 0;
-	}
-
-	return newsocket;
-}
-
-
-/*
-====================
-NET_OpenIPX
-====================
-*/
-void NET_OpenIPX( void ) {
-	int		port;
-
-	port = Cvar_Get( "net_port", va( "%i", PORT_SERVER ), CVAR_LATCH )->integer;
-	ipx_socket = NET_IPXSocket( port );
-}
 
 
 
@@ -971,9 +909,7 @@ void NET_Config( qboolean enableNetworking ) {
 		if (! net_noudp->integer ) {
 			NET_OpenIP();
 		}
-		if (! net_noipx->integer ) {
-			NET_OpenIPX();
-		}
+
 	}
 }
 

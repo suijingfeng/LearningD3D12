@@ -15,7 +15,7 @@ consistant.
 #define VK_NO_PROTOTYPES
 
 #if defined(_WIN32) || defined(_WIN64)
-
+#define CINTERFACE
 #define VK_NO_PROTOTYPES 
 #define VK_USE_PLATFORM_WIN32_KHR 1
 #include <windows.h>
