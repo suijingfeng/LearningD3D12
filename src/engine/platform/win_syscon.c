@@ -27,7 +27,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "win_event.h"
 
 
-
 extern WinVars_t g_wv;
 
 #define COPY_ID			1
@@ -81,7 +80,7 @@ typedef struct
 
 static WinConData s_console_window;
 
-static int maxConSize; // up to MAX_CONSIZE
+
 static int curConSize; // up to MAX_CONSIZE
 
 static void ConClear( void ) 
@@ -94,6 +93,7 @@ static void ConClear( void )
 	curConSize = 0;
 	// conBufPos = 0;
 }
+
 
 static LRESULT WINAPI ConWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
@@ -369,7 +369,7 @@ static LRESULT WINAPI InputLineWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 
 void Sys_CreateConsole( void )
 {	
-	const char * const pDEDCLASS = "Console";
+	const char pDEDCLASS[] = { "Console" };
 	int widths[2] = { 140, -1 };
 	int borders[3];
 	const int DEDSTYLE = WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
@@ -674,10 +674,11 @@ void Sys_Print( const char *pMsg )
 
 
 
-void Sys_SetErrorText( const char *buf )
+void Sys_SetErrorText( const char * pBuf )
 {
-	char errorString[80];
-	Q_strncpyz( errorString, buf, sizeof( errorString ) );
+	char errorString[128];
+
+	strncpy( errorString, pBuf, sizeof( errorString ) );
 
 	if ( !s_console_window.hwndErrorBox )
 	{
@@ -686,6 +687,7 @@ void Sys_SetErrorText( const char *buf )
 													s_console_window.hWnd, 
 													( HMENU ) ERRORBOX_ID,	// child window ID
 													g_wv.hInstance, NULL );
+		
 		SendMessage( s_console_window.hwndErrorBox, WM_SETFONT, ( WPARAM ) s_console_window.hfBufferFont, 0 );
 		SetWindowText( s_console_window.hwndErrorBox, errorString );
 

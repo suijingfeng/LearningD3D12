@@ -45,7 +45,6 @@ static int GetDesktopHeight(void)
 }
 
 
-
 static void win_createWindowImpl( void )
 {
 	const char MAIN_WINDOW_CLASS_NAME[] = { "OpenArena" };
