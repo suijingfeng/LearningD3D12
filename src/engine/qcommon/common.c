@@ -313,7 +313,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		}
 		longjmp (abortframe, -1);
 	} else {
-		CL_Shutdown ();
+		CL_Shutdown(va("Client fatal crashed: %s", com_errorMessage), qtrue, qtrue);;
 		SV_Shutdown (va("Server fatal crashed: %s\n", com_errorMessage));
 	}
 
@@ -335,7 +335,7 @@ void Com_Quit_f( void ) {
 	// don't try to shutdown if we are in a recursive error
 	if ( !com_errorEntered ) {
 		SV_Shutdown ("Server quit\n");
-		CL_Shutdown ();
+		CL_Shutdown ("Client quit", qtrue, qtrue);
 		Com_Shutdown ();
 		FS_Shutdown(qtrue);
 	}
@@ -2669,9 +2669,6 @@ void Com_Frame( void ) {
 	int           timeAfter;
   
 
-
-
-
 	if ( setjmp (abortframe) ) {
 		return;			// an ERR_DROP was thrown
 	}
@@ -2740,15 +2737,18 @@ void Com_Frame( void ) {
 	// or shut down the client system.
 	// Do this after the server may have started,
 	// but before the client tries to auto-connect
-	if ( com_dedicated->modified ) {
+	if ( com_dedicated->modified )
+	{
 		// get the latched value
 		Cvar_Get( "dedicated", "0", 0 );
 		com_dedicated->modified = qfalse;
 		if ( !com_dedicated->integer ) {
 			CL_Init();
 			Sys_ShowConsole( com_viewlog->integer, qfalse );
-		} else {
-			CL_Shutdown();
+		}
+		else
+		{
+			CL_Shutdown("Game directory changed", qfalse, qfalse);
 			Sys_ShowConsole( 1, qtrue );
 		}
 	}

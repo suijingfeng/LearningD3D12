@@ -71,6 +71,7 @@ void vk_cleanInstanceProcAddrImpl(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	FreeLibrary(vk_library_handle);
+	vk_library_handle = NULL;
 #elif defined(__unix__) || defined(__linux) || defined(__linux__)
 	dlclose(vk_library_handle);
 #else

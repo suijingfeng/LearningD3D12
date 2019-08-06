@@ -176,7 +176,6 @@ void RE_Shutdown( qboolean destroyWindow )
 	ri.Cmd_RemoveCommand("shaderlist");
 	ri.Cmd_RemoveCommand("skinlist");
 
-    ri.Cmd_RemoveCommand("minimize");
 	
 	ri.Cmd_RemoveCommand("vkinfo");
     ri.Cmd_RemoveCommand("printDeviceExtensions");
@@ -240,6 +239,8 @@ void RE_Shutdown( qboolean destroyWindow )
     if (destroyWindow)
     {
         vk_shutdown();
+		
+		vk_cleanInstanceProcAddrImpl();
 
 		ri.GLimpShutdown();
 		ri.Printf(PRINT_ALL, " Destroying Vulkan window. \n");

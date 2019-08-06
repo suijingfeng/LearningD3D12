@@ -842,6 +842,7 @@ void vk_shutdown(void)
     vk_clearProcAddress();
 
     ri.Printf( PRINT_ALL, " clear vk struct: vk \n" );
-    memset(&vk, 0, sizeof(vk));
+    
+	memset(&vk, 0, sizeof(vk));
 }
 

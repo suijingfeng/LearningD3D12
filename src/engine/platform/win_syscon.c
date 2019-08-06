@@ -26,16 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "resource.h"
 #include "win_event.h"
 
-// This header is used by Windows Controls.
-#include <shlobj.h>
-// A control is a child window that an application uses in conjunction with
-// another window to enable user interaction. Controls are most often used 
-// within dialog boxes, but they can also be used in other windows. 
-// Controls within dialog boxes provide the user with a way to type text, 
-// choose options, and initiate actions. Controls in other windows provide 
-// a variety of services, such as letting the user choose commands, 
-// view status, and view and edit text. 
-// Support for controls is provided by User32.dll and Comctl32.dll.
 
 
 extern WinVars_t g_wv;
@@ -67,7 +57,6 @@ typedef struct
 
 	HWND		hwndInputLine;
 
-	HWND		hwndStatusBar;
 	HWND		hwndButtonClear;
 	HWND		hwndButtonCopy;
 
@@ -455,19 +444,6 @@ void Sys_CreateConsole( void )
 		FF_MODERN | FIXED_PITCH,
 		"Courier New" );
 
-	s_console_window.hwndStatusBar = CreateWindow( STATUSCLASSNAME, NULL, WS_VISIBLE | WS_CHILD,
-		1,1,32,32, s_console_window.hWnd, NULL, g_wv.hInstance, NULL );
-
-	ReleaseDC( s_console_window.hWnd, hDC );
-
-	// split statusbar into parts and set styles
-	SendMessage( s_console_window.hwndStatusBar, WM_SETFONT, ( WPARAM ) s_console_window.hfStatusFont, 0 );
-	SendMessage( s_console_window.hwndStatusBar, SB_GETBORDERS, 0, (LPARAM)&borders );
-	widths[0] += borders[1]*2; // count vertical borders
-	SendMessage( s_console_window.hwndStatusBar, SB_SETPARTS, 2, (LPARAM)&widths );
-	SendMessage( s_console_window.hwndStatusBar, SB_SETTEXT, 0 | SBT_NOBORDERS, (LPARAM)"" );
-
-	SendMessage( s_console_window.hwndStatusBar, SB_GETRECT, 0, (LPARAM)&rect );
 	rect.left += borders[1];
 	rect.right -= borders[1];
 	//
@@ -595,23 +571,6 @@ void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
 	}
 }
 
-
-
-void QDECL Sys_SetStatus( const char *format, ... )
-{
-	va_list		argptr;
-	char		text[256];
-
-	if ( s_console_window.hwndStatusBar == NULL )
-		return;
-
-	text[0] = ' '; // add leading space for better look :P
-	va_start( argptr, format );
-	Q_vsnprintf( text + 1, sizeof( text ) - 1, format, argptr );
-	va_end( argptr );
-
-	SendMessage( s_console_window.hwndStatusBar, SB_SETTEXT, (WPARAM) 1 | 0, (LPARAM) AtoW( text ) );
-}
 
 
 

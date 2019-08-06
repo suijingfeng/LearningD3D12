@@ -4,7 +4,7 @@
 /*
 ==========================================================
 
-      IMPLEMENTATION/PLATFORM SPECIFIC FUNCTIONS
+      IMPLEMENTATION PLATFORM SPECIFIC FUNCTIONS
 
 Different platform use different libs, therefore can have
 different implementation, however the interface should be

@@ -43,7 +43,7 @@ Implementations may support additional limits and capabilities beyond those list
 
 
 extern void R_GetWorldBaseName(char* checkname);
-extern size_t RE_SaveJPGToBuffer(unsigned char *buffer, unsigned int bufSize, int quality,
+extern uint32_t RE_SaveJPGToBuffer(unsigned char *buffer, unsigned int bufSize, int quality,
     int image_width, int image_height, unsigned char *image_buffer, int padding);
 
 
@@ -277,7 +277,7 @@ static void vk_read_pixels(unsigned char* const pBuf, uint32_t W, uint32_t H)
 
 
 
-extern size_t RE_SaveJPGToBuffer(unsigned char *buffer, unsigned int bufSize, int quality,
+extern uint32_t RE_SaveJPGToBuffer(unsigned char *buffer, unsigned int bufSize, int quality,
     int image_width, int image_height, unsigned char *image_buffer, int padding);
 
 

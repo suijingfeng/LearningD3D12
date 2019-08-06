@@ -766,9 +766,10 @@ void dx_initialize(void * pWinContext)
 
 void dx_shutdown()
 {
-	::CloseHandle(dx.fence_event);
+	CloseHandle(dx.fence_event);
 
-	for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; i++) {
+	for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; ++i)
+	{
 		dx.render_targets[i]->Release();
 	}
 	for (int i = 0; i < 2; i++) {
@@ -814,6 +815,7 @@ void dx_shutdown()
 
 void dx_release_resources()
 {
+	ri.Printf(PRINT_ALL, "Release DirectX12 Resources. \n");
 	dx_wait_device_idle();
 
 	for (int i = 0; i < dx_world.num_pipelines; ++i)

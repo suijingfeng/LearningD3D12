@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #include "../platform/win_public.h"
+#include "../platform/win_dll.h"
 
 cvar_t	*cl_nodelta;
 cvar_t	*cl_debugMove;
@@ -89,9 +90,16 @@ cvar_t	*cl_trn;
 
 
 #ifdef USE_RENDERER_DLOPEN
+
+#if defined(_WIN32) || defined(_WIN64)
+static HMODULE rendererLib;
+cvar_t	*cl_renderer;
+#else 
+static void* rendererLib = NULL;
 cvar_t	*cl_renderer;
 #endif
 
+#endif
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
@@ -99,6 +107,7 @@ vm_t				*cgvm;
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
+
 
 ping_t	cl_pinglist[MAX_PINGREQUESTS];
 
@@ -2249,12 +2258,23 @@ void QDECL CL_RefPrintf( int print_level, const char *fmt, ...) {
 CL_ShutdownRef
 ============
 */
-void CL_ShutdownRef( void ) {
+void CL_ShutdownRef( void )
+{
 	if ( !re.Shutdown ) {
 		return;
 	}
 	re.Shutdown( qtrue );
 	Com_Memset( &re, 0, sizeof( re ) );
+
+#ifdef USE_RENDERER_DLOPEN
+	if (rendererLib)
+	{
+		Com_Printf(" Unloading renderer dll. \n");
+		Sys_UnloadDll( rendererLib );
+		rendererLib = NULL;
+	}
+#endif
+
 }
 
 /*
@@ -2350,7 +2370,7 @@ void CL_InitRef( void )
 
 	Com_sprintf(dllName, sizeof(dllName), "renderer_%s_x86_64.dll", cl_renderer->string);
 
-	HMODULE rendererLib = LoadLibrary(dllName);
+	rendererLib = LoadLibrary(dllName);
 	if (!rendererLib)
 	{
 		Com_Printf(" Loading %s failed.\n", dllName);
@@ -2694,13 +2714,7 @@ void CL_Init( void ) {
 }
 
 
-/*
-===============
-CL_Shutdown
-
-===============
-*/
-void CL_Shutdown( void )
+void CL_Shutdown(char *finalmsg, qboolean disconnect, qboolean quit)
 {
 	static qboolean recursive = qfalse;
 	

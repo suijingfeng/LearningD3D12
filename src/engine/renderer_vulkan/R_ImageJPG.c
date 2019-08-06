@@ -449,7 +449,7 @@ unsigned int RE_SaveJPGToBuffer(unsigned char *buffer, unsigned int bufSize, int
   jpeg_finish_compress(&cinfo);
   
   dest = (my_dest_ptr) cinfo.dest;
-  unsigned int outcount = dest->size - dest->pub.free_in_buffer;
+  unsigned int outcount = dest->size - (int)dest->pub.free_in_buffer;
  
   /* Step 7: release JPEG compression object */
   jpeg_destroy_compress(&cinfo);

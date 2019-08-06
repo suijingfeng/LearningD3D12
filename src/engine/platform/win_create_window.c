@@ -1,14 +1,8 @@
 /*
 ** WIN_DXIMP.C
 **
-** This file contains ALL Win32 specific stuff having to do with the
-** directx 12 refresh.  When a port is being made the following functions
-** must be implemented by the port:
-**
-** DXimp_EndFrame
-** DXimp_Init
-** DXimp_LogComment
-** DXimp_Shutdown
+** This file contains ALL Win32 create window specific stuff 
+** for the DirectX12/Vulkan/OpenGL renderer. 
 **
 */
 
@@ -54,10 +48,11 @@ static int GetDesktopHeight(void)
 
 static void win_createWindowImpl( void )
 {
+	const char MAIN_WINDOW_CLASS_NAME[] = { "OpenArena" };
+
 	Com_Printf( " Initializing window subsystem. \n" );
 
 	cvar_t* win_fullscreen = Cvar_Get("r_fullscreen", "1", 0);
-
 	cvar_t* win_mode = Cvar_Get("r_mode", "3", 0);
 
 	int width = g_wv.desktopWidth = GetDesktopWidth();
@@ -81,7 +76,7 @@ static void win_createWindowImpl( void )
 		x = 0;
 		y = 0;
 		w = g_wv.desktopWidth;
-		h = g_wv.desktopWidth;
+		h = g_wv.desktopHeight;
 	}
 	else
 	{
@@ -111,7 +106,7 @@ static void win_createWindowImpl( void )
 	}
 
 
-#define	MAIN_WINDOW_CLASS_NAME	"OpenArena"
+
 	// g_wv.hWnd = create_main_window(g_wv.winWidth, g_wv.winHeight, g_wv.isFullScreen);
 
 	//
@@ -168,7 +163,6 @@ static void win_createWindowImpl( void )
 		Com_Error(ERR_FATAL, " Couldn't create window ");
 	}
 
-#undef	MAIN_WINDOW_CLASS_NAME
 
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
@@ -194,8 +188,6 @@ static void win_createWindowImpl( void )
 
 static void win_destroyWindowImpl(void)
 {
-	Com_Printf( " Shutting down DX12 subsystem. \n");
-
 	if (g_wv.hWnd)
 	{
 		Com_Printf( " Destroying window system. \n");
@@ -206,10 +198,12 @@ static void win_destroyWindowImpl(void)
 	}
 }
 
+
 void win_minimizeImpl(void)
 {
 	;
 }
+
 
 void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 {
