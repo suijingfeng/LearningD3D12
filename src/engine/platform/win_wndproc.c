@@ -234,6 +234,17 @@ static int MapChar( WPARAM wParam, byte scancode )
 }
 
 
+
+void ToggleFullscreenWindow(void)
+{
+	g_wv.isFullScreen = !g_wv.isFullScreen;
+
+	Cvar_SetValue("r_fullscreen", g_wv.isFullScreen);
+	Cbuf_AddText("vid_restart\n");
+}
+
+
+
 /*
 ====================
 MainWndProc
@@ -365,17 +376,13 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 	case WM_SYSKEYDOWN: 
 	{
-		
-		if (wParam == VK_RETURN)
+		// Handle ALT+ENTER:
+		if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
 		{
-			g_wv.isFullScreen = !g_wv.isFullScreen;
-
-			Cvar_SetValue("r_fullscreen", g_wv.isFullScreen);
-			Cbuf_AddText("vid_restart\n");
-
+			ToggleFullscreenWindow();
 			return 0;
 		}
-
+		// Send all other WM_SYSKEYDOWN messages to the client.
 		Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, MapKey( wParam, lParam ), qtrue, 0, NULL );
 	} break;
 

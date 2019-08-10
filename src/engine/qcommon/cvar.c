@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
+along with Foobar; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
@@ -414,7 +414,7 @@ void Cvar_SetLatched( const char *var_name, const char *value) {
 Cvar_SetValue
 ============
 */
-void Cvar_SetValue( const char * const var_name, float value)
+void Cvar_SetValue( const char * var_name, float value)
 {
 	char val[32];
 
@@ -835,8 +835,10 @@ void Cvar_InfoStringBuffer( int bit, char* buff, int buffsize ) {
 Cvar_CheckRange
 =====================
 */
-void Cvar_CheckRange( cvar_t *var, float min, float max, qboolean integral )
+void Cvar_CheckRange( cvar_t *cv, float minVal, float maxVal, qboolean integral )
 {
+// suijingfeng, place hold, fast debug
+/*
 	var->validate = qtrue;
 	var->min = min;
 	var->max = max;
@@ -844,7 +846,30 @@ void Cvar_CheckRange( cvar_t *var, float min, float max, qboolean integral )
 
 	// Force an initial range check
 	Cvar_Set( var->name, var->string );
+*/
+	if (integral)
+	{
+		if ((int)cv->value != cv->integer)
+		{
+			Com_Printf("WARNING: cvar '%s' must be integral (%f)\n", cv->name, cv->value);
+			Cvar_Set(cv->name, va("%d", cv->integer));
+		}
+	}
+
+	if (cv->value < minVal)
+	{
+		Com_Printf("WARNING: cvar '%s' out of range (%f < %f)\n", cv->name, cv->value, minVal);
+		Cvar_Set(cv->name, va("%f", minVal));
+	}
+	else if (cv->value > maxVal)
+	{
+		Com_Printf("WARNING: cvar '%s' out of range (%f > %f)\n", cv->name, cv->value, maxVal);
+		Cvar_Set(cv->name, va("%f", maxVal));
+	}
+
 }
+
+
 
 
 /*
@@ -854,6 +879,8 @@ Cvar_SetDescription
 */
 void Cvar_SetDescription( cvar_t *var, const char *var_description )
 {
+// suijingfeng, place hold, fast debug
+/*
 	if( var_description && var_description[0] != '\0' )
 	{
 		if( var->description != NULL )
@@ -862,6 +889,7 @@ void Cvar_SetDescription( cvar_t *var, const char *var_description )
 		}
 		var->description = CopyString( var_description );
 	}
+*/
 }
 
 /*

@@ -1,37 +1,13 @@
 
 #include "../platform/win_public.h"
-
+#include <D3d12.h>
+#include <DXGI1_4.h>
 #include "tr_local.h"
-#include "D3d12.h"
-#include "DXGI1_4.h"
 #include "dx_world.h"
 #include "dx_utils.h"
 
-#pragma comment (lib, "D3d12.lib")
-
-
-// Microsoft Directx Graphics Infrastructure (DXGI) handles enumerating display modles,
-// selecting buffer formats, sharing resources between process (such as between applications
-// and the Desktop Windows Manager(DWM)), and presenting rendered frames to a window or
-// monitor for display.
-//
-// DXGI is used by D3D10, D3D11 and D3D12
-// you can use DXGI to present frames to a window, monitor, or other graphics component for
-// eventual composition and display. You can also use DXGI to read the contents on a monitor.
-// The primary goal of DXGI is to manage low-level tasks that can be independent of the DirectX
-// graphics runtime. DXGI provide a common framework for future graphics components.
-//
-// DXGI's purpose is to communicate with the kernel mode driver and the system hardware.
-// In previous versions of Direct3D, low-level tasks like enumeraton of the hardware devices,
-// presenting rendered frames to an output, controlling gamma, and managing a full-screen 
-// transition were included in the Direct3D runtime. These tasks are now implemented in DXGI.
-// An application can access DXGI directly, or call the Direct3D APIs in D3D1x.h(x=0, 1, 2),
-// which handles the communications with DXGI for you, You may want to work with DXGI directly
-// if your application needs to enumerate devices or control how data is presented to an output.
-
-#pragma comment (lib, "DXGI.lib")
-
-
+// DX12
+extern Dx_Instance	dx;
 
 const int VERTEX_CHUNK_SIZE = 512 * 1024;
 
@@ -57,20 +33,7 @@ static DXGI_FORMAT get_depth_format()
 
 
 
-static D3D12_RESOURCE_BARRIER get_transition_barrier(
-	ID3D12Resource* resource,
-	D3D12_RESOURCE_STATES state_before,
-	D3D12_RESOURCE_STATES state_after)
-{
-	D3D12_RESOURCE_BARRIER barrier;
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = resource;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	barrier.Transition.StateBefore = state_before;
-	barrier.Transition.StateAfter = state_after;
-	return barrier;
-}
+
 
 
 static D3D12_HEAP_PROPERTIES get_heap_properties(D3D12_HEAP_TYPE heap_type)
@@ -123,12 +86,15 @@ static void DX_CreateCommandQueue(ID3D12CommandQueue** ppCmdQueue)
 // to retrieve the newer version of the swap-chain description structure.
 // In full-screen mode, there is a dedicated front buffer; in windowed mode, 
 // the desktop is the front buffer.
-static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT numTargetBuf,
-	void* pContext, IDXGIFactory2* pFactory, IDXGISwapChain3 ** ppWwapchain)
+static void DX_CreateSwapChain(ID3D12CommandQueue* pCmdQueue, UINT width, UINT height, DXGI_FORMAT fmt, UINT numTargetBuf,
+	void* pContext, IDXGIFactory4* pFactory, IDXGISwapChain3 ** ppWwapchain)
 {
+
 	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
-	swap_chain_desc.Width = width;
-	swap_chain_desc.Height = height;
+	// width
+	swap_chain_desc.Width = 0;
+	// height
+	swap_chain_desc.Height = 0;
 	swap_chain_desc.Format = fmt;
 	swap_chain_desc.Stereo = false;
 	// A DXGI_SAMPLE_DESC structure that describes multi-sampling parameters.
@@ -182,7 +148,19 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 	// The DXGI swap chain might change the display mode of an output when
 	// making a full-screen transition. 
 	// To enable the automatic display mode change:
-	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	// DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+
+
+	DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreen_desc;
+	fullscreen_desc.RefreshRate.Numerator = 125;
+	fullscreen_desc.RefreshRate.Denominator = 1;
+	fullscreen_desc.ScanlineOrdering =
+		DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	fullscreen_desc.Scaling =
+		DXGI_MODE_SCALING_UNSPECIFIED;
+	fullscreen_desc.Windowed = true;
+
 
 	IDXGISwapChain1* pTmpSwapchain;
 	// IDXGIOutput * pOutputInfo = nullptr;
@@ -190,10 +168,10 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 	WinVars_t * pWinSys = (WinVars_t*)pContext;
 
 	DX_CHECK( pFactory->CreateSwapChainForHwnd(
-		dx.command_queue,
+		pCmdQueue,
 		pWinSys->hWnd,
 		&swap_chain_desc,
-		nullptr,
+		&fullscreen_desc,
 		nullptr,
 		&pTmpSwapchain
 	));
@@ -202,11 +180,12 @@ static void DX_CreateSwapChain(UINT width, UINT height, DXGI_FORMAT fmt, UINT nu
 	// message queue; this makes DXGI unable to respond to mode changes.
 	DX_CHECK( pFactory->MakeWindowAssociation(pWinSys->hWnd, DXGI_MWA_NO_ALT_ENTER));
 
-	// pTmpSwapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&dx.swapchain);
+
 	pTmpSwapchain->QueryInterface( IID_PPV_ARGS(ppWwapchain) );
 	pTmpSwapchain->Release();
+	pTmpSwapchain = nullptr;
 
-	ri.Printf(PRINT_ALL, " Swap chain created. \n");
+	ri.Printf(PRINT_ALL, " Swap chain created( %d x %d ). \n",width, height);
 }
 
 
@@ -312,7 +291,7 @@ void DX_CreateISheap(uint32_t size, ID3D12DescriptorHeap** const pSrvHeap)
 }
 
 
-void DX_CreateDevice(IDXGIFactory2* const pFactory, ID3D12Device** const ppDevice)
+void DX_CreateDevice(IDXGIFactory4* const pFactory, ID3D12Device** const ppDevice)
 {
 	// A pointer to the video adapter to use when creating a device. 
 	// Pass NULL to use the default adapter, which is the first adapter
@@ -343,6 +322,7 @@ void DX_CreateDevice(IDXGIFactory2* const pFactory, ID3D12Device** const ppDevic
 
 			ri.Printf(PRINT_ALL, "\n");
 
+			pHardwareAdapter->Release();
 			return;
 		}
 	}
@@ -417,7 +397,7 @@ void dx_initialize(void * pWinContext)
 	// or call QueryInterface from a factory object that either CreateDXGIFactory or
 	// CreateDXGIFactory1 returns.
 	// IDXGIFactory4 Enables creating Microsoft DirectX Graphics Infrastructure (DXGI) objects.
-	IDXGIFactory2* pFactory;
+	IDXGIFactory4* pFactory;
 	// Creates a DXGI 1.1 factory that can be used to generate other DXGI objects.
 	// Use IDXGIFactory or IDXGIFactory1, but not both in an application.
 	// The CreateDXGIFactory function does not exist for Windows Store apps. 
@@ -430,7 +410,7 @@ void dx_initialize(void * pWinContext)
 	DX_CHECK( CreateDXGIFactory2(0, IID_PPV_ARGS(&pFactory)) );
 #endif
 	
-	//printAvailableAdapters(pFactory);
+	// printAvailableAdapters(pFactory);
 
 	DX_CreateDevice(pFactory, &dx.device);
 
@@ -439,9 +419,9 @@ void dx_initialize(void * pWinContext)
 	DX_CreateCommandQueue( &dx.command_queue );
 
 	// Create swap chain.
-	DX_CreateSwapChain(glConfig.vidWidth, glConfig.vidHeight,
-		DXGI_FORMAT_R8G8B8A8_UNORM, SWAPCHAIN_BUFFER_COUNT,
-		pWinContext, pFactory, &dx.swapchain);
+	DX_CreateSwapChain(dx.command_queue, glConfig.vidWidth, glConfig.vidHeight,
+		DXGI_FORMAT_R8G8B8A8_UNORM, SWAPCHAIN_BUFFER_COUNT, pWinContext, pFactory, 
+		&dx.swapchain);
 
 
 	for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; ++i)
@@ -766,9 +746,10 @@ void dx_initialize(void * pWinContext)
 
 void dx_shutdown()
 {
-	::CloseHandle(dx.fence_event);
+	CloseHandle(dx.fence_event);
 
-	for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; i++) {
+	for (int i = 0; i < SWAPCHAIN_BUFFER_COUNT; ++i)
+	{
 		dx.render_targets[i]->Release();
 	}
 	for (int i = 0; i < 2; i++) {
@@ -814,6 +795,7 @@ void dx_shutdown()
 
 void dx_release_resources()
 {
+	ri.Printf(PRINT_ALL, "Release DirectX12 Resources. \n");
 	dx_wait_device_idle();
 
 	for (int i = 0; i < dx_world.num_pipelines; ++i)
@@ -1488,7 +1470,7 @@ void dx_bind_geometry()
 		float* eye_xform = root_constants + 16;
 		for (int i = 0; i < 12; ++i)
 		{
-			eye_xform[i] = backEnd.or.modelMatrix[(i%4)*4 + i/4 ];
+			eye_xform[i] = backEnd.ori.modelMatrix[(i%4)*4 + i/4 ];
 		}
 
 		// Clipping plane in eye coordinates.
@@ -1499,10 +1481,10 @@ void dx_bind_geometry()
 		world_plane[3] = backEnd.viewParms.portalPlane.dist;
 
 		float eye_plane[4];
-		eye_plane[0] = DotProduct (backEnd.viewParms.or.axis[0], world_plane);
-		eye_plane[1] = DotProduct (backEnd.viewParms.or.axis[1], world_plane);
-		eye_plane[2] = DotProduct (backEnd.viewParms.or.axis[2], world_plane);
-		eye_plane[3] = DotProduct (world_plane, backEnd.viewParms.or.origin) - world_plane[3];
+		eye_plane[0] = DotProduct (backEnd.viewParms.ori.axis[0], world_plane);
+		eye_plane[1] = DotProduct (backEnd.viewParms.ori.axis[1], world_plane);
+		eye_plane[2] = DotProduct (backEnd.viewParms.ori.axis[2], world_plane);
+		eye_plane[3] = DotProduct (world_plane, backEnd.viewParms.ori.origin) - world_plane[3];
 
 		// Apply s_flipMatrix to be in the same coordinate system as eye_xfrom.
 		root_constants[28] = -eye_plane[1];
@@ -1608,56 +1590,4 @@ void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture,
 		dx.command_list->DrawIndexedInstanced(tess.numIndexes, 1, 0, 0, 0);
 	else
 		dx.command_list->DrawInstanced(tess.numVertexes, 1, 0, 0);
-}
-
-
-void dx_begin_frame()
-{
-	if (dx.fence->GetCompletedValue() < dx.fence_value)
-	{
-		DX_CHECK(dx.fence->SetEventOnCompletion(dx.fence_value, dx.fence_event));
-		WaitForSingleObject(dx.fence_event, INFINITE);
-	}
-
-	dx.frame_index = dx.swapchain->GetCurrentBackBufferIndex();
-
-	DX_CHECK(dx.command_allocator->Reset());
-	DX_CHECK(dx.command_list->Reset(dx.command_allocator, nullptr));
-
-	dx.command_list->SetGraphicsRootSignature(dx.root_signature);
-
-	ID3D12DescriptorHeap* heaps[2] = { dx.srv_heap, dx.sampler_heap };
-	//dx.command_list->SetDescriptorHeaps(_countof(heaps), heaps);
-	
-	dx.command_list->SetDescriptorHeaps(2, heaps);
-
-	dx.command_list->ResourceBarrier(1, &get_transition_barrier(dx.render_targets[dx.frame_index],
-		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
-	D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = dx.dsv_heap->GetCPUDescriptorHandleForHeapStart();
-
-	D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = dx.rtv_heap->GetCPUDescriptorHandleForHeapStart();
-	rtv_handle.ptr += dx.frame_index * dx.rtv_descriptor_size;
-
-	dx.command_list->OMSetRenderTargets(1, &rtv_handle, FALSE, &dsv_handle);
-
-	dx.xyz_elements = 0;
-	dx.color_st_elements = 0;
-	dx.index_buffer_offset = 0;
-}
-
-void dx_end_frame()
-{
-	dx.command_list->ResourceBarrier(1, &get_transition_barrier(dx.render_targets[dx.frame_index],
-		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-
-	DX_CHECK(dx.command_list->Close());
-
-	ID3D12CommandList* command_list = dx.command_list;
-	dx.command_queue->ExecuteCommandLists(1, &command_list);
-
-	++dx.fence_value;
-	DX_CHECK(dx.command_queue->Signal(dx.fence, dx.fence_value));
-
-	DX_CHECK(dx.swapchain->Present(0, 0));
 }

@@ -1,0 +1,22 @@
+// #pragma comment (lib, "D3d12.lib")
+
+// Microsoft Directx Graphics Infrastructure (DXGI) handles enumerating display modles,
+// selecting buffer formats, sharing resources between process (such as between applications
+// and the Desktop Windows Manager(DWM)), and presenting rendered frames to a window or
+// monitor for display.
+//
+// DXGI is used by D3D10, D3D11 and D3D12
+// you can use DXGI to present frames to a window, monitor, or other graphics component for
+// eventual composition and display. You can also use DXGI to read the contents on a monitor.
+// The primary goal of DXGI is to manage low-level tasks that can be independent of the DirectX
+// graphics runtime. DXGI provide a common framework for future graphics components.
+//
+// DXGI's purpose is to communicate with the kernel mode driver and the system hardware.
+// In previous versions of Direct3D, low-level tasks like enumeraton of the hardware devices,
+// presenting rendered frames to an output, controlling gamma, and managing a full-screen 
+// transition were included in the Direct3D runtime. These tasks are now implemented in DXGI.
+// An application can access DXGI directly, or call the Direct3D APIs in D3D1x.h(x=0, 1, 2),
+// which handles the communications with DXGI for you, You may want to work with DXGI directly
+// if your application needs to enumerate devices or control how data is presented to an output.
+
+// #pragma comment (lib, "DXGI.lib")

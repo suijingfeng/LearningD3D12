@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_mesh.c: triangle model functions
 
 #include "tr_local.h"
-#include "tr_common.h"
 
 static float ProjectRadius( float r, vec3_t location )
 {
@@ -32,8 +31,8 @@ static float ProjectRadius( float r, vec3_t location )
 	vec3_t	p;
 	float	projected[4];
 
-	c = DotProduct( tr.viewParms.or.axis[0], tr.viewParms.or.origin );
-	dist = DotProduct( tr.viewParms.or.axis[0], location ) - c;
+	c = DotProduct( tr.viewParms.ori.axis[0], tr.viewParms.ori.origin );
+	dist = DotProduct( tr.viewParms.ori.axis[0], location ) - c;
 
 	if ( dist <= 0 )
 		return 0;
@@ -157,20 +156,7 @@ static int R_CullModel( md3Header_t *header, trRefEntity_t *ent ) {
 	}
 }
 
-static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs)
-{
-	int		i;
-	vec3_t	corner;
-	float	a, b;
 
-	for (i = 0; i<3; i++) {
-		a = fabs(mins[i]);
-		b = fabs(maxs[i]);
-		corner[i] = a > b ? a : b;
-	}
-
-	return VectorLengthf(corner);
-}
 /*
 =================
 R_ComputeLOD
@@ -198,7 +184,7 @@ int R_ComputeLOD( trRefEntity_t *ent ) {
 
 		frame += ent->e.frame;
 
-		radius = R_RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
+		radius = RadiusFromBounds( frame->bounds[0], frame->bounds[1] );
 
 		if ( ( projectedRadius = ProjectRadius( radius, ent->e.origin ) ) != 0 )
 		{

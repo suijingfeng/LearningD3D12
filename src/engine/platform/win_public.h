@@ -26,6 +26,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <windows.h>
 
+
+struct glconfig_s;
+
 typedef struct WinVars_s {
 	
 	HINSTANCE		reflib_library;		// Handle to refresh DLL 
@@ -40,8 +43,8 @@ typedef struct WinVars_s {
 
 	int				isFullScreen;
 
-	int				activeApp;
-	int 			isMinimized;
+	int 			activeApp;
+	int				isMinimized;
 	OSVERSIONINFO	osversion;
 
 	// when we get a windows message, we store the time off so keyboard processing
@@ -58,13 +61,11 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
-struct glconfig_s;
-
-void WinSys_Init(struct glconfig_s * const pConfig, void ** pContext);
-void WinSys_Shutdown(void);
-void WinSys_EndFrame(void);
-void WinSys_SetGamma(unsigned char red[256], unsigned char green[256], unsigned char blue[256]);
-void FileSys_Logging(char * const pComment);
+void GLimp_Init(struct glconfig_s * const pConfig, void ** pContext);
+void GLimp_Shutdown(void);
+void GLimp_EndFrame(void);
+void GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned char blue[256]);
+void Impl_Logging(char * const pComment);
 
 // NOTE TTimo linux works with float gamma value, not the gamma table
 // the params won't be used, getting the r_gamma cvar directly

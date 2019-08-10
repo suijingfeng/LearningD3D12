@@ -278,9 +278,6 @@ void RE_RenderScene( const refdef_t *fd )
 		return;
 	}
 
-#ifndef NDEBUG
-	ri.pfnLog( " ====== RE_RenderScene ===== \n" );
-#endif
 
 	if ( r_norefresh->integer ) {
 		return;
@@ -367,10 +364,10 @@ void RE_RenderScene( const refdef_t *fd )
 	parms.fovX = tr.refdef.fov_x;
 	parms.fovY = tr.refdef.fov_y;
 
-	VectorCopy( fd->vieworg, parms.or.origin );
-	VectorCopy( fd->viewaxis[0], parms.or.axis[0] );
-	VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
-	VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
+	VectorCopy( fd->vieworg, parms.ori.origin );
+	VectorCopy( fd->viewaxis[0], parms.ori.axis[0] );
+	VectorCopy( fd->viewaxis[1], parms.ori.axis[1] );
+	VectorCopy( fd->viewaxis[2], parms.ori.axis[2] );
 
 	VectorCopy( fd->vieworg, parms.pvsOrigin );
 

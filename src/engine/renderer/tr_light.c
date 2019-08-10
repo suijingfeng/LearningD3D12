@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_light.c
 
 #include "tr_local.h"
-#include "tr_common.h"
 
 #define	DLIGHT_AT_RADIUS		16
 // at the edge of a dlight's influence, this amount of light will be added
@@ -40,15 +39,17 @@ Used by both the front end (for DlightBmodel) and
 the back end (before doing the lighting calculation)
 ===============
 */
-void R_TransformDlights( int count, dlight_t *dl, orientationr_t *or) {
+void R_TransformDlights( int count, dlight_t *dl, orientationr_t *pOrient)
+{
 	int		i;
 	vec3_t	temp;
 
-	for ( i = 0 ; i < count ; i++, dl++ ) {
-		VectorSubtract( dl->origin, or->origin, temp );
-		dl->transformed[0] = DotProduct( temp, or->axis[0] );
-		dl->transformed[1] = DotProduct( temp, or->axis[1] );
-		dl->transformed[2] = DotProduct( temp, or->axis[2] );
+	for ( i = 0 ; i < count ; i++, dl++ )
+	{
+		VectorSubtract( dl->origin, pOrient->origin, temp );
+		dl->transformed[0] = DotProduct( temp, pOrient->axis[0] );
+		dl->transformed[1] = DotProduct( temp, pOrient->axis[1] );
+		dl->transformed[2] = DotProduct( temp, pOrient->axis[2] );
 	}
 }
 
@@ -66,7 +67,7 @@ void R_DlightBmodel( bmodel_t *bmodel ) {
 	msurface_t	*surf;
 
 	// transform all the lights
-	R_TransformDlights( tr.refdef.num_dlights, tr.refdef.dlights, &tr.or );
+	R_TransformDlights( tr.refdef.num_dlights, tr.refdef.dlights, &tr.ori );
 
 	mask = 0;
 	for ( i=0 ; i<tr.refdef.num_dlights ; i++ ) {
@@ -176,9 +177,7 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 		byte	*data;
 		int		lat, lng;
 		vec3_t	normal;
-		#if idppc
-		float d0, d1, d2, d3, d4, d5;
-		#endif
+
 		factor = 1.0;
 		data = gridData;
 		for ( j = 0 ; j < 3 ; j++ ) {
@@ -194,18 +193,7 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 			continue;	// ignore samples in walls
 		}
 		totalFactor += factor;
-		#if idppc
-		d0 = data[0]; d1 = data[1]; d2 = data[2];
-		d3 = data[3]; d4 = data[4]; d5 = data[5];
 
-		ent->ambientLight[0] += factor * d0;
-		ent->ambientLight[1] += factor * d1;
-		ent->ambientLight[2] += factor * d2;
-
-		ent->directedLight[0] += factor * d3;
-		ent->directedLight[1] += factor * d4;
-		ent->directedLight[2] += factor * d5;
-		#else
 		ent->ambientLight[0] += factor * data[0];
 		ent->ambientLight[1] += factor * data[1];
 		ent->ambientLight[2] += factor * data[2];
@@ -213,7 +201,7 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 		ent->directedLight[0] += factor * data[3];
 		ent->directedLight[1] += factor * data[4];
 		ent->directedLight[2] += factor * data[5];
-		#endif
+
 		lat = data[7];
 		lng = data[6];
 		lat *= (FUNCTABLE_SIZE/256);
@@ -330,7 +318,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	//
 	// modify the light by dynamic lights
 	//
-	d = VectorLengthf( ent->directedLight );
+	d = VectorLength( ent->directedLight );
 	VectorScale( ent->lightDir, d, lightDir );
 
 	for ( i = 0 ; i < refdef->num_dlights ; i++ ) {

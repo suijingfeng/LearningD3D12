@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
+along with Foobar; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // msg.c
 //
 typedef struct {
-	qboolean	allowoverflow;	// if false, do a Com_Error
+	qboolean	allowoverflow;	// if 0, do a Com_Error
 	qboolean	overflowed;		// set to true if the buffer size failed (with allowoverflow set)
 	qboolean	oob;			// set to true if the buffer size failed (with allowoverflow set)
 	byte	*data;
@@ -451,7 +451,7 @@ void 	Cvar_Set( const char *var_name, const char *value );
 void Cvar_SetLatched( const char *var_name, const char *value);
 // don't set the cvar immediately
 
-void	Cvar_SetValue( const char *const var_name, float value );
+void	Cvar_SetValue( const char * var_name, float value );
 // expands value to a string and calls Cvar_Set
 
 float	Cvar_VariableValue( const char *var_name );
@@ -466,7 +466,6 @@ void	Cvar_CommandCompletion( void(*callback)(const char *s) );
 // callback with each valid string
 
 void 	Cvar_Reset( const char *var_name );
-void 	Cvar_ForceReset(const char *var_name);
 
 void	Cvar_SetCheatState( void );
 // reset all testing vars to a safe value
@@ -490,10 +489,7 @@ void	Cvar_InfoStringBuffer( int bit, char *buff, int buffsize );
 void Cvar_CheckRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral );
 void Cvar_SetDescription( cvar_t *var, const char *var_description );
 
-void	Cvar_Restart(qboolean unsetVM);
 void	Cvar_Restart_f( void );
-
-void Cvar_CompleteCvarName( char *args, int argNum );
 
 extern	int			cvar_modifiedFlags;
 // whenever a cvar is modifed, its flags will be OR'd into this, so
@@ -686,8 +682,7 @@ void Q_SnapVector(float *v);
 // https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=470
 extern char cl_cdkey[34];
 
-// returnbed by Sys_GetProcessorId
-#define CPUID_GENERIC			0			// any unrecognized processor
+
 
 // TTimo
 // centralized and cleaned, that's the max string you can send to a Com_Printf / Com_DPrintf (above gets truncated)
@@ -834,7 +829,7 @@ void CL_InitKeyCommands( void );
 
 void CL_Init( void );
 void CL_Disconnect( qboolean showMainMenu );
-void CL_Shutdown( void );
+void CL_Shutdown(char *finalmsg, qboolean disconnect, qboolean quit);
 void CL_Frame( int msec );
 qboolean CL_GameCommand( void );
 void CL_KeyEvent (int key, qboolean down, unsigned time);
@@ -937,10 +932,6 @@ typedef struct {
 
 
 
-void	Sys_Init (void);
-
-
-char	*Sys_GetCurrentUser( void );
 
 void	QDECL Sys_Error( const char *error, ...);
 void	Sys_Quit (void);

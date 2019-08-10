@@ -1,6 +1,4 @@
-#ifndef DX_COMMON_H_
-#define DX_COMMON_H_
-
+#pragma once
 #include <d3d12.h>
 
 enum DX_Shader_Type {
@@ -84,8 +82,6 @@ ID3D12PipelineState* dx_find_pipeline(const DX_Pipeline_Def& def);
 void dx_clear_attachments(bool clear_depth_stencil, bool clear_color, float color[4]);
 void dx_bind_geometry();
 void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Depth_Range depth_range, bool indexed, bool lines);
-void dx_begin_frame();
-void dx_end_frame();
 
 
 struct Dx_Instance
@@ -161,6 +157,3 @@ struct Dx_Instance
 	ID3D12PipelineState* surface_debug_pipeline_outline = nullptr;
 	ID3D12PipelineState* images_debug_pipeline = nullptr;
 };
-
-
-#endif

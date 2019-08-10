@@ -20,4 +20,6 @@ struct Dx_World
 	float modelview_transform[16];
 };
 
+float * R_GetModelViewMatPtr(void);
+
 extern Dx_World	dx_world;		// this data is cleared during ref re-init

@@ -186,8 +186,23 @@ static void IN_StartupMouse(void)
 // 
 // ====================================================
 
+/*
+=================
+Sys_In_Restart_f
+
+Restart the input subsystem
+=================
+*/
+static void In_Restart_f(void)
+{
+	IN_Shutdown();
+	IN_Init();
+}
+
+
 void IN_Init( void )
 {
+
     in_mouse = Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE|CVAR_LATCH);
 
 	Com_Printf("\n------- Input Initialization -------\n");
@@ -195,11 +210,14 @@ void IN_Init( void )
 	Com_Printf("------------------------------------\n");
 
 	in_mouse->modified = qfalse;
+
+	Cmd_AddCommand("in_restart", In_Restart_f);
 }
 
 void IN_Shutdown(void)
 {
 	IN_DeactivateMouse();
+	Cmd_RemoveCommand("in_restart");
 }
 
 
@@ -236,7 +254,7 @@ void IN_Frame (void)
 		return;
 	}
 
-	if (Key_GetCatcher() & KEYCATCH_CONSOLE )
+	if ( cls.keyCatchers & KEYCATCH_CONSOLE )
 	{
 		// temporarily deactivate if not in the game and
 		// running on the desktop
@@ -273,13 +291,11 @@ void IN_Frame (void)
 
 void IN_MouseEvent(int mstate)
 {
-	int	i;
-
 	if (!s_wmv.mouseInitialized)
 		return;
 
 	// perform button actions
-	for (i = 0; i < 3; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		if ((mstate & (1 << i)) &&
 			!(s_wmv.oldButtonState & (1 << i)))

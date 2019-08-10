@@ -37,7 +37,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #include "../platform/win_public.h"
-
+#include "../platform/win_dll.h"
 
 cvar_t	*cl_nodelta;
 cvar_t	*cl_debugMove;
@@ -88,6 +88,18 @@ cvar_t	*cl_guidServerUniq;
 cvar_t	*cl_serverStatusResendTime;
 cvar_t	*cl_trn;
 
+
+#ifdef USE_RENDERER_DLOPEN
+
+#if defined(_WIN32) || defined(_WIN64)
+static HMODULE rendererLib;
+cvar_t	*cl_renderer;
+#else 
+static void* rendererLib = NULL;
+cvar_t	*cl_renderer;
+#endif
+
+#endif
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
@@ -95,6 +107,7 @@ vm_t				*cgvm;
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
+
 
 ping_t	cl_pinglist[MAX_PINGREQUESTS];
 
@@ -2245,12 +2258,23 @@ void QDECL CL_RefPrintf( int print_level, const char *fmt, ...) {
 CL_ShutdownRef
 ============
 */
-void CL_ShutdownRef( void ) {
+void CL_ShutdownRef( void )
+{
 	if ( !re.Shutdown ) {
 		return;
 	}
 	re.Shutdown( qtrue );
 	Com_Memset( &re, 0, sizeof( re ) );
+
+#ifdef USE_RENDERER_DLOPEN
+	if (rendererLib)
+	{
+		Com_Printf(" Unloading renderer dll. \n");
+		Sys_UnloadDll( rendererLib );
+		rendererLib = NULL;
+	}
+#endif
+
 }
 
 /*
@@ -2260,9 +2284,6 @@ CL_InitRenderer
 */
 void CL_InitRenderer( void )
 {
-
-	Com_Printf("CL_InitRenderer\n");
-
 	// this sets up the renderer and calls R_Init
 	re.BeginRegistration( &cls.glconfig );
 
@@ -2341,14 +2362,15 @@ void CL_InitRef( void )
 #ifdef USE_RENDERER_DLOPEN
 
 	GetRefAPI_t	GetRefAPI;
-	char dllName[MAX_OSPATH] = "renderer.dll";
+	char dllName[MAX_OSPATH] = "renderer_vulkan.dll";
 
 	Com_Printf("\n-------- USE_RENDERER_DLOPEN --------\n");
 
-	// cl_renderer = Cvar_Get("cl_renderer", "vulkan", CVAR_ARCHIVE | CVAR_LATCH | CVAR_PROTECTED);
-	// Com_sprintf(dllName, sizeof(dllName), "renderer_%s_" ARCH_STRING DLL_EXT, cl_renderer->string);
+	cl_renderer = Cvar_Get("cl_renderer", "d3d12", CVAR_ARCHIVE | CVAR_LATCH );
 
-	HMODULE rendererLib = LoadLibrary(dllName);
+	Com_sprintf(dllName, sizeof(dllName), "renderer_%s_x86_64.dll", cl_renderer->string);
+
+	rendererLib = LoadLibrary(dllName);
 	if (!rendererLib)
 	{
 		Com_Printf(" Loading %s failed.\n", dllName);
@@ -2403,6 +2425,7 @@ void CL_InitRef( void )
 	ri.FS_FileExists = FS_FileExists;
 	ri.Cvar_Get = Cvar_Get;
 	ri.Cvar_Set = Cvar_Set;
+	// suijingfeng, addtion
 	ri.Cvar_SetValue = Cvar_SetValue;
 	ri.Cvar_CheckRange = Cvar_CheckRange;
 	ri.Cvar_SetDescription = Cvar_SetDescription;
@@ -2414,11 +2437,11 @@ void CL_InitRef( void )
 	ri.CIN_PlayCinematic = CIN_PlayCinematic;
 	ri.CIN_RunCinematic = CIN_RunCinematic;
 
-	ri.GLimpInit = WinSys_Init;
-	ri.GLimpShutdown = WinSys_Shutdown;
-	ri.GLimpEndFrame = WinSys_EndFrame;
-	ri.GLimpSetGamma = WinSys_SetGamma;
-	ri.pfnLog = FileSys_Logging;
+	ri.GLimpInit = GLimp_Init;
+	ri.GLimpShutdown = GLimp_Shutdown;
+	ri.GLimpEndFrame = GLimp_EndFrame;
+	ri.GLimpSetGamma = GLimp_SetGamma;
+	ri.pfnLog = Impl_Logging;
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 
@@ -2691,20 +2714,14 @@ void CL_Init( void ) {
 }
 
 
-/*
-===============
-CL_Shutdown
-
-===============
-*/
-void CL_Shutdown( void )
+void CL_Shutdown(char *finalmsg, qboolean disconnect, qboolean quit)
 {
 	static qboolean recursive = qfalse;
 	
-	Com_Printf( "----- CL_Shutdown -----\n" );
+	Com_Printf( "----- Client Shutdown (%s) -----\n", finalmsg );
 
 	if ( recursive ) {
-		printf ("recursive shutdown\n");
+		Com_Printf( "WARNING: Recursive shutdown\n" );
 		return;
 	}
 	recursive = qtrue;
@@ -3548,7 +3565,7 @@ void CL_ShowIP_f(void) {
 
 /*
 =================
-bool CL_CDKeyValidate
+int CL_CDKeyValidate
 =================
 */
 qboolean CL_CDKeyValidate( const char *key, const char *checksum ) {

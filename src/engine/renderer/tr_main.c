@@ -24,9 +24,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "R_SortDrawSurfs.h"
 #include "dx_world.h"
-#include "tr_common.h"
 
-extern void R_SetPlaneSignbits(cplane_t * const out);
+
+extern void R_DebugGraphics(void);
 
 trGlobals_t		tr;
 
@@ -72,10 +72,10 @@ int R_CullLocalBox (vec3_t bounds[2]) {
 		v[1] = bounds[(i>>1)&1][1];
 		v[2] = bounds[(i>>2)&1][2];
 
-		VectorCopy( tr.or.origin, transformed[i] );
-		VectorMA( transformed[i], v[0], tr.or.axis[0], transformed[i] );
-		VectorMA( transformed[i], v[1], tr.or.axis[1], transformed[i] );
-		VectorMA( transformed[i], v[2], tr.or.axis[2], transformed[i] );
+		VectorCopy( tr.ori.origin, transformed[i] );
+		VectorMA( transformed[i], v[0], tr.ori.axis[0], transformed[i] );
+		VectorMA( transformed[i], v[1], tr.ori.axis[1], transformed[i] );
+		VectorMA( transformed[i], v[2], tr.ori.axis[2], transformed[i] );
 	}
 
 	// check against frustum planes
@@ -167,9 +167,9 @@ R_LocalNormalToWorld
 =================
 */
 void R_LocalNormalToWorld (vec3_t local, vec3_t world) {
-	world[0] = local[0] * tr.or.axis[0][0] + local[1] * tr.or.axis[1][0] + local[2] * tr.or.axis[2][0];
-	world[1] = local[0] * tr.or.axis[0][1] + local[1] * tr.or.axis[1][1] + local[2] * tr.or.axis[2][1];
-	world[2] = local[0] * tr.or.axis[0][2] + local[1] * tr.or.axis[1][2] + local[2] * tr.or.axis[2][2];
+	world[0] = local[0] * tr.ori.axis[0][0] + local[1] * tr.ori.axis[1][0] + local[2] * tr.ori.axis[2][0];
+	world[1] = local[0] * tr.ori.axis[0][1] + local[1] * tr.ori.axis[1][1] + local[2] * tr.ori.axis[2][1];
+	world[2] = local[0] * tr.ori.axis[0][2] + local[1] * tr.ori.axis[1][2] + local[2] * tr.ori.axis[2][2];
 }
 
 /*
@@ -179,9 +179,9 @@ R_LocalPointToWorld
 =================
 */
 void R_LocalPointToWorld (vec3_t local, vec3_t world) {
-	world[0] = local[0] * tr.or.axis[0][0] + local[1] * tr.or.axis[1][0] + local[2] * tr.or.axis[2][0] + tr.or.origin[0];
-	world[1] = local[0] * tr.or.axis[0][1] + local[1] * tr.or.axis[1][1] + local[2] * tr.or.axis[2][1] + tr.or.origin[1];
-	world[2] = local[0] * tr.or.axis[0][2] + local[1] * tr.or.axis[1][2] + local[2] * tr.or.axis[2][2] + tr.or.origin[2];
+	world[0] = local[0] * tr.ori.axis[0][0] + local[1] * tr.ori.axis[1][0] + local[2] * tr.ori.axis[2][0] + tr.ori.origin[0];
+	world[1] = local[0] * tr.ori.axis[0][1] + local[1] * tr.ori.axis[1][1] + local[2] * tr.ori.axis[2][1] + tr.ori.origin[1];
+	world[2] = local[0] * tr.ori.axis[0][2] + local[1] * tr.ori.axis[1][2] + local[2] * tr.ori.axis[2][2] + tr.ori.origin[2];
 }
 
 /*
@@ -191,9 +191,9 @@ R_WorldToLocal
 =================
 */
 void R_WorldToLocal (vec3_t world, vec3_t local) {
-	local[0] = DotProduct(world, tr.or.axis[0]);
-	local[1] = DotProduct(world, tr.or.axis[1]);
-	local[2] = DotProduct(world, tr.or.axis[2]);
+	local[0] = DotProduct(world, tr.ori.axis[0]);
+	local[1] = DotProduct(world, tr.ori.axis[1]);
+	local[2] = DotProduct(world, tr.ori.axis[2]);
 }
 
 /*
@@ -260,51 +260,52 @@ Called by both the front end and the back end
 =================
 */
 void R_RotateForEntity( const trRefEntity_t *ent, const viewParms_t *viewParms,
-					   orientationr_t *or ) {
+					   orientationr_t *pOrient)
+{
 	float	glMatrix[16];
 	vec3_t	delta;
 	float	axisLength;
 
 	if ( ent->e.reType != RT_MODEL ) {
-		*or = viewParms->world;
+		*pOrient = viewParms->world;
 		return;
 	}
 
-	VectorCopy( ent->e.origin, or->origin );
+	VectorCopy( ent->e.origin, pOrient->origin );
 
-	VectorCopy( ent->e.axis[0], or->axis[0] );
-	VectorCopy( ent->e.axis[1], or->axis[1] );
-	VectorCopy( ent->e.axis[2], or->axis[2] );
+	VectorCopy( ent->e.axis[0], pOrient->axis[0] );
+	VectorCopy( ent->e.axis[1], pOrient->axis[1] );
+	VectorCopy( ent->e.axis[2], pOrient->axis[2] );
 
-	glMatrix[0] = or->axis[0][0];
-	glMatrix[4] = or->axis[1][0];
-	glMatrix[8] = or->axis[2][0];
-	glMatrix[12] = or->origin[0];
+	glMatrix[0] = pOrient->axis[0][0];
+	glMatrix[4] = pOrient->axis[1][0];
+	glMatrix[8] = pOrient->axis[2][0];
+	glMatrix[12] = pOrient->origin[0];
 
-	glMatrix[1] = or->axis[0][1];
-	glMatrix[5] = or->axis[1][1];
-	glMatrix[9] = or->axis[2][1];
-	glMatrix[13] = or->origin[1];
+	glMatrix[1] = pOrient->axis[0][1];
+	glMatrix[5] = pOrient->axis[1][1];
+	glMatrix[9] = pOrient->axis[2][1];
+	glMatrix[13] = pOrient->origin[1];
 
-	glMatrix[2] = or->axis[0][2];
-	glMatrix[6] = or->axis[1][2];
-	glMatrix[10] = or->axis[2][2];
-	glMatrix[14] = or->origin[2];
+	glMatrix[2] = pOrient->axis[0][2];
+	glMatrix[6] = pOrient->axis[1][2];
+	glMatrix[10] = pOrient->axis[2][2];
+	glMatrix[14] = pOrient->origin[2];
 
 	glMatrix[3] = 0;
 	glMatrix[7] = 0;
 	glMatrix[11] = 0;
 	glMatrix[15] = 1;
 
-	myGlMultMatrix( glMatrix, viewParms->world.modelMatrix, or->modelMatrix );
+	myGlMultMatrix( glMatrix, viewParms->world.modelMatrix, pOrient->modelMatrix );
 
 	// calculate the viewer origin in the model's space
 	// needed for fog, specular, and environment mapping
-	VectorSubtract( viewParms->or.origin, or->origin, delta );
+	VectorSubtract( viewParms->ori.origin, pOrient->origin, delta );
 
 	// compensate for scale in the axes if necessary
 	if ( ent->e.nonNormalizedAxes ) {
-		axisLength = VectorLengthf( ent->e.axis[0] );
+		axisLength = VectorLength( ent->e.axis[0] );
 		if ( !axisLength ) {
 			axisLength = 0;
 		} else {
@@ -314,9 +315,9 @@ void R_RotateForEntity( const trRefEntity_t *ent, const viewParms_t *viewParms,
 		axisLength = 1.0f;
 	}
 
-	or->viewOrigin[0] = DotProduct( delta, or->axis[0] ) * axisLength;
-	or->viewOrigin[1] = DotProduct( delta, or->axis[1] ) * axisLength;
-	or->viewOrigin[2] = DotProduct( delta, or->axis[2] ) * axisLength;
+	pOrient->viewOrigin[0] = DotProduct( delta, pOrient->axis[0] ) * axisLength;
+	pOrient->viewOrigin[1] = DotProduct( delta, pOrient->axis[1] ) * axisLength;
+	pOrient->viewOrigin[2] = DotProduct( delta, pOrient->axis[2] ) * axisLength;
 }
 
 /*
@@ -331,28 +332,28 @@ void R_RotateForViewer (void)
 	float	viewerMatrix[16];
 	vec3_t	origin;
 
-	memset (&tr.or, 0, sizeof(tr.or));
-	tr.or.axis[0][0] = 1;
-	tr.or.axis[1][1] = 1;
-	tr.or.axis[2][2] = 1;
-	VectorCopy (tr.viewParms.or.origin, tr.or.viewOrigin);
+	memset (&tr.ori, 0, sizeof(tr.ori));
+	tr.ori.axis[0][0] = 1;
+	tr.ori.axis[1][1] = 1;
+	tr.ori.axis[2][2] = 1;
+	VectorCopy (tr.viewParms.ori.origin, tr.ori.viewOrigin);
 
 	// transform by the camera placement
-	VectorCopy( tr.viewParms.or.origin, origin );
+	VectorCopy( tr.viewParms.ori.origin, origin );
 
-	viewerMatrix[0] = tr.viewParms.or.axis[0][0];
-	viewerMatrix[4] = tr.viewParms.or.axis[0][1];
-	viewerMatrix[8] = tr.viewParms.or.axis[0][2];
+	viewerMatrix[0] = tr.viewParms.ori.axis[0][0];
+	viewerMatrix[4] = tr.viewParms.ori.axis[0][1];
+	viewerMatrix[8] = tr.viewParms.ori.axis[0][2];
 	viewerMatrix[12] = -origin[0] * viewerMatrix[0] + -origin[1] * viewerMatrix[4] + -origin[2] * viewerMatrix[8];
 
-	viewerMatrix[1] = tr.viewParms.or.axis[1][0];
-	viewerMatrix[5] = tr.viewParms.or.axis[1][1];
-	viewerMatrix[9] = tr.viewParms.or.axis[1][2];
+	viewerMatrix[1] = tr.viewParms.ori.axis[1][0];
+	viewerMatrix[5] = tr.viewParms.ori.axis[1][1];
+	viewerMatrix[9] = tr.viewParms.ori.axis[1][2];
 	viewerMatrix[13] = -origin[0] * viewerMatrix[1] + -origin[1] * viewerMatrix[5] + -origin[2] * viewerMatrix[9];
 
-	viewerMatrix[2] = tr.viewParms.or.axis[2][0];
-	viewerMatrix[6] = tr.viewParms.or.axis[2][1];
-	viewerMatrix[10] = tr.viewParms.or.axis[2][2];
+	viewerMatrix[2] = tr.viewParms.ori.axis[2][0];
+	viewerMatrix[6] = tr.viewParms.ori.axis[2][1];
+	viewerMatrix[10] = tr.viewParms.ori.axis[2][2];
 	viewerMatrix[14] = -origin[0] * viewerMatrix[2] + -origin[1] * viewerMatrix[6] + -origin[2] * viewerMatrix[10];
 
 	viewerMatrix[3] = 0;
@@ -362,9 +363,9 @@ void R_RotateForViewer (void)
 
 	// convert from our coordinate system (looking down X)
 	// to OpenGL's coordinate system (looking down -Z)
-	myGlMultMatrix( viewerMatrix, s_flipMatrix, tr.or.modelMatrix );
+	myGlMultMatrix( viewerMatrix, s_flipMatrix, tr.ori.modelMatrix );
 
-	tr.viewParms.world = tr.or;
+	tr.viewParms.world = tr.ori;
 
 }
 
@@ -420,7 +421,7 @@ static void SetFarClip( void )
 			v[2] = tr.viewParms.visBounds[1][2];
 		}
 
-		VectorSubtract( v, tr.viewParms.or.origin, vecTo );
+		VectorSubtract( v, tr.viewParms.ori.origin, vecTo );
 
 		distance = vecTo[0] * vecTo[0] + vecTo[1] * vecTo[1] + vecTo[2] * vecTo[2];
 
@@ -499,26 +500,26 @@ void R_SetupFrustum (void) {
 	xs = sin( ang );
 	xc = cos( ang );
 
-	VectorScale( tr.viewParms.or.axis[0], xs, tr.viewParms.frustum[0].normal );
-	VectorMA( tr.viewParms.frustum[0].normal, xc, tr.viewParms.or.axis[1], tr.viewParms.frustum[0].normal );
+	VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[0].normal );
+	VectorMA( tr.viewParms.frustum[0].normal, xc, tr.viewParms.ori.axis[1], tr.viewParms.frustum[0].normal );
 
-	VectorScale( tr.viewParms.or.axis[0], xs, tr.viewParms.frustum[1].normal );
-	VectorMA( tr.viewParms.frustum[1].normal, -xc, tr.viewParms.or.axis[1], tr.viewParms.frustum[1].normal );
+	VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[1].normal );
+	VectorMA( tr.viewParms.frustum[1].normal, -xc, tr.viewParms.ori.axis[1], tr.viewParms.frustum[1].normal );
 
 	ang = tr.viewParms.fovY / 180 * M_PI * 0.5f;
 	xs = sin( ang );
 	xc = cos( ang );
 
-	VectorScale( tr.viewParms.or.axis[0], xs, tr.viewParms.frustum[2].normal );
-	VectorMA( tr.viewParms.frustum[2].normal, xc, tr.viewParms.or.axis[2], tr.viewParms.frustum[2].normal );
+	VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[2].normal );
+	VectorMA( tr.viewParms.frustum[2].normal, xc, tr.viewParms.ori.axis[2], tr.viewParms.frustum[2].normal );
 
-	VectorScale( tr.viewParms.or.axis[0], xs, tr.viewParms.frustum[3].normal );
-	VectorMA( tr.viewParms.frustum[3].normal, -xc, tr.viewParms.or.axis[2], tr.viewParms.frustum[3].normal );
+	VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[3].normal );
+	VectorMA( tr.viewParms.frustum[3].normal, -xc, tr.viewParms.ori.axis[2], tr.viewParms.frustum[3].normal );
 
 	for (i=0 ; i<4 ; i++) {
 		tr.viewParms.frustum[i].type = PLANE_NON_AXIAL;
-		tr.viewParms.frustum[i].dist = DotProduct (tr.viewParms.or.origin, tr.viewParms.frustum[i].normal);
-		R_SetPlaneSignbits( &tr.viewParms.frustum[i] );
+		tr.viewParms.frustum[i].dist = DotProduct (tr.viewParms.ori.origin, tr.viewParms.frustum[i].normal);
+		SetPlaneSignbits( &tr.viewParms.frustum[i] );
 	}
 }
 
@@ -627,22 +628,22 @@ qboolean R_GetPortalOrientations( drawSurf_t *drawSurf, int entityNum,
 		tr.currentEntity = &tr.refdef.entities[entityNum];
 
 		// get the orientation of the entity
-		R_RotateForEntity( tr.currentEntity, &tr.viewParms, &tr.or );
+		R_RotateForEntity( tr.currentEntity, &tr.viewParms, &tr.ori );
 
 		// rotate the plane, but keep the non-rotated version for matching
 		// against the portalSurface entities
 		R_LocalNormalToWorld( originalPlane.normal, plane.normal );
-		plane.dist = originalPlane.dist + DotProduct( plane.normal, tr.or.origin );
+		plane.dist = originalPlane.dist + DotProduct( plane.normal, tr.ori.origin );
 
 		// translate the original plane
-		originalPlane.dist = originalPlane.dist + DotProduct( originalPlane.normal, tr.or.origin );
+		originalPlane.dist = originalPlane.dist + DotProduct( originalPlane.normal, tr.ori.origin );
 	} else {
 		plane = originalPlane;
 	}
 
 	VectorCopy( plane.normal, surface->axis[0] );
-	VectorPerp( surface->axis[1], surface->axis[0] );
-	VectorCross( surface->axis[0], surface->axis[1], surface->axis[2] );
+	PerpendicularVector( surface->axis[1], surface->axis[0] );
+	CrossProduct( surface->axis[0], surface->axis[1], surface->axis[2] );
 
 	// locate the portal entity closest to this plane.
 	// origin will be the origin of the portal, origin2 will be
@@ -667,7 +668,7 @@ qboolean R_GetPortalOrientations( drawSurf_t *drawSurf, int entityNum,
 			e->e.oldorigin[2] == e->e.origin[2] ) {
 			VectorScale( plane.normal, plane.dist, surface->origin );
 			VectorCopy( surface->origin, camera->origin );
-			VectorSubtract( ORIGIN, surface->axis[0], camera->axis[0] );
+			VectorSubtract( vec3_origin, surface->axis[0], camera->axis[0] );
 			VectorCopy( surface->axis[1], camera->axis[1] );
 			VectorCopy( surface->axis[2], camera->axis[2] );
 
@@ -682,13 +683,9 @@ qboolean R_GetPortalOrientations( drawSurf_t *drawSurf, int entityNum,
 			
 		// now get the camera origin and orientation
 		VectorCopy( e->e.oldorigin, camera->origin );
-		
-		VectorCopy(e->e.axis[0], camera->axis[0]);
-		VectorCopy(e->e.axis[1], camera->axis[1]);
-		VectorCopy(e->e.axis[2], camera->axis[2]);
-
-		VectorSubtract( ORIGIN, camera->axis[0], camera->axis[0] );
-		VectorSubtract( ORIGIN, camera->axis[1], camera->axis[1] );
+		AxisCopy( e->e.axis, camera->axis );
+		VectorSubtract( vec3_origin, camera->axis[0], camera->axis[0] );
+		VectorSubtract( vec3_origin, camera->axis[1], camera->axis[1] );
 
 		// optionally rotate
 		if ( e->e.oldframe ) {
@@ -697,22 +694,22 @@ qboolean R_GetPortalOrientations( drawSurf_t *drawSurf, int entityNum,
 				// continuous rotate
 				d = (tr.refdef.time/1000.0f) * e->e.frame;
 				VectorCopy( camera->axis[1], transformed );
-				PointRotateAroundVector( camera->axis[1], camera->axis[0], transformed, d );
-				VectorCross( camera->axis[0], camera->axis[1], camera->axis[2] );
+				RotatePointAroundVector( camera->axis[1], camera->axis[0], transformed, d );
+				CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
 			} else {
 				// bobbing rotate, with skinNum being the rotation offset
 				d = sin( tr.refdef.time * 0.003f );
 				d = e->e.skinNum + d * 4;
 				VectorCopy( camera->axis[1], transformed );
-				PointRotateAroundVector( camera->axis[1], camera->axis[0], transformed, d );
-				VectorCross( camera->axis[0], camera->axis[1], camera->axis[2] );
+				RotatePointAroundVector( camera->axis[1], camera->axis[0], transformed, d );
+				CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
 			}
 		}
 		else if ( e->e.skinNum ) {
 			d = e->e.skinNum;
 			VectorCopy( camera->axis[1], transformed );
-			PointRotateAroundVector( camera->axis[1], camera->axis[0], transformed, d );
-			VectorCross( camera->axis[0], camera->axis[1], camera->axis[2] );
+			RotatePointAroundVector( camera->axis[1], camera->axis[0], transformed, d );
+			CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
 		}
 		*mirror = qfalse;
 		return qtrue;
@@ -749,15 +746,15 @@ static qboolean IsMirror( const drawSurf_t *drawSurf, int entityNum )
 		tr.currentEntity = &tr.refdef.entities[entityNum];
 
 		// get the orientation of the entity
-		R_RotateForEntity( tr.currentEntity, &tr.viewParms, &tr.or );
+		R_RotateForEntity( tr.currentEntity, &tr.viewParms, &tr.ori);
 
 		// rotate the plane, but keep the non-rotated version for matching
 		// against the portalSurface entities
 		R_LocalNormalToWorld( originalPlane.normal, plane.normal );
-		plane.dist = originalPlane.dist + DotProduct( plane.normal, tr.or.origin );
+		plane.dist = originalPlane.dist + DotProduct( plane.normal, tr.ori.origin );
 
 		// translate the original plane
-		originalPlane.dist = originalPlane.dist + DotProduct( originalPlane.normal, tr.or.origin );
+		originalPlane.dist = originalPlane.dist + DotProduct( originalPlane.normal, tr.ori.origin );
 	} 
 	else 
 	{
@@ -826,7 +823,7 @@ static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf, vec4_t clipDest[128
 		int j;
 		unsigned int pointFlags = 0;
 
-		R_TransformModelToClip( tess.xyz[i], tr.or.modelMatrix, tr.viewParms.projectionMatrix, eye, clip );
+		R_TransformModelToClip( tess.xyz[i], tr.ori.modelMatrix, tr.viewParms.projectionMatrix, eye, clip );
 
 		for ( j = 0; j < 3; j++ )
 		{
@@ -861,12 +858,11 @@ static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf, vec4_t clipDest[128
 	{
 		vec3_t normal;
 		float dot;
+		float len;
 
+		VectorSubtract( tess.xyz[tess.indexes[i]], tr.viewParms.ori.origin, normal );
 
-		VectorSubtract( tess.xyz[tess.indexes[i]], tr.viewParms.or.origin, normal );
-
-		float len = normal[0]*normal[0]+ normal[1] * normal[1]+ normal[2] * normal[2];
-		// lose the sqrt
+		len = VectorLengthSquared( normal );			// lose the sqrt
 		if ( len < shortest )
 		{
 			shortest = len;
@@ -936,14 +932,14 @@ qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum) {
 		return qfalse;		// bad portal, no portalentity
 	}
 
-	R_MirrorPoint (oldParms.or.origin, &surface, &camera, newParms.or.origin );
+	R_MirrorPoint (oldParms.ori.origin, &surface, &camera, newParms.ori.origin );
 
-	VectorSubtract( ORIGIN, camera.axis[0], newParms.portalPlane.normal );
+	VectorSubtract( vec3_origin, camera.axis[0], newParms.portalPlane.normal );
 	newParms.portalPlane.dist = DotProduct( camera.origin, newParms.portalPlane.normal );
 	
-	R_MirrorVector (oldParms.or.axis[0], &surface, &camera, newParms.or.axis[0]);
-	R_MirrorVector (oldParms.or.axis[1], &surface, &camera, newParms.or.axis[1]);
-	R_MirrorVector (oldParms.or.axis[2], &surface, &camera, newParms.or.axis[2]);
+	R_MirrorVector (oldParms.ori.axis[0], &surface, &camera, newParms.ori.axis[0]);
+	R_MirrorVector (oldParms.ori.axis[1], &surface, &camera, newParms.ori.axis[1]);
+	R_MirrorVector (oldParms.ori.axis[2], &surface, &camera, newParms.ori.axis[2]);
 
 	// OPTIMIZE: restrict the viewport on the mirrored view
 
@@ -1081,7 +1077,7 @@ void R_AddEntitySurfaces (void) {
 
 		case RT_MODEL:
 			// we must set up parts of tr.or for model culling
-			R_RotateForEntity( ent, &tr.viewParms, &tr.or );
+			R_RotateForEntity( ent, &tr.viewParms, &tr.ori );
 
 			tr.currentModel = R_GetModelByHandle( ent->e.hModel );
 			if (!tr.currentModel) {
@@ -1138,136 +1134,9 @@ void R_GenerateDrawSurfs( void ) {
 	R_AddEntitySurfaces ();
 }
 
-/*
-================
-R_DebugPolygon
-================
-*/
-void R_DebugPolygon( int color, int numPoints, float *points ) {
-	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
-
-	// draw solid shade
-
-	qglColor3f( color&1, (color>>1)&1, (color>>2)&1 );
-	qglBegin( GL_POLYGON );
-	for (int i = 0 ; i < numPoints ; i++ ) {
-		qglVertex3fv( points + i * 3 );
-	}
-	qglEnd();
-
-	// draw wireframe outline
-	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
-	qglDepthRange( 0, 0 );
-	qglColor3f( 1, 1, 1 );
-	qglBegin( GL_POLYGON );
-	for (int i = 0 ; i < numPoints ; i++ ) {
-		qglVertex3fv( points + i * 3 );
-	}
-	qglEnd();
-	qglDepthRange( 0, 1 );
 
 
-	// DX12
-	if ( !dx.active)
-		return;
-	if (numPoints < 3 || numPoints >= SHADER_MAX_VERTEXES/2)
-		return;
 
-	// In Vulkan we don't have GL_POLYGON + GLS_POLYMODE_LINE equivalent, so we use lines to draw polygon outlines.
-	// This approach has additional implication that we need to do manual backface culling to reject outlines that
-	// belong to back facing polygons.
-	// The code assumes that polygons are convex.
-
-	// Backface culling.
-	auto transform_to_eye_space = [](vec3_t v, vec3_t v_eye)
-	{
-		auto m = dx_world.modelview_transform;
-		v_eye[0] = m[0]*v[0] + m[4]*v[1] + m[8 ]*v[2] + m[12];
-		v_eye[1] = m[1]*v[0] + m[5]*v[1] + m[9 ]*v[2] + m[13];
-		v_eye[2] = m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14];
-	};
-	vec3_t pa;
-	vec3_t pb;
-	transform_to_eye_space(&points[0], pa);
-	transform_to_eye_space(&points[3], pb);
-	vec3_t p;
-	VectorSubtract(pb, pa, p);
-	vec3_t n;
-	for (int i = 2; i < numPoints; i++) {
-		transform_to_eye_space(&points[3*i], pb);
-		vec3_t q;
-		VectorSubtract(pb, pa, q);
-		VectorCross(q, p, n);
-		if (VectorLengthf(n) > 1e-5)
-			break;
-	}
-	if (DotProduct(n, pa) >= 0)
-		return; // discard backfacing polygon
-
-	// Solid shade.
-	for (int i = 0; i < numPoints; i++) {
-		VectorCopy(&points[3*i], tess.xyz[i]);
-
-		tess.svars.colors[i][0] = (color&1) ? 255 : 0;
-		tess.svars.colors[i][1] = (color&2) ? 255 : 0;
-		tess.svars.colors[i][2] = (color&4) ? 255 : 0;
-		tess.svars.colors[i][3] = 255;
-	}
-	tess.numVertexes = numPoints;
-
-	tess.numIndexes = 0;
-	for (int i = 1; i < numPoints - 1; i++) {
-		tess.indexes[tess.numIndexes + 0] = 0;
-		tess.indexes[tess.numIndexes + 1] = i;
-		tess.indexes[tess.numIndexes + 2] = i + 1;
-		tess.numIndexes += 3;
-	}
-
-
-	if (dx.active) {
-		dx_bind_geometry();
-		dx_shade_geometry(dx.surface_debug_pipeline_solid, false, DX_Depth_Range::normal, true, false);
-	}
-
-	// Outline.
-	memset(tess.svars.colors, tr.identityLightByte, numPoints * 2 * sizeof(color4ub_t));
-
-	for (int i = 0; i < numPoints; i++) {
-		VectorCopy(&points[3*i], tess.xyz[2*i]);
-		VectorCopy(&points[3*((i + 1) % numPoints)], tess.xyz[2*i + 1]);
-	}
-	tess.numVertexes = numPoints * 2;
-	tess.numIndexes = 0;
-
-
-	if (dx.active) {
-		dx_bind_geometry();
-		dx_shade_geometry(dx.surface_debug_pipeline_outline, false, DX_Depth_Range::force_zero, false, true);
-	}
-
-	tess.numVertexes = 0;
-}
-
-/*
-====================
-R_DebugGraphics
-
-Visualization aid for movement clipping debugging
-====================
-*/
-void R_DebugGraphics( void )
-{
-	if ( !r_debugSurface->integer ) {
-		return;
-	}
-
-	// the render thread can't make callbacks to the main thread
-	R_SyncRenderThread();
-
-	GL_Bind( tr.whiteImage);
-	GL_Cull( CT_FRONT_SIDED );
-	ri.CM_DrawDebugSurface( R_DebugPolygon );
-}
 
 
 /*
@@ -1305,7 +1174,10 @@ void R_RenderView (viewParms_t *parms)
 	R_SortDrawSurfs( tr.refdef.drawSurfs + firstDrawSurf, tr.refdef.numDrawSurfs - firstDrawSurf );
 
 	// draw main system development information (surface outlines, etc)
-	R_DebugGraphics();
+	if (r_debugSurface->integer)
+	{
+		R_DebugGraphics();
+	}
 }
 
 

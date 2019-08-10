@@ -253,7 +253,7 @@ void glConfig_FillString( void )
     // There much more device extentions, beyound UI driver info can display
     for (i = 0; i < nDevExts; ++i)
     {   
-        uint32_t len = strlen(pDevExt[i].extensionName);
+        uint32_t len = (uint32_t)strlen(pDevExt[i].extensionName);
         memcpy(glConfig.extensions_string + indicator, pDevExt[i].extensionName, len);
         indicator += len;
         glConfig.extensions_string[indicator++] = ' ';

@@ -65,7 +65,7 @@ typedef struct {
 	// if SVF_CLIENTMASK is set, use bitmask for clients to send to (maxclients must be <= 32, up to the mod to enforce this)
 	int			singleClient;		
 
-	qboolean	bmodel;				// if false, assume an explicit mins / maxs bounding box
+	qboolean	bmodel;				// if 0, assume an explicit mins / maxs bounding box
 									// only set by trap_SetBrushModel
 	vec3_t		mins, maxs;
 	int			contents;			// CONTENTS_TRIGGER, CONTENTS_SOLID, CONTENTS_BODY, etc
@@ -214,7 +214,7 @@ typedef enum {
 
 	G_GET_ENTITY_TOKEN,	// qboolean ( char *buffer, int bufferSize )
 	// Retrieves the next string token from the entity spawn text, returning
-	// false when all tokens have been parsed.
+	// 0 when all tokens have been parsed.
 	// This should only be done at GAME_INIT time.
 
 	G_FS_GETFILELIST,

@@ -144,7 +144,7 @@ static uint32_t HashCollisionCount(char * pText, struct ShaderTextHashArray_t* c
         ++tSize;
 
         // "{ ... }" are skiped.
-        R_SkipBracedSection(&pText);
+        R_SkipBracedSection(&pText, 0);
     }
 
     // ri.Printf(PRINT_ALL, "maxLen: %d", maxLen);
@@ -195,7 +195,7 @@ static void FillHashTableWithShaderNames(char * const pText, struct ShaderTextHa
         pTable[hash].ppShaderName[itemsCountTab[hash]++] = oldp;
 
         // "{ ... }" are skiped.
-        R_SkipBracedSection(&p);
+        R_SkipBracedSection(&p, 0);
     }
 }
 

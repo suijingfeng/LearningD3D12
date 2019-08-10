@@ -1,3 +1,7 @@
+#include <stdint.h>
+
+// #define USE_STB_IMAGE_LIB 1
+
 #include "R_LoadImage.h"
 #include "ref_import.h"
 // Description:  Loads any of the supported image types into
@@ -15,6 +19,7 @@ enum IMAGE_EXT_TYPE_t {
 static const char * ExTable[5]={".tga",".jpg",".bmp",".png",".pcx"};
 
 typedef void (* pFnImageLoader_t)(const char *, unsigned char **, int *, int *);
+
 
 //TODO : STB SUPPORT
 #ifdef USE_STB_IMAGE_LIB
@@ -93,7 +98,7 @@ R_LoadNSE(const char * const pName, unsigned char **pic, int *width, int *height
 
 
 // pName must not be null;
-void R_LoadImage(const char * pName, unsigned char **pic, int *width, int *height )
+void R_LoadImage(const char * pName, unsigned char **pic, uint32_t *width, uint32_t *height )
 {
     const char* pExt = NULL;
 
@@ -159,87 +164,3 @@ void R_LoadImage(const char * pName, unsigned char **pic, int *width, int *heigh
     R_LoadNSE(pName, pic, width, height);
 }
 
-
-#ifdef USE_STB_IMAGE_LIB
-
-static void* q3_stbi_malloc(size_t size)
-{
-    return ri.Malloc((int)size);
-}
-
-static void q3_stbi_free(void* p)
-{
-    ri.Free(p);
-}
-
-static void* q3_stbi_realloc(void* p_old, size_t old_size, size_t new_size)
-{
-    if (p_old == NULL)
-        return ri.Malloc((int)new_size);
-
-    void* p_new;
-    
-    if (old_size < new_size)
-    {
-        p_new = q3_stbi_malloc(new_size);
-        memcpy(p_new, p_old, old_size);
-        q3_stbi_free(p_old);
-    }
-    else
-    {
-        p_new = p_old;
-    }
-    return p_new;
-}
-
-#define STBI_MALLOC q3_stbi_malloc
-#define STBI_FREE q3_stbi_free
-#define STBI_REALLOC_SIZED q3_stbi_realloc
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
-
-
-// ====================================== //
-// ====================================== //
-
-typedef struct _TargaHeader {
-	unsigned char 	id_length, colormap_type, image_type;
-	unsigned short	colormap_index, colormap_length;
-	unsigned char	colormap_size;
-	unsigned short	x_origin, y_origin, width, height;
-	unsigned char	pixel_size, attributes;
-} TargaHeader;
-
-
-
-void STB_LoadJPG( const char* name, unsigned char** pic, uint32_t* width, uint32_t* height)
-{
-    char* fbuffer;
-    int len = ri.FS_ReadFile(name, &fbuffer);
-    if (!fbuffer) {
-        return;
-    }
-  
-    int components;
-    *pic = stbi_load_from_memory((unsigned char*)fbuffer, len, (int*)width, (int*)height, &components, STBI_rgb_alpha);
-    if (*pic == NULL) {
-        ri.FS_FreeFile(fbuffer);
-        return;
-    }
-
-    // clear all the alphas to 255
-    {
-        unsigned int i;
-        unsigned char* buf = *pic;
-
-        unsigned int nBytes = 4 * (*width) * (*height);
-        for (i = 3; i < nBytes; i += 4)
-        {
-            buf[i] = 255;
-        }
-    }
-    ri.FS_FreeFile(fbuffer);
-}
-
-#endif

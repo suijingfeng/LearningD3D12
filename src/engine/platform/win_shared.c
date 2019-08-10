@@ -46,27 +46,19 @@ int Sys_Milliseconds (void)
 		
 		sys_timeBase = timeGetTime();
 	}
-
+	// The only difference between this function and the timeGetSystemTime 
+	// function is that timeGetSystemTime uses the MMTIME structure to return
+	// the system time. The timeGetTime function has less overhead than 
+	// timeGetSystemTime.
+	// Note that the value returned by the timeGetTime function is a DWORD value.
+	// The return value wraps around to 0 every 2^32 milliseconds, which is 
+	// about 49.71 days. This can cause problems in code that directly uses the 
+	// timeGetTime return value in computations, particularly where the value is 
+	// used to control code execution. You should always use the difference 
+	// between two timeGetTime return values in computations.
 	return (timeGetTime() - sys_timeBase);
 }
 
-
-char* Sys_GetCurrentUser( void )
-{
-	static char s_userName[1024];
-	unsigned long size = sizeof( s_userName );
-
-
-	if ( !GetUserName( s_userName, &size ) )
-		strcpy( s_userName, "player" );
-
-	if ( !s_userName[0] )
-	{
-		strcpy( s_userName, "player" );
-	}
-
-	return s_userName;
-}
 
 
 char* Sys_DefaultHomePath(void)

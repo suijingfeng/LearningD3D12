@@ -72,8 +72,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "../qcommon/qcommon.h"
-#include "tr_common.h"
-
 
 #ifdef BUILD_FREETYPE
 #include "../ft2/fterrors.h"
@@ -310,19 +308,15 @@ typedef union {
 	float	ffred;
 } poor;
 
-float readFloat() {
+float readFloat()
+{
 	poor	me;
-#if idppc
-	me.fred[0] = fdFile[fdOffset+3];
-	me.fred[1] = fdFile[fdOffset+2];
-	me.fred[2] = fdFile[fdOffset+1];
-	me.fred[3] = fdFile[fdOffset+0];
-#else
+
 	me.fred[0] = fdFile[fdOffset+0];
 	me.fred[1] = fdFile[fdOffset+1];
 	me.fred[2] = fdFile[fdOffset+2];
 	me.fred[3] = fdFile[fdOffset+3];
-#endif
+
 	fdOffset += 4;
 	return me.ffred;
 }
@@ -358,10 +352,9 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font) {
     return;
   }
 
-	snprintf(name, sizeof(name), "fonts/fontImage_%i.dat",pointSize);
+	Com_sprintf(name, sizeof(name), "fonts/fontImage_%i.dat",pointSize);
 	for (i = 0; i < registeredFontCount; i++) {
-		if (isNonCaseStringEqual(name, registeredFont[i].name))
-		{
+		if (Q_stricmp(name, registeredFont[i].name) == 0) {
 			memcpy(font, &registeredFont[i], sizeof(fontInfo_t));
 			return;
 		}
@@ -483,12 +476,12 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font) {
         imageBuff[left++] = ((float)out[k] * max);
       }
 
-			snprintf (name, sizeof(name), "fonts/fontImage_%i_%i.tga", imageNumber++, pointSize);
+			Com_sprintf (name, sizeof(name), "fonts/fontImage_%i_%i.tga", imageNumber++, pointSize);
 			if (r_saveFontData->integer) { 
 			  WriteTGA(name, imageBuff, 256, 256);
 			}
 
-    	//snprintf (name, sizeof(name), "fonts/fontImage_%i_%i", imageNumber++, pointSize);
+    	//Com_sprintf (name, sizeof(name), "fonts/fontImage_%i_%i", imageNumber++, pointSize);
       image = R_CreateImage(name, imageBuff, 256, 256, qfalse, qfalse, GL_CLAMP);
       h = RE_RegisterShaderFromImage(name, LIGHTMAP_2D, image, qfalse);
       for (j = lastStart; j < i; j++) {

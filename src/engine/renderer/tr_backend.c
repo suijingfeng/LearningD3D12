@@ -24,7 +24,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // DX12
 #include "d3d12.h"
 #include "dx_world.h"
+#include "dx_frame.h"
 
+// DX12
+extern Dx_Instance	dx;				// shouldn't be cleared during ref re-init
 
 backEndData_t* backEndData[1];
 backEndState_t backEnd;
@@ -465,10 +468,10 @@ void RB_BeginDrawingView (void)
 		plane[2] = backEnd.viewParms.portalPlane.normal[2];
 		plane[3] = backEnd.viewParms.portalPlane.dist;
 
-		plane2[0] = DotProduct (backEnd.viewParms.or.axis[0], plane);
-		plane2[1] = DotProduct (backEnd.viewParms.or.axis[1], plane);
-		plane2[2] = DotProduct (backEnd.viewParms.or.axis[2], plane);
-		plane2[3] = DotProduct (plane, backEnd.viewParms.or.origin) - plane[3];
+		plane2[0] = DotProduct (backEnd.viewParms.ori.axis[0], plane);
+		plane2[1] = DotProduct (backEnd.viewParms.ori.axis[1], plane);
+		plane2[2] = DotProduct (backEnd.viewParms.ori.axis[2], plane);
+		plane2[3] = DotProduct (plane, backEnd.viewParms.ori.origin) - plane[3];
 
 		qglLoadMatrixf( s_flipMatrix );
 		qglClipPlane (GL_CLIP_PLANE0, plane2);
@@ -552,11 +555,11 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
 				// set up the transformation matrix
-				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.or );
+				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.ori );
 
 				// set up the dynamic lighting if needed
 				if ( backEnd.currentEntity->needDlights ) {
-					R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
+					R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.ori );
 				}
 
 				if ( backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ) {
@@ -567,18 +570,18 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 			else {
 				backEnd.currentEntity = &tr.worldEntity;
 				backEnd.refdef.floatTime = originalTime;
-				backEnd.or = backEnd.viewParms.world;
+				backEnd.ori = backEnd.viewParms.world;
 				// we have to reset the shaderTime as well otherwise image animations on
 				// the world (like water) continue with the wrong frame
 				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
-				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
+				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.ori );
 			}
 
-			qglLoadMatrixf( backEnd.or.modelMatrix );
+			qglLoadMatrixf( backEnd.ori.modelMatrix );
 
 
 			// DX12
-			memcpy(dx_world.modelview_transform, backEnd.or.modelMatrix, 64);
+			memcpy(dx_world.modelview_transform, backEnd.ori.modelMatrix, 64);
 
 			//
 			// change depthrange if needed
@@ -1028,7 +1031,6 @@ const void* RB_SwapBuffers( const void *data )
 
 	const swapBuffersCommand_t* cmd = (const swapBuffersCommand_t *)data;
 
-	ri.pfnLog( "***************** RB_SwapBuffers *****************\n\n\n" );
 
 
 	backEnd.projection2D = qfalse;
@@ -1088,8 +1090,8 @@ void RB_ExecuteRenderCommands( const void *data )
 			// stop rendering on this thread
 			backEnd.pc.msec = ri.Milliseconds() - t1;
 
-			// DX12
 			/*
+			// DX12
 			if (com_errorEntered && (begin_frame_called && !end_frame_called))
 			{
 				dx_end_frame();

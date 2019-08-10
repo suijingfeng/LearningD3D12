@@ -52,7 +52,7 @@ void R_ModelInit( void )
     mod->type = MOD_BAD;
 
 	tr.models[tr.numModels] = mod;
-	tr.numModels++;
+	++tr.numModels;
 }
 
 
@@ -65,8 +65,8 @@ void R_Modellist_f( void )
     {
 		model_t* mod = tr.models[i];
 		int lods = 1;
-        int j;
-		for ( j = 1 ; j < MD3_MAX_LODS ; j++ )
+      
+		for (uint32_t j = 1 ; j < MD3_MAX_LODS ; ++j )
         {
 			if ( mod->md3[j] && mod->md3[j] != mod->md3[j-1] )
             {

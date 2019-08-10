@@ -20,10 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
-#include "tr_common.h"
 
 
-extern char* R_SkipPath(char *pathname);
 
 /*
 =================
@@ -143,7 +141,7 @@ static qboolean	R_CullSurface( surfaceType_t *surface, shader_t *shader ) {
 	}
 
 	sface = ( srfSurfaceFace_t * ) surface;
-	d = DotProduct (tr.or.viewOrigin, sface->plane.normal);
+	d = DotProduct (tr.ori.viewOrigin, sface->plane.normal);
 
 	// don't cull exactly on the plane, because there are levels of rounding
 	// through the BSP, ICD, and hardware that may cause pixel gaps if an
@@ -660,9 +658,7 @@ void R_AddWorldSurfaces (void) {
 	R_MarkLeaves ();
 
 	// clear out the visible min/max
-	
-	tr.viewParms.visBounds[0][0] = tr.viewParms.visBounds[0][1] = tr.viewParms.visBounds[0][2] = 99999;
-	tr.viewParms.visBounds[1][0] = tr.viewParms.visBounds[1][1] = tr.viewParms.visBounds[1][2] = -99999;
+	ClearBounds( tr.viewParms.visBounds[0], tr.viewParms.visBounds[1] );
 
 	// perform frustum culling and add all the potentially visible surfaces
 	if ( tr.refdef.num_dlights > 32 ) {

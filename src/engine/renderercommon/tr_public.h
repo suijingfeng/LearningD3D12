@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 // these are the functions exported by the refresh module
 //
-typedef struct
+typedef struct refexport_s
 {
 	// called before the library is unloaded,
 	// if the system is just reconfiguring, pass destroyWindow = qfalse, which will keep the screen from flashing to the desktop.
@@ -94,17 +94,19 @@ typedef struct
 //
 // these are the functions imported by the refresh module
 //
-typedef struct {
+typedef struct refimport_s {
 	// print message on the local console
-	void (QDECL *Printf)( int printLevel, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+	void (QDECL *Printf)( int printLevel, const char *fmt, ...);
 
 	// abort the game
-	void (QDECL *Error)( int errorLevel, const char *fmt, ...) __attribute__ ((noreturn, format (printf, 2, 3)));
+	void (QDECL *Error)( int errorLevel, const char *fmt, ...);
 
-	// milliseconds should only be used for profiling, never for anything game related. Get time from the refdef
+	// milliseconds should only be used for profiling, never
+	// for anything game related. Get time from the refdef
 	int (*Milliseconds)( void );
 
-	// stack based memory allocation for per-level things that won't be freed
+	// stack based memory allocation for per-level things that
+	// won't be freed
 #ifdef HUNK_DEBUG
 	void* (*Hunk_AllocDebug)( int size, ha_pref pref, char *label, char *file, int line );
 #else
@@ -154,17 +156,9 @@ typedef struct {
 
 	void	(*CL_WriteAVIVideoFrame)( const unsigned char *buffer, int size );
 
-	// input event handling
-	void (* IN_Init)( void* );
-	void (* IN_Shutdown)( void );
-	void (* IN_Restart)( void );
-
-
-	// math, i really want ot remove this, but to keep the API/ABI consistant with ioq3
-	long (* ftol)(float f);
 
 	// GLimp
-	void (* GLimpInit)(glconfig_t * const glConfig, void ** pContext);
+	void (* GLimpInit)(struct glconfig_s * const glConfig, void ** pContext);
 	void (* GLimpShutdown)(void);
 	void (* GLimpEndFrame)(void);
 	void (* GLimpMinimize)(void);

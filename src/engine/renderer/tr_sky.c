@@ -22,8 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_sky.c
 #include "tr_local.h"
 #include "dx_world.h"
-#include "tr_common.h"
-
+extern Dx_Instance	dx;
 #define SKY_SUBDIVISIONS		8
 #define HALF_SKY_SUBDIVISIONS	(SKY_SUBDIVISIONS/2)
 
@@ -79,7 +78,7 @@ static void AddSkyPolygon (int nump, vec3_t vecs)
 	};
 
 	// decide which face it maps to
-	VectorCopy (ORIGIN, v);
+	VectorCopy (vec3_origin, v);
 	for (i=0, vp=vecs ; i<nump ; i++, vp+=3)
 	{
 		VectorAdd (vp, v, v);
@@ -270,7 +269,7 @@ void RB_ClipSkyPolygons( shaderCommands_t *input )
 		for (j = 0 ; j < 3 ; j++) 
 		{
 			VectorSubtract( input->xyz[input->indexes[i+j]],
-							backEnd.viewParms.or.origin, 
+							backEnd.viewParms.ori.origin, 
 							p[j] );
 		}
 		ClipSkyPolygon( 3, p[0], 0 );
@@ -517,7 +516,7 @@ static void FillCloudySkySide( const int mins[2], const int maxs[2] )
 	{
 		for ( s = mins[0]+HALF_SKY_SUBDIVISIONS; s <= maxs[0]+HALF_SKY_SUBDIVISIONS; s++ )
 		{
-			VectorAdd( s_skyPoints[t][s], backEnd.viewParms.or.origin, tess.xyz[tess.numVertexes] );
+			VectorAdd( s_skyPoints[t][s], backEnd.viewParms.ori.origin, tess.xyz[tess.numVertexes] );
 			tess.texCoords[tess.numVertexes][0][0] = s_skyTexCoords[t][s][0];
 			tess.texCoords[tess.numVertexes][0][1] = s_skyTexCoords[t][s][1];
 
@@ -729,13 +728,13 @@ void RB_StageIteratorSky( void )
 	{
         float modelMatrix_original[16];
 
-		memcpy(modelMatrix_original, dx_world.modelview_transform, 16*sizeof(float));
+		memcpy(modelMatrix_original, dx_world.modelview_transform, sizeof(float[16]));
 
         float skybox_translate[16] = {
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
-            backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2], 1
+            backEnd.viewParms.ori.origin[0], backEnd.viewParms.ori.origin[1], backEnd.viewParms.ori.origin[2], 1
         };
 
 		myGlMultMatrix(skybox_translate, modelMatrix_original, dx_world.modelview_transform);
@@ -748,7 +747,7 @@ void RB_StageIteratorSky( void )
 		DrawSkyBox( tess.shader );
 		qglPopMatrix();
 
-		memcpy(dx_world.modelview_transform, modelMatrix_original, 16*sizeof(float));
+		memcpy(dx_world.modelview_transform, modelMatrix_original, sizeof(float[16]));
 	}
 
 	// generate the vertexes for all the clouds, which will be drawn

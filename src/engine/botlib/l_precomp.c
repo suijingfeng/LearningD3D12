@@ -662,8 +662,6 @@ void PC_FreeDefine(define_t *define)
 // Changes Globals:		-
 //============================================================================
 
-
-
 struct builtinStruct
 {
 	char *string;
@@ -673,9 +671,10 @@ struct builtinStruct
 	{ "__FILE__",	BUILTIN_FILE },
 	{ "__DATE__",	BUILTIN_DATE },
 	{ "__TIME__",	BUILTIN_TIME },
-//		{ "__STDC__", BUILTIN_STDC },
-	{ NULL, 0 }
+	//		{ "__STDC__", BUILTIN_STDC },
+			{ NULL, 0 }
 };
+
 
 void PC_AddBuiltinDefines(source_t *source)
 {

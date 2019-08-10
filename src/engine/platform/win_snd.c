@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <float.h>
 
 #define CINTERFACE
+
 #include "win_public.h"
 #include "../client/snd_local.h"
 
@@ -133,9 +134,11 @@ int SNDDMA_InitDS ()
 
 	use8 = 1;
     // Create IDirectSound using the primary sound device
-    if( FAILED( hresult = CoCreateInstance(CLSID_DirectSound8, NULL, CLSCTX_INPROC_SERVER, IID_IDirectSound8, (void **)&pDS))) {
+    if( FAILED( hresult = CoCreateInstance(CLSID_DirectSound8, NULL, CLSCTX_INPROC_SERVER, IID_IDirectSound8, (void **)&pDS)))
+	{
 		use8 = 0;
-	    if( FAILED( hresult = CoCreateInstance(CLSID_DirectSound, NULL, CLSCTX_INPROC_SERVER, IID_IDirectSound, (void **)&pDS))) {
+	    if( FAILED( hresult = CoCreateInstance(CLSID_DirectSound, NULL, CLSCTX_INPROC_SERVER, IID_IDirectSound, (void **)&pDS)))
+		{
 			Com_Printf ("failed\n");
 			SNDDMA_Shutdown ();
 			return qfalse;

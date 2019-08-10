@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Foobar; if not, write to the Free Software
+along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
@@ -90,6 +90,7 @@ typedef int intptr_t;
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
@@ -106,7 +107,7 @@ typedef int intptr_t;
 
 // this is the define for determining if we have an asm version of a C function
 #if (defined _M_IX86 || defined __i386__) && !defined __sun__  && !defined __LCC__
-#define id386	1
+#define id386	0
 #else
 #define id386	0
 #endif
@@ -895,7 +896,7 @@ float	LittleFloat (const float *l);
 
 void	Swap_Init (void);
 */
-char	* QDECL va(char *format, ...);
+char* QDECL va(char *format, ...);
 
 //=============================================
 
@@ -911,13 +912,12 @@ qboolean Info_Validate( const char *s );
 void Info_NextPair( const char **s, char *key, char *value );
 
 // this is only here so the functions in q_shared.c and bg_*.c can link
-void	QDECL Com_Error( int level, const char *error, ... );
-void	QDECL Com_Printf( const char *msg, ... );
+void QDECL Com_Error( int level, const char *error, ... );
+void QDECL Com_Printf( const char *msg, ... );
 
 
 /*
 ==========================================================
-
 CVARS (console variables)
 
 Many variables can be used for cheating purposes, so when
@@ -946,13 +946,12 @@ default values.
 #define CVAR_NORESTART		1024	// do not clear when a cvar_restart is issued
 
 // nothing outside the Cvar_*() functions should modify these fields!
-/*
 typedef struct cvar_s {
 	char		*name;
 	char		*string;
 	char		*resetString;		// cvar_restart will reset to this value
 	char		*latchedString;		// for CVAR_LATCH vars
-	int			flags;
+	int		flags;
 	qboolean	modified;			// set each time the cvar is changed
 	int			modificationCount;	// incremented each time the cvar is changed
 	float		value;				// atof( string )
@@ -960,32 +959,6 @@ typedef struct cvar_s {
 	struct cvar_s *next;
 	struct cvar_s *hashNext;
 } cvar_t;
-*/
-typedef struct cvar_s cvar_t;
-
-struct cvar_s {
-	char		*name;
-	char		*string;
-	char		*resetString;		// cvar_restart will reset to this value
-	char		*latchedString;		// for CVAR_LATCH vars
-	int			flags;
-	qboolean    modified;			// set each time the cvar is changed
-	int			modificationCount;	// incremented each time the cvar is changed
-	float		value;				// atof( string )
-	int			integer;			// atoi( string )
-	qboolean    validate;
-	qboolean    integral;
-	float		min;
-	float		max;
-	char		*description;
-
-	cvar_t *next;
-	cvar_t *prev;
-	cvar_t *hashNext;
-	cvar_t *hashPrev;
-	int		hashIndex;
-};
-
 
 #define	MAX_CVAR_VALUE_STRING	256
 
@@ -1001,6 +974,7 @@ typedef struct {
 	char		string[MAX_CVAR_VALUE_STRING];
 } vmCvar_t;
 
+
 /*
 ==============================================================
 
@@ -1009,7 +983,7 @@ COLLISION DETECTION
 ==============================================================
 */
 
-#include "surfaceflags.h"			// shared with the q3map utility
+#include "../engine/qcommon/surfaceflags.h"			// shared with the q3map utility
 
 // plane types are used to speed some tests
 // 0-2 are axial planes
@@ -1061,7 +1035,6 @@ typedef struct {
 } markFragment_t;
 
 
-
 typedef struct {
 	vec3_t		origin;
 	vec3_t		axis[3];
@@ -1073,7 +1046,7 @@ typedef struct {
 // in order from highest priority to lowest
 // if none of the catchers are active, bound key strings will be executed
 #define KEYCATCH_CONSOLE		0x0001
-#define	KEYCATCH_UI					0x0002
+#define	KEYCATCH_UI			0x0002
 #define	KEYCATCH_MESSAGE		0x0004
 #define	KEYCATCH_CGAME			0x0008
 
@@ -1120,8 +1093,8 @@ typedef enum {
 // entitynums are communicated with GENTITY_BITS, so any reserved
 // values that are going to be communcated over the net need to
 // also be in this range
-#define	ENTITYNUM_NONE		(MAX_GENTITIES-1)
-#define	ENTITYNUM_WORLD		(MAX_GENTITIES-2)
+#define	ENTITYNUM_NONE          (MAX_GENTITIES-1)
+#define	ENTITYNUM_WORLD	        (MAX_GENTITIES-2)
 #define	ENTITYNUM_MAX_NORMAL	(MAX_GENTITIES-2)
 
 
@@ -1411,9 +1384,9 @@ typedef struct qtime_s {
 
 // server browser sources
 // TTimo: AS_MPLAYER is no longer used
-#define AS_LOCAL			0
+#define AS_LOCAL		0
 #define AS_MPLAYER		1
-#define AS_GLOBAL			2
+#define AS_GLOBAL		2
 #define AS_FAVORITES	3
 
 
@@ -1437,18 +1410,17 @@ typedef enum _flag_status {
 } flagStatus_t;
 
 
-
-#define	MAX_GLOBAL_SERVERS				4096
-#define	MAX_OTHER_SERVERS					128
-#define MAX_PINGREQUESTS					32
+#define	MAX_GLOBAL_SERVERS			4096
+#define	MAX_OTHER_SERVERS			128
+#define MAX_PINGREQUESTS			32
 #define MAX_SERVERSTATUSREQUESTS	16
 
-#define SAY_ALL		0
-#define SAY_TEAM	1
-#define SAY_TELL	2
+#define SAY_ALL		    0
+#define SAY_TEAM	    1
+#define SAY_TELL	    2
 
-#define CDKEY_LEN 16
-#define CDCHKSUM_LEN 2
+#define CDKEY_LEN       16
+#define CDCHKSUM_LEN    2
 
 
 #endif	// __Q_SHARED_H

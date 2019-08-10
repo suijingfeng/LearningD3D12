@@ -617,34 +617,11 @@ typedef unsigned char validate_uint32[sizeof(stbi__uint32)==4 ? 1 : -1];
 
 #ifdef _MSC_VER
 
-#if _MSC_VER >= 1400  // not VC6
-#include <intrin.h> // __cpuid
-static int stbi__cpuid3(void)
-{
-   int info[4];
-   __cpuid(info,1);
-   return info[3];
-}
-#else
-static int stbi__cpuid3(void)
-{
-   int res;
-   __asm {
-      mov  eax,1
-      cpuid
-      mov  res,edx
-   }
-   return res;
-}
-#endif
+
 
 #define STBI_SIMD_ALIGN(type, name) __declspec(align(16)) type name
 
-static int stbi__sse2_available(void)
-{
-   int info3 = stbi__cpuid3();
-   return ((info3 >> 26) & 1) != 0;
-}
+
 #else // assume GCC-style if not VC++
 #define STBI_SIMD_ALIGN(type, name) type name __attribute__((aligned(16)))
 
@@ -3484,7 +3461,7 @@ static void stbi__setup_jpeg(stbi__jpeg *j)
    j->resample_row_hv_2_kernel = stbi__resample_row_hv_2;
 
 #ifdef STBI_SSE2
-   if (stbi__sse2_available()) {
+   if (1) {
       j->idct_block_kernel = stbi__idct_simd;
       j->YCbCr_to_RGB_kernel = stbi__YCbCr_to_RGB_simd;
       j->resample_row_hv_2_kernel = stbi__resample_row_hv_2_simd;

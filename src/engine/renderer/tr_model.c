@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_models.c -- model loading and caching
 
 #include "tr_local.h"
-#include "tr_common.h"
 
 #define	LL(x) x=LittleLong(x)
 
@@ -94,7 +93,7 @@ qhandle_t RE_RegisterModel( const char *name ) {
 	}
 
 	if ( (int)strlen( name ) >= MAX_QPATH ) {
-		Com_Printf( "Model name exceeds MAX_QPATH\n" );
+		ri.Printf(PRINT_ALL, "Model name exceeds MAX_QPATH\n" );
 		return 0;
 	}
 
@@ -310,7 +309,7 @@ static qboolean R_LoadMD3 (model_t *mod, int lod, void *buffer, const char *mod_
 		surf->ident = SF_MD3;
 
 		// lowercase the surface name so skin compares are faster
-		R_Strlwr( surf->name );
+		Q_strlwr( surf->name );
 
 		// strip off a trailing _1 or _2
 		// this is a crutch for q3data being a mess
@@ -460,7 +459,7 @@ static qboolean R_LoadMD4( model_t *mod, void *buffer, const char *mod_name ) {
 			surf->ident = SF_MD4;
 
 			// lowercase the surface name so skin compares are faster
-			R_Strlwr( surf->name );
+			Q_strlwr( surf->name );
 		
 			// register the shaders
 			sh = R_FindShader( surf->shader, LIGHTMAP_NONE, qtrue );
@@ -527,7 +526,7 @@ static qboolean R_LoadMD4( model_t *mod, void *buffer, const char *mod_name ) {
 
 void RE_BeginRegistration( glconfig_t *glconfigOut )
 {
-	ri.Printf(PRINT_ALL, "----- RE_BeginRegistration -----\n");
+
 	R_Init();
 
 	*glconfigOut = glConfig;
@@ -631,38 +630,16 @@ int R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFram
 	model_t		*model;
 
 	model = R_GetModelByHandle( handle );
-	if ( !model->md3[0] )
-	{
-		// AxisClear( tag->axis );
-		tag->axis[0][0] = 1;
-		tag->axis[0][1] = 0;
-		tag->axis[0][2] = 0;
-		tag->axis[1][0] = 0;
-		tag->axis[1][1] = 1;
-		tag->axis[1][2] = 0;
-		tag->axis[2][0] = 0;
-		tag->axis[2][1] = 0;
-		tag->axis[2][2] = 1;
-
+	if ( !model->md3[0] ) {
+		AxisClear( tag->axis );
+		VectorClear( tag->origin );
 		return qfalse;
 	}
 
 	start = R_GetTag( model->md3[0], startFrame, tagName );
 	end = R_GetTag( model->md3[0], endFrame, tagName );
-	if ( !start || !end )
-	{
-		// AxisClear( tag->axis );
-
-		tag->axis[0][0] = 1;
-		tag->axis[0][1] = 0;
-		tag->axis[0][2] = 0;
-		tag->axis[1][0] = 0;
-		tag->axis[1][1] = 1;
-		tag->axis[1][2] = 0;
-		tag->axis[2][0] = 0;
-		tag->axis[2][1] = 0;
-		tag->axis[2][2] = 1;
-
+	if ( !start || !end ) {
+		AxisClear( tag->axis );
 		VectorClear( tag->origin );
 		return qfalse;
 	}

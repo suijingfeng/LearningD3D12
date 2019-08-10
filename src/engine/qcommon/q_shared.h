@@ -105,7 +105,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma warning(disable : 4514)
 #pragma warning(disable : 4702)		// unreachable code
 #pragma warning(disable : 4711)		// selected for automatic inline expansion
-#pragma warning(disable : 4220)		// varargs matches remaining parameters
+
 //#pragma intrinsic( memset, memcpy )
 
 #pragma warning(disable : 4996) // the function or variable may be unsafe
@@ -176,44 +176,6 @@ typedef int intptr_t;
 #include <ctype.h>
 #include <limits.h>
 
-/*
-
-#ifdef _MSC_VER
-  #include <io.h>
-
-  typedef __int64 int64_t;
-  typedef __int32 int32_t;
-  typedef __int16 int16_t;
-  typedef __int8 int8_t;
-  typedef unsigned __int64 uint64_t;
-  typedef unsigned __int32 uint32_t;
-  typedef unsigned __int16 uint16_t;
-  typedef unsigned __int8 uint8_t;
-  // vsnprintf is ISO/IEC 9899:1999, abstracting this to make it portable
-  //int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap);
-#else
-  #include <stdint.h>
-#endif
-
-*/
-
-
-/*
-
-#if defined( _WIN32 ) || defined( _WIN64 )
-  // vsnprintf is ISO/IEC 9899:1999
-  // abstracting this to make it portable
-  #define Q_vsnprintf vsnprintf
-  #define Q_snprintf _snprintf
-
-#else
-
-  #define Q_vsnprintf vsnprintf
-  #define Q_snprintf snprintf
-
-#endif
-
-*/
 
 #endif
 
@@ -760,8 +722,8 @@ struct cvar_s {
 	char		*string;
 	char		*resetString;		// cvar_restart will reset to this value
 	char		*latchedString;		// for CVAR_LATCH vars
-	int			flags;
-	qboolean    modified;			// set each time the cvar is changed
+	int		flags;
+	qboolean	modified;			// set each time the cvar is changed
 	int			modificationCount;	// incremented each time the cvar is changed
 	float		value;				// atof( string )
 	int			integer;			// atoi( string )
@@ -796,21 +758,8 @@ typedef struct {
 /*
 ==============================================================
 
-VoIP
-
-==============================================================
-*/
-
-// if you change the count of flags be sure to also change VOIP_FLAGNUM
-#define VOIP_SPATIAL		0x01		// spatialized voip message
-#define VOIP_DIRECT         0x02		// non-spatialized voip message
-
-// number of flags voip knows. You will have to bump protocol version number if you change this.
-#define VOIP_FLAGCNT		2
-
-/*
-==============================================================
 COLLISION DETECTION
+
 ==============================================================
 */
 
@@ -877,7 +826,7 @@ typedef struct {
 // in order from highest priority to lowest
 // if none of the catchers are active, bound key strings will be executed
 #define KEYCATCH_CONSOLE		0x0001
-#define	KEYCATCH_UI				0x0002
+#define	KEYCATCH_UI			0x0002
 #define	KEYCATCH_MESSAGE		0x0004
 #define	KEYCATCH_CGAME			0x0008
 

@@ -782,7 +782,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case BOTLIB_AI_REACHABILITY_AREA:
 		return botlib_export->ai.BotReachabilityArea( (vec_t*) VMA(1), args[2] );
 	case BOTLIB_AI_MOVEMENT_VIEW_TARGET:
-		return botlib_export->ai.BotMovementViewTarget(args[1], (struct bot_goal_s*) VMA(2), args[3], VMF(4), (vec_t*) VMA(5));
+		return botlib_export->ai.BotMovementViewTarget(args[1], (struct  bot_goal_s*) VMA(2), args[3], VMF(4), (vec_t*) VMA(5));
 	case BOTLIB_AI_PREDICT_VISIBLE_POSITION:
 		return botlib_export->ai.BotPredictVisiblePosition((vec_t*)VMA(1), args[2], (struct bot_goal_s*) VMA(3), args[4], (vec_t*) VMA(5));
 	case BOTLIB_AI_ALLOC_MOVE_STATE:

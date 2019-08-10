@@ -273,9 +273,8 @@ char* R_ParseExt(char** data_p, qboolean allowLineBreaks)
 	return r_token;
 }
 
-qboolean R_SkipBracedSection(char ** program)
+qboolean R_SkipBracedSection(char ** program, int depth)
 {
-	int depth = 0;
 	do
     {
 		char* token = R_ParseExt(program, qtrue);

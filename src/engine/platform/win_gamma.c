@@ -55,7 +55,7 @@ qboolean win_checkHardwareGamma( void )
 				( HIBYTE( s_oldHardwareGamma[1][255] ) <= HIBYTE( s_oldHardwareGamma[1][0] ) ) ||
 				( HIBYTE( s_oldHardwareGamma[2][255] ) <= HIBYTE( s_oldHardwareGamma[2][0] ) ) )
 		{
-
+			deviceSupportsGamma = qfalse;
 			Com_Printf( "WARNING: device has broken gamma support, generated gamma.dat\n" );
 		}
 
@@ -85,7 +85,7 @@ qboolean win_checkHardwareGamma( void )
 **
 ** This routine should only be called if glConfig.deviceSupportsGamma is TRUE
 */
-void WinSys_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] )
+void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] )
 {
 	unsigned short table[3][256];
 	int	ret;

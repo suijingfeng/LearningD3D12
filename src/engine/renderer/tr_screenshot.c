@@ -36,9 +36,9 @@ void RB_TakeScreenshot(int x, int y, int width, int height, char *fileName)
 	buffer[15] = height >> 8;
 	buffer[16] = 24;	// pixel size
 
-	if (get_render_api() == RENDER_API_DX) { // DX12
-		ri.Printf(PRINT_WARNING, "RT_TakeScreenshot is not implemented for DX12");
-	}
+
+	ri.Printf(PRINT_WARNING, "RT_TakeScreenshot is not implemented for DX12");
+	
 
 	// swap rgb to bgr
 	uint32_t c = 18 + width * height * 3;
@@ -67,9 +67,9 @@ void RB_TakeScreenshotJPEG(int x, int y, int width, int height, char *fileName)
 {
 	byte* buffer = (byte*)ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight * 4);;
 
-	if (get_render_api() == RENDER_API_DX) { // DX12
-		ri.Printf(PRINT_WARNING, "RT_TakeScreenshotJPEG is not implemented for DX12");
-	}
+
+	ri.Printf(PRINT_WARNING, "RT_TakeScreenshotJPEG is not implemented for DX12");
+
 
 	// gamma correct
 	if ((tr.overbrightBits > 0) && glConfig.deviceSupportsGamma) {
@@ -133,7 +133,7 @@ void R_ScreenshotFilename(int lastNumber, char *fileName) {
 	int		a, b, c, d;
 
 	if (lastNumber < 0 || lastNumber > 9999) {
-		snprintf(fileName, MAX_OSPATH, "screenshots/shot9999.tga");
+		Com_sprintf(fileName, MAX_OSPATH, "screenshots/shot9999.tga");
 		return;
 	}
 
@@ -145,7 +145,7 @@ void R_ScreenshotFilename(int lastNumber, char *fileName) {
 	lastNumber -= c * 10;
 	d = lastNumber;
 
-	snprintf(fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.tga"
+	Com_sprintf(fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.tga"
 		, a, b, c, d);
 }
 
@@ -158,7 +158,7 @@ void R_ScreenshotFilenameJPEG(int lastNumber, char *fileName) {
 	int		a, b, c, d;
 
 	if (lastNumber < 0 || lastNumber > 9999) {
-		snprintf(fileName, MAX_OSPATH, "screenshots/shot9999.jpg");
+		Com_sprintf(fileName, MAX_OSPATH, "screenshots/shot9999.jpg");
 		return;
 	}
 
@@ -170,7 +170,7 @@ void R_ScreenshotFilenameJPEG(int lastNumber, char *fileName) {
 	lastNumber -= c * 10;
 	d = lastNumber;
 
-	snprintf(fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.jpg"
+	Com_sprintf(fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.jpg"
 		, a, b, c, d);
 }
 
@@ -203,9 +203,9 @@ void R_LevelShot(void) {
 	buffer[14] = 128;
 	buffer[16] = 24;	// pixel size
 
-	if (get_render_api() == RENDER_API_DX) { // DX12
-		ri.Printf(PRINT_WARNING, "R_LevelShot is not implemented for DX12");
-	}
+
+	ri.Printf(PRINT_WARNING, "R_LevelShot is not implemented for DX12");
+
 
 	// resample from source
 	xScale = glConfig.vidWidth / 512.0f;
@@ -272,7 +272,7 @@ void R_ScreenShot_f(void) {
 
 	if (ri.Cmd_Argc() == 2 && !silent) {
 		// explicit filename
-		snprintf(checkname, MAX_OSPATH, "screenshots/%s.tga", ri.Cmd_Argv(1));
+		Com_sprintf(checkname, MAX_OSPATH, "screenshots/%s.tga", ri.Cmd_Argv(1));
 	}
 	else {
 		// scan for a free filename
@@ -328,7 +328,7 @@ void R_ScreenShotJPEG_f(void)
 
 	if (ri.Cmd_Argc() == 2 && !silent) {
 		// explicit filename
-		snprintf(checkname, MAX_OSPATH, "screenshots/%s.jpg", ri.Cmd_Argv(1));
+		Com_sprintf(checkname, MAX_OSPATH, "screenshots/%s.jpg", ri.Cmd_Argv(1));
 	}
 	else {
 		// scan for a free filename

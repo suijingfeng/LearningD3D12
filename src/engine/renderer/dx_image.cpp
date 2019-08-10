@@ -4,26 +4,15 @@
 #include "dx_image.h"
 #include "dx_world.h"
 
+// DX12
+extern Dx_Instance	dx;				// shouldn't be cleared during ref re-init
 
 static size_t qAlign(size_t value, size_t alignment)
 {
 	return (value + alignment - 1) & ~(alignment - 1);
 };
 
-static D3D12_RESOURCE_BARRIER get_transition_barrier(
-	ID3D12Resource* resource,
-	D3D12_RESOURCE_STATES state_before,
-	D3D12_RESOURCE_STATES state_after)
-{
-	D3D12_RESOURCE_BARRIER barrier;
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = resource;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	barrier.Transition.StateBefore = state_before;
-	barrier.Transition.StateAfter = state_after;
-	return barrier;
-}
+
 
 static void DX_UploadTexture(ID3D12Resource* texture, ID3D12Resource* upload_texture,
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT* regions, uint32_t mip_levels)
@@ -32,8 +21,19 @@ static void DX_UploadTexture(ID3D12Resource* texture, ID3D12Resource* upload_tex
 	DX_CHECK(dx.device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, dx.helper_command_allocator,
 		nullptr, IID_PPV_ARGS(&command_list)));
 
-	command_list->ResourceBarrier(1, &get_transition_barrier(texture,
-		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST));
+
+
+	
+	D3D12_RESOURCE_BARRIER imgBarrier;
+	imgBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	imgBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	imgBarrier.Transition.pResource = texture;
+	imgBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	imgBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	imgBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+	
+
+	command_list->ResourceBarrier(1, &imgBarrier);
 
 	for (uint32_t i = 0; i < mip_levels; ++i)
 	{
@@ -50,8 +50,18 @@ static void DX_UploadTexture(ID3D12Resource* texture, ID3D12Resource* upload_tex
 		command_list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 	}
 
-	command_list->ResourceBarrier(1, &get_transition_barrier(texture,
-		D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
+	D3D12_RESOURCE_BARRIER barrier;
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = texture;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+
+
+	command_list->ResourceBarrier(1, &barrier);
 
 
 	DX_CHECK(command_list->Close());

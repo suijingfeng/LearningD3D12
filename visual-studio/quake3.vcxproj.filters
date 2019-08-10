@@ -153,6 +153,9 @@
     <ClCompile Include="..\src\engine\qcommon\md4.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\engine\qcommon\msg.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\engine\qcommon\net_chan.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
@@ -197,9 +200,6 @@
     </ClCompile>
     <ClCompile Include="..\src\engine\platform\win_log.c">
       <Filter>Source Files\platform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\engine\qcommon\msg.c">
-      <Filter>Source Files\common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -21,7 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "dx_world.h"
-#include "tr_common.h"
+// DX12
+extern Dx_Instance	dx;				// shouldn't be cleared during ref re-init
 /*
 
   for a projection shadow:
@@ -208,7 +209,7 @@ void RB_ShadowTessEnd( void )
 
 		VectorSubtract( v2, v1, d1 );
 		VectorSubtract( v3, v1, d2 );
-		VectorCross( d1, d2, normal );
+		CrossProduct( d1, d2, normal );
 
 		d = DotProduct( normal, lightDir );
 		if ( d > 0 ) {
@@ -385,11 +386,11 @@ void RB_ProjectionShadowDeform( void ) {
 
 	xyz = ( float * ) tess.xyz;
 
-	ground[0] = backEnd.or.axis[0][2];
-	ground[1] = backEnd.or.axis[1][2];
-	ground[2] = backEnd.or.axis[2][2];
+	ground[0] = backEnd.ori.axis[0][2];
+	ground[1] = backEnd.ori.axis[1][2];
+	ground[2] = backEnd.ori.axis[2][2];
 
-	groundDist = backEnd.or.origin[2] - backEnd.currentEntity->e.shadowPlane;
+	groundDist = backEnd.ori.origin[2] - backEnd.currentEntity->e.shadowPlane;
 
 	VectorCopy( backEnd.currentEntity->lightDir, lightDir );
 	d = DotProduct( lightDir, ground );

@@ -22,7 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
-#include "tr_common.h"
+
+// DX12
+extern Dx_Instance	dx;				// shouldn't be cleared during ref re-init
+
 /*
 
   THIS ENTIRE FILE IS BACK END
@@ -592,8 +595,8 @@ static void ComputeColors( shaderStage_t *pStage )
 				float len;
 				vec3_t v;
 
-				VectorSubtract( tess.xyz[i], backEnd.viewParms.or.origin, v );
-				len = VectorLengthf( v );
+				VectorSubtract( tess.xyz[i], backEnd.viewParms.ori.origin, v );
+				len = VectorLength( v );
 
 				len /= tess.shader->portalRange;
 
@@ -1007,7 +1010,5 @@ void RB_EndSurface(shaderCommands_t * const input)
 	// clear shader so we can tell we don't have any unclosed surfaces
 	input->numIndexes = 0;
 	input->numVertexes = 0;
-
-	ri.pfnLog( "----- RB_EndSurface -----\n" );
 }
 

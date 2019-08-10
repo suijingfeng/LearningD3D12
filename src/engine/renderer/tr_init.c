@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // let me think about a while before remove this dependency!
 
 
-bool		gl_active;
+const qboolean gl_active = qfalse;
 glconfig_t	glConfig;
 glstate_t	glState;
 
@@ -71,9 +71,6 @@ cvar_t	*r_nocull;
 cvar_t	*r_facePlaneCull;
 cvar_t	*r_showcluster;
 cvar_t	*r_nocurves;
-
-
-
 
 
 cvar_t	*r_depthbits;
@@ -135,97 +132,7 @@ int		max_polyverts;
 
 
 cvar_t	*r_gpuIndex;
-cvar_t	*r_brightness;
 
-
-static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
-{
-
-
-	if ( shouldBeIntegral )
-	{
-		if ( ( int ) cv->value != cv->integer )
-		{
-			ri.Printf( PRINT_WARNING, "WARNING: cvar '%s' must be integral (%f)\n", cv->name, cv->value );
-			char buf[32] = { 0 };
-			sprintf(buf, "%d", cv->integer);
-			ri.Cvar_Set( cv->name, buf );
-		}
-	}
-
-	if ( cv->value < minVal )
-	{
-		ri.Printf( PRINT_WARNING, "WARNING: cvar '%s' out of range (%f < %f)\n", cv->name, cv->value, minVal );
-		char buf[32] = { 0 };
-		sprintf(buf, "%f", minVal);
-		ri.Cvar_Set( cv->name, buf );
-	}
-	else if ( cv->value > maxVal )
-	{
-		ri.Printf( PRINT_WARNING, "WARNING: cvar '%s' out of range (%f > %f)\n", cv->name, cv->value, maxVal );
-		
-		char buf[32] = { 0 };
-		sprintf(buf, "%f", maxVal);
-		
-		ri.Cvar_Set( cv->name, buf);
-	}
-}
-
-RenderApi get_render_api()
-{
-	return RENDER_API_DX; // use default (d3d12) if invalid r_renderAPI value is specified
-}
-
-
-
-/*
-** This function is responsible for initializing a valid OpenGL/Vulkan subsystem.
-*/
-
-
-/*
-==================
-GL_CheckErrors
-==================
-*/
-void GL_CheckErrors( void )
-{
-    int		err;
-    char	s[64];
-
-    err = qglGetError();
-    if ( err == GL_NO_ERROR ) {
-        return;
-    }
- 
-    return;
-   
-    switch( err ) {
-        case GL_INVALID_ENUM:
-            strcpy( s, "GL_INVALID_ENUM" );
-            break;
-        case GL_INVALID_VALUE:
-            strcpy( s, "GL_INVALID_VALUE" );
-            break;
-        case GL_INVALID_OPERATION:
-            strcpy( s, "GL_INVALID_OPERATION" );
-            break;
-        case GL_STACK_OVERFLOW:
-            strcpy( s, "GL_STACK_OVERFLOW" );
-            break;
-        case GL_STACK_UNDERFLOW:
-            strcpy( s, "GL_STACK_UNDERFLOW" );
-            break;
-        case GL_OUT_OF_MEMORY:
-            strcpy( s, "GL_OUT_OF_MEMORY" );
-            break;
-        default:
-            snprintf( s, sizeof(s), "%i", err);
-            break;
-    }
-
-    ri.Error( ERR_FATAL, "GL_CheckErrors: %s", s );
-}
 
 
 /*
@@ -271,12 +178,12 @@ void GL_SetDefaultState( void )
 
 void GfxInfo_f( void ) 
 {
-	const char *enablestrings[] =
+	const char * enablestrings[2] =
 	{
 		"disabled",
 		"enabled"
 	};
-	const char *fsstrings[] =
+	const char * fsstrings[2] =
 	{
 		"windowed",
 		"fullscreen"
@@ -320,12 +227,12 @@ void R_Register( void )
 	//
 	// latched and archived variables
 	//
-	ri.Printf(PRINT_ALL, " R_Register \n");
+
 
 	r_picmip = ri.Cvar_Get ("r_picmip", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_roundImagesDown = ri.Cvar_Get ("r_roundImagesDown", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_colorMipLevels = ri.Cvar_Get ("r_colorMipLevels", "0", CVAR_LATCH );
-	AssertCvarRange( r_picmip, 0, 16, qtrue );
+	ri.Cvar_CheckRange( r_picmip, 0, 16, qtrue );
 	r_detailTextures = ri.Cvar_Get( "r_detailtextures", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_texturebits = ri.Cvar_Get( "r_texturebits", "32", CVAR_CHEAT );
 	r_depthbits = ri.Cvar_Get( "r_depthbits", "24", CVAR_ARCHIVE | CVAR_LATCH );
@@ -346,7 +253,7 @@ void R_Register( void )
 	//
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", CVAR_LATCH|CVAR_CHEAT );
 	r_mapOverBrightBits = ri.Cvar_Get ("r_mapOverBrightBits", "2", CVAR_LATCH );
-
+	r_intensity = ri.Cvar_Get ("r_intensity", "1", CVAR_LATCH );
 	r_singleShader = ri.Cvar_Get ("r_singleShader", "0", CVAR_CHEAT | CVAR_LATCH );
 
 	//
@@ -355,7 +262,7 @@ void R_Register( void )
 	r_lodCurveError = ri.Cvar_Get( "r_lodCurveError", "250", CVAR_ARCHIVE|CVAR_CHEAT );
 	r_lodbias = ri.Cvar_Get( "r_lodbias", "0", CVAR_ARCHIVE );
 	r_znear = ri.Cvar_Get( "r_znear", "4", CVAR_CHEAT );
-	AssertCvarRange( r_znear, 0.001f, 200, qtrue );
+	ri.Cvar_CheckRange( r_znear, 0.001f, 200, qtrue );
 
 	r_fastsky = ri.Cvar_Get( "r_fastsky", "0", CVAR_ARCHIVE );
 	r_inGameVideo = ri.Cvar_Get( "r_inGameVideo", "1", CVAR_ARCHIVE );
@@ -411,13 +318,12 @@ void R_Register( void )
 	r_noportals = ri.Cvar_Get ("r_noportals", "0", CVAR_CHEAT);
 	r_shadows = ri.Cvar_Get( "cg_shadows", "1", 0 );
 
-	r_intensity = ri.Cvar_Get("r_intensity", "1.5", CVAR_LATCH | CVAR_ARCHIVE );
-	r_brightness = ri.Cvar_Get("r_brightness", "2.0", CVAR_LATCH | CVAR_ARCHIVE);
-	r_gpuIndex = ri.Cvar_Get("r_gpuIndex", "0", CVAR_LATCH | CVAR_ARCHIVE );
+	r_gpuIndex = ri.Cvar_Get("r_gpuIndex", "0", CVAR_ARCHIVE);
 
-	r_maxpolys = ri.Cvar_Get( "r_maxpolys", "1200", 0);
-	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", "6000", 0);
-
+	//r_maxpolys = ri.Cvar_Get( "r_maxpolys", va("%d", MAX_POLYS), 0);
+	//r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", va("%d", MAX_POLYVERTS), 0);
+	r_maxpolys = ri.Cvar_Get("r_maxpolys", "600", 0);
+	r_maxpolyverts = ri.Cvar_Get("r_maxpolyverts", "3000", 0);
 	// make sure all the commands added here are also
 	// removed in R_Shutdown
 	ri.Cmd_AddCommand( "imagelist", R_ImageList_f );
@@ -475,7 +381,6 @@ void R_Init( void )
 	}
 
 
-	
 	//
 	// init function tables
 	//
@@ -529,10 +434,6 @@ void R_Init( void )
 	R_ToggleSmpFrame();
 
 
-
-	// init command buffers and SMP
-	glConfig.smpActive = qfalse;
-
 	// print info
 	GfxInfo_f();
 
@@ -583,9 +484,13 @@ void RE_Shutdown( qboolean destroyWindow )
 	if (dx.active)
 	{
 		dx_release_resources();
-		if (destroyWindow) {
+		if (destroyWindow)
+		{
 			dx_shutdown();
+
 			ri.GLimpShutdown();
+
+			ri.Printf(PRINT_ALL, "Release DirectX12 Resources. \n");
 
 			memset(&glConfig, 0, sizeof(glConfig));
 			memset(&glState, 0, sizeof(glState));
@@ -603,70 +508,7 @@ RE_EndRegistration
 Touch all images to make sure they are resident
 =============
 */
-void RE_EndRegistration( void )
+void RE_EndRegistration(void)
 {
 	R_SyncRenderThread();
-}
-
-
-/*
-@@@@@@@@@@@@@@@@@@@@@
-GetRefAPI
-
-@@@@@@@@@@@@@@@@@@@@@
-*/
-
-#ifdef USE_RENDERER_DLOPEN
-extern "C" __declspec(dllexport) refexport_t * QDECL GetRefAPI(int apiVersion, refimport_t *rimp)
-#else
-refexport_t* GetRefAPI(int apiVersion, refimport_t *rimp)
-#endif
-{
-	static refexport_t re;
-
-	ri = *rimp;
-
-	memset( &re, 0, sizeof( re ) );
-
-	if ( apiVersion != REF_API_VERSION )
-	{
-		ri.Printf(PRINT_ALL, "Mismatched REF_API_VERSION: expected %i, got %i\n", 
-			REF_API_VERSION, apiVersion );
-		return NULL;
-	}
-
-	// the RE_ functions are Renderer Entry points
-	re.Shutdown = RE_Shutdown;
-	re.BeginRegistration = RE_BeginRegistration;
-	re.RegisterModel = RE_RegisterModel;
-	re.RegisterSkin = RE_RegisterSkin;
-	re.RegisterShader = RE_RegisterShader;
-	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
-	re.LoadWorld = RE_LoadWorldMap;
-	re.SetWorldVisData = RE_SetWorldVisData;
-	re.EndRegistration = RE_EndRegistration;
-	re.ClearScene = RE_ClearScene;
-	re.AddRefEntityToScene = RE_AddRefEntityToScene;
-	re.AddPolyToScene = RE_AddPolyToScene;
-	re.LightForPoint = R_LightForPoint;
-	re.AddLightToScene = RE_AddLightToScene;
-	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
-
-	re.RenderScene = RE_RenderScene;
-	re.SetColor = RE_SetColor;
-	re.DrawStretchPic = RE_StretchPic;
-	re.DrawStretchRaw = RE_StretchRaw;
-	re.UploadCinematic = RE_UploadCinematic;
-
-	re.BeginFrame = RE_BeginFrame;
-	re.EndFrame = RE_EndFrame;
-	re.MarkFragments = R_MarkFragments;
-	re.LerpTag = R_LerpTag;
-	re.ModelBounds = R_ModelBounds;
-	re.RegisterFont = RE_RegisterFont;
-	re.RemapShader = R_RemapShader;
-	re.GetEntityToken = R_GetEntityToken;
-	re.inPVS = R_inPVS;
-
-	return &re;
 }

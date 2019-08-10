@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "R_LoadImage.h"
 
 
-
 typedef struct
 {
 	char id[2];
@@ -45,7 +44,8 @@ typedef struct
 	unsigned char palette[256][4];
 } BMPHeader_t;
 
-void R_LoadBMP( const char *name, byte **pic, int *width, int *height )
+
+void R_LoadBMP( const char *name, unsigned char **pic, int *width, int *height )
 {
 	int		columns, rows;
 	unsigned	numPixels;
@@ -85,33 +85,33 @@ void R_LoadBMP( const char *name, byte **pic, int *width, int *height )
 
 	bmpHeader.id[0] = *buf_p++;
 	bmpHeader.id[1] = *buf_p++;
-	bmpHeader.fileSize = LittleLong( * ( int * ) buf_p );
+	bmpHeader.fileSize =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.reserved0 = LittleLong( * ( int * ) buf_p );
+	bmpHeader.reserved0 = * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.bitmapDataOffset = LittleLong( * ( int * ) buf_p );
+	bmpHeader.bitmapDataOffset =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.bitmapHeaderSize = LittleLong( * ( int * ) buf_p );
+	bmpHeader.bitmapHeaderSize =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.width = LittleLong( * ( int * ) buf_p );
+	bmpHeader.width =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.height = LittleLong( * ( int * ) buf_p );
+	bmpHeader.height =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.planes = LittleShort( * ( short * ) buf_p );
+	bmpHeader.planes =  * ( short * ) buf_p ;
 	buf_p += 2;
-	bmpHeader.bitsPerPixel = LittleShort( * ( short * ) buf_p );
+	bmpHeader.bitsPerPixel =  * ( short * ) buf_p ;
 	buf_p += 2;
-	bmpHeader.compression = LittleLong( * ( int * ) buf_p );
+	bmpHeader.compression =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.bitmapDataSize = LittleLong( * ( int * ) buf_p );
+	bmpHeader.bitmapDataSize =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.hRes = LittleLong( * ( int * ) buf_p );
+	bmpHeader.hRes =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.vRes = LittleLong( * ( int * ) buf_p );
+	bmpHeader.vRes = * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.colors = LittleLong( * ( int * ) buf_p );
+	bmpHeader.colors =  * ( int * ) buf_p ;
 	buf_p += 4;
-	bmpHeader.importantColors = LittleLong( * ( int * ) buf_p );
+	bmpHeader.importantColors =  * ( int * ) buf_p ;
 	buf_p += 4;
 
 	if ( bmpHeader.bitsPerPixel == 8 )

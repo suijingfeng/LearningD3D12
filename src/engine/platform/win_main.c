@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Foobar; if not, write to the Free Software
+along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
@@ -36,52 +36,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "win_input.h"
 
 
-#define MEM_THRESHOLD 96*1024*1024
-
 extern WinVars_t g_wv;
 
-// define this to use alternate spanking method
-// I found out that the regular way doesn't work on my box for some reason
-// see the associated spank.sh script
-// #define ALT_SPANK
-/*
-#ifdef ALT_SPANK
-#include <stdio.h>
-#include <sys\stat.h>
-
-int fh = 0;
-
-void Spk_Open(char *name)
-{
-  fh = open( name, O_TRUNC | O_CREAT | O_WRONLY, S_IREAD | S_IWRITE );
-};
-
-void Spk_Close()
-{
-  if (!fh)
-    return;
-
-  close( fh );
-  fh = 0;
-}
-
-void Spk_Printf (const char *text, ...)
-{
-  va_list argptr;
-  char buf[32768];
-
-  if (!fh)
-    return;
-
-  va_start (argptr,text);
-  vsprintf (buf, text, argptr);
-  write(fh, buf, (int)strlen(buf));
-  _commit(fh);
-  va_end (argptr);
-
-};
-#endif
-*/
 
 
 /*
@@ -127,8 +83,11 @@ qboolean Sys_LowPhysicalMemory(void)
 		stat.ullAvailExtendedVirtual / (1024 * 1024) );
 
 	// Com_sprintf(search, sizeof(search), "%s\\*", basedir);
-
+#define MEM_THRESHOLD 128*1024*1024
+	
 	return (stat.ullTotalPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
+
+#undef MEM_THRESHOLD
 }
 
 
@@ -194,7 +153,8 @@ void Sys_Quit( void )
 Sys_Mkdir
 ==============
 */
-void Sys_Mkdir( const char *path ) {
+void Sys_Mkdir( const char *path )
+{
 	_mkdir (path);
 }
 
@@ -293,16 +253,14 @@ void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, ch
 
 static qboolean strgtr(const char *s0, const char *s1)
 {
-	int l0, l1, i;
-
-	l0 = (int)strlen(s0);
-	l1 = (int)strlen(s1);
+	int l0 = (int)strlen(s0);
+	int l1 = (int)strlen(s1);
 
 	if (l1<l0) {
 		l0 = l1;
 	}
 
-	for(i=0;i<l0;i++) {
+	for(int i=0;i<l0;i++) {
 		if (s1[i] > s0[i]) {
 			return qtrue;
 		}
@@ -317,15 +275,16 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 {
 
 	int	nfiles = 0;
-	char		**listCopy;
+
 	char		*list[MAX_FOUND_FILES];
 	struct _finddata_t findinfo;
 	intptr_t  findhandle;
 	int			flag;
-	int			i;
+
 
 	if (filter)
 	{
+		int i;
 		Sys_ListFilteredFiles( directory, "", filter, list, &nfiles );
 
 		list[ nfiles ] = 0;
@@ -334,14 +293,15 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		if (!nfiles)
 			return NULL;
 
-		listCopy = (char**) Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ) );
-		for ( i = 0 ; i < nfiles ; ++i )
+		char** ppListCopy = (char**) Z_Malloc( ( nfiles + 1 ) * sizeof( char * ) );
+		
+		for (i = 0 ; i < nfiles ; ++i )
 		{
-			listCopy[i] = list[i];
+			ppListCopy[i] = list[i];
 		}
-		listCopy[i] = NULL;
+		ppListCopy[i] = NULL;
 
-		return listCopy;
+		return ppListCopy;
 	}
 
 	if ( !extension) {
@@ -390,8 +350,9 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		return NULL;
 	}
 
-	listCopy = (char**) Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ) );
-	for ( i = 0 ; i < nfiles ; ++i )
+	char ** listCopy = (char**) Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ) );
+	int i;
+	for (i = 0; i < nfiles; ++i )
 	{
 		listCopy[i] = list[i];
 	}
@@ -399,7 +360,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 
 	do {
 		flag = 0;
-		for(i=1; i<nfiles; ++i)
+		for(int i=1; i<nfiles; ++i)
 		{
 			if (strgtr(listCopy[i-1], listCopy[i])) {
 				char *temp = listCopy[i];
@@ -430,18 +391,7 @@ void Sys_FreeFileList( char ** const list )
 
 
 
-/*
-=================
-Sys_In_Restart_f
 
-Restart the input subsystem
-=================
-*/
-static void Sys_In_Restart_f( void )
-{
-	IN_Shutdown();
-	IN_Init();
-}
 
 
 /*
@@ -464,6 +414,24 @@ Sys_Init
 Called after the common systems (cvars, files, etc) are initialized
 ================
 */
+static char* Sys_GetCurrentUser(void)
+{
+	static char s_userName[1024];
+	unsigned long size = sizeof(s_userName);
+
+	// Retrieves the name of the user associated with the current thread.
+
+	if (!GetUserName(s_userName, &size))
+		strncpy(s_userName, "player", sizeof(s_userName));
+
+	if (!s_userName[0])
+	{
+		strncpy(s_userName, "player", sizeof(s_userName));
+	}
+
+	return s_userName;
+}
+
 
 void Sys_Init( void )
 {
@@ -481,6 +449,8 @@ void Sys_Init( void )
 	
 	*/
 
+	int cpuid;
+
 	// make sure the timer is high precision, otherwise
 	// NT gets 18ms resolution
 	// timeBeginPeriod function requests a minimum resolution for periodic timers.
@@ -488,7 +458,7 @@ void Sys_Init( void )
 	// A lower value specifies a higher (more accurate) resolution.
 	timeBeginPeriod( 1 );
 
-	Cmd_AddCommand ("in_restart", Sys_In_Restart_f);
+
 	Cmd_AddCommand ("net_restart", Sys_Net_Restart_f);
 
 	g_wv.osversion.dwOSVersionInfoSize = sizeof( g_wv.osversion );
@@ -530,15 +500,33 @@ void Sys_Init( void )
 	//
 	// figure out our CPU
 	//
-	
-	Cvar_SetValue( "sys_cpuid", CPUID_GENERIC);
-	Cvar_Set("sys_cpustring", "generic");
+	Cvar_Get( "sys_cpustring", "detect", 0 );
+	if ( !Q_stricmp( Cvar_VariableString( "sys_cpustring"), "detect" ) )
+	{
 
+		Cvar_Set( "sys_cpustring", "generic" );
+
+	}
+	else
+	{
+		Com_Printf( "...forcing CPU type to " );
+		if ( !Q_stricmp( Cvar_VariableString( "sys_cpustring" ), "generic" ) )
+		{
+			cpuid = 0;
+		}
+		else
+		{
+			Com_Printf( "WARNING: unknown sys_cpustring '%s'\n", Cvar_VariableString( "sys_cpustring" ) );
+			cpuid = 0;
+		}
+	}
+	Cvar_SetValue( "sys_cpuid", cpuid );
+	
 	Com_Printf( "%s\n", Cvar_VariableString( "sys_cpustring" ) );
 
 	Cvar_Set( "username", Sys_GetCurrentUser() );
 
-	IN_Init();		// FIXME: not in dedicated?
+
 #undef OSR2_BUILD_NUMBER
 #undef WIN98_BUILD_NUMBER
 }
@@ -546,8 +534,8 @@ void Sys_Init( void )
 
 //=======================================================================
 
-
-int WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+_Use_decl_annotations_
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	char cwd[MAX_OSPATH];
 	char sys_cmdline[MAX_STRING_CHARS];
@@ -575,15 +563,27 @@ int WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int 
 	// function with a parameter of SEM_FAILCRITICALERRORS at startup. 
 	// This is to prevent error mode dialogs from hanging the application.
 
+	// Controls whether the system will handle the specified types of serious errors
+	// or whether the process will handle them.
+	// Best practice is that all applications call the process-wide SetErrorMode
+	// function with a parameter of SEM_FAILCRITICALERRORS at startup. This is 
+	// to prevent error mode dialogs from hanging the application.
 	SetErrorMode( SEM_FAILCRITICALERRORS );
 
 	// get the initial time base
 	Sys_Milliseconds();
 
 
-	Com_Init( sys_cmdline );
-	NET_Init();
 
+	Com_Init( sys_cmdline );
+
+	Sys_Init();
+
+	IN_Init();		// FIXME: not in dedicated?
+	
+	NET_Init();
+	
+	// get the pathname of the current working directory
 	_getcwd (cwd, sizeof(cwd));
 
 	Com_Printf(" Working directory: %s\n", cwd);
@@ -594,11 +594,12 @@ int WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int 
 		Sys_ShowConsole( 0, qfalse );
 	}
 
-    // main game loop
+
 	while( 1 )
 	{
 		// if not running as a game client, sleep a bit
-		if ( g_wv.isMinimized || ( com_dedicated && com_dedicated->integer ) ) {
+		if ( g_wv.isMinimized || ( com_dedicated && com_dedicated->integer ) )
+		{
 			Sleep( 5 );
 		}
 
@@ -620,5 +621,6 @@ int WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int 
 		totalMsec += endTime - startTime;
 		++countMsec;
 	}
-	// never gets here
+
+	return 0;
 }

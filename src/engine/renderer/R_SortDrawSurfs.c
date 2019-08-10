@@ -6,8 +6,6 @@ extern qboolean R_MirrorViewBySurface(drawSurf_t *drawSurf, int entityNum);
 
 
 
-
-
 /*
 ==========================================================================
 
@@ -140,6 +138,8 @@ and have relationship with ENDIAN ?
 
 static void Algo_RadixSort( drawSurf_t * const source, const int size )
 {
+#define Q3_LITTLE_ENDIAN 1
+
 	static drawSurf_t scratch[MAX_DRAWSURFS];
 #ifdef Q3_LITTLE_ENDIAN
 	R_Radix( 0, size, source, scratch );
@@ -265,7 +265,7 @@ void R_SortDrawSurfs(drawSurf_t * const drawSurfs, int numDrawSurfs)
 	// RadixSort two time faster than QuickSort
 	// typically  40us vs 80 us on AMD 2700x
  	Algo_RadixSort(drawSurfs, numDrawSurfs);
-	// Algo_QuickSort2(drawSurfs, 0, numDrawSurfs - 1);
+	// Algo_QuickSort(drawSurfs, 0, numDrawSurfs - 1);
 /*
 	if(numDrawSurfs > 10)
     {

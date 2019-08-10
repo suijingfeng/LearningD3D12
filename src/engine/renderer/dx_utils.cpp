@@ -86,6 +86,7 @@ void printWideStr(wchar_t * const WStr)
 	// corresponding sequence of multibyte characters.
 	wcstombs_s(&converted, CStr, len, WStr, _TRUNCATE);
 	ri.Printf(PRINT_ALL, "%s\n", CStr);
+
 	free(CStr);
 }
 
@@ -109,6 +110,8 @@ void printOutputInfo(IDXGIAdapter1* const pAdapter)
 	{
 		ri.Printf(PRINT_ALL, "EnumOutputs %d failed. \n", i);
 	}
+
+	pOutput->Release();
 }
 
 

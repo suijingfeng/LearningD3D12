@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_surf.c
 #include "tr_local.h"
-#include "tr_common.h"
+
 /*
 
   THIS ENTIRE FILE IS BACK END
@@ -104,7 +104,7 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 
 
 	// constant normal all the way around
-	VectorSubtract( ORIGIN, backEnd.viewParms.or.axis[0], normal );
+	VectorSubtract( vec3_origin, backEnd.viewParms.ori.axis[0], normal );
 
 	tess.normal[ndx][0] = tess.normal[ndx+1][0] = tess.normal[ndx+2][0] = tess.normal[ndx+3][0] = normal[0];
 	tess.normal[ndx][1] = tess.normal[ndx+1][1] = tess.normal[ndx+2][1] = tess.normal[ndx+3][1] = normal[1];
@@ -157,8 +157,8 @@ static void RB_SurfaceSprite( void ) {
 	// calculate the xyz locations for the four corners
 	radius = backEnd.currentEntity->e.radius;
 	if ( backEnd.currentEntity->e.rotation == 0 ) {
-		VectorScale( backEnd.viewParms.or.axis[1], radius, left );
-		VectorScale( backEnd.viewParms.or.axis[2], radius, up );
+		VectorScale( backEnd.viewParms.ori.axis[1], radius, left );
+		VectorScale( backEnd.viewParms.ori.axis[2], radius, up );
 	} else {
 		float	s, c;
 		float	ang;
@@ -167,14 +167,14 @@ static void RB_SurfaceSprite( void ) {
 		s = sin( ang );
 		c = cos( ang );
 
-		VectorScale( backEnd.viewParms.or.axis[1], c * radius, left );
-		VectorMA( left, -s * radius, backEnd.viewParms.or.axis[2], left );
+		VectorScale( backEnd.viewParms.ori.axis[1], c * radius, left );
+		VectorMA( left, -s * radius, backEnd.viewParms.ori.axis[2], left );
 
-		VectorScale( backEnd.viewParms.or.axis[2], c * radius, up );
-		VectorMA( up, s * radius, backEnd.viewParms.or.axis[1], up );
+		VectorScale( backEnd.viewParms.ori.axis[2], c * radius, up );
+		VectorMA( up, s * radius, backEnd.viewParms.ori.axis[1], up );
 	}
 	if ( backEnd.viewParms.isMirror ) {
-		VectorSubtract( ORIGIN, left, left );
+		VectorSubtract( vec3_origin, left, left );
 	}
 
 	RB_AddQuadStamp( backEnd.currentEntity->e.origin, left, up, backEnd.currentEntity->e.shaderRGBA );
@@ -308,13 +308,13 @@ void RB_SurfaceBeam( void )
 	if ( VectorNormalize( normalized_direction ) == 0 )
 		return;
 
-	VectorPerp( perpvec, normalized_direction );
+	PerpendicularVector( perpvec, normalized_direction );
 
 	VectorScale( perpvec, 4, perpvec );
 
 	for ( i = 0; i < NUM_BEAM_SEGS ; i++ )
 	{
-		PointRotateAroundVector( start_points[i], normalized_direction, perpvec, (360.0/NUM_BEAM_SEGS)*i );
+		RotatePointAroundVector( start_points[i], normalized_direction, perpvec, (360.0/NUM_BEAM_SEGS)*i );
 //		VectorAdd( start_points[i], origin, start_points[i] );
 		VectorAdd( start_points[i], direction, end_points[i] );
 	}
@@ -467,7 +467,7 @@ void RB_SurfaceRailRings( void ) {
 	// compute variables
 	VectorSubtract( end, start, vec );
 	len = VectorNormalize( vec );
-	MakeTwoPerpVectors( vec, right, up );
+	MakeNormalVectors( vec, right, up );
 	numSegs = ( len ) / r_railSegmentLength->value;
 	if ( numSegs <= 0 ) {
 		numSegs = 1;
@@ -498,11 +498,11 @@ void RB_SurfaceRailCore( void ) {
 	len = VectorNormalize( vec );
 
 	// compute side vector
-	VectorSubtract( start, backEnd.viewParms.or.origin, v1 );
+	VectorSubtract( start, backEnd.viewParms.ori.origin, v1 );
 	VectorNormalize( v1 );
-	VectorSubtract( end, backEnd.viewParms.or.origin, v2 );
+	VectorSubtract( end, backEnd.viewParms.ori.origin, v2 );
 	VectorNormalize( v2 );
-	VectorCross( v1, v2, right );
+	CrossProduct( v1, v2, right );
 	VectorNormalize( right );
 
 	DoRailCore( start, end, right, len, r_railCoreWidth->integer );
@@ -530,18 +530,18 @@ void RB_SurfaceLightningBolt( void ) {
 	len = VectorNormalize( vec );
 
 	// compute side vector
-	VectorSubtract( start, backEnd.viewParms.or.origin, v1 );
+	VectorSubtract( start, backEnd.viewParms.ori.origin, v1 );
 	VectorNormalize( v1 );
-	VectorSubtract( end, backEnd.viewParms.or.origin, v2 );
+	VectorSubtract( end, backEnd.viewParms.ori.origin, v2 );
 	VectorNormalize( v2 );
-	VectorCross( v1, v2, right );
+	CrossProduct( v1, v2, right );
 	VectorNormalize( right );
 
 	for ( i = 0 ; i < 4 ; i++ ) {
 		vec3_t	temp;
 
 		DoRailCore( start, end, right, len, 8 );
-		PointRotateAroundVector( temp, vec, right, 45 );
+		RotatePointAroundVector( temp, vec, right, 45 );
 		VectorCopy( temp, right );
 	}
 }
@@ -554,12 +554,15 @@ void RB_SurfaceLightningBolt( void ) {
 */
 static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 {
+    assert(count);
+     
 // No assembly version for this architecture, or C_ONLY defined
-	// given the input, it's safe to call VectorNorm
+	// given the input, it's safe to call VectorNormalizeFast
     while (count--) {
-        VectorNorm(normals[0]);
+        VectorNormalizeFast(normals[0]);
         normals++;
     }
+
 }
 
 
@@ -589,63 +592,8 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 
 	numVerts = surf->numVerts;
 
-	if ( backlerp == 0 ) {
-#if idppc_altivec
-		vector signed short newNormalsVec0;
-		vector signed short newNormalsVec1;
-		vector signed int newNormalsIntVec;
-		vector float newNormalsFloatVec;
-		vector float newXyzScaleVec;
-		vector unsigned char newNormalsLoadPermute;
-		vector unsigned char newNormalsStorePermute;
-		vector float zero;
-		
-		newNormalsStorePermute = vec_lvsl(0,(float *)&newXyzScaleVec);
-		newXyzScaleVec = *(vector float *)&newXyzScale;
-		newXyzScaleVec = vec_perm(newXyzScaleVec,newXyzScaleVec,newNormalsStorePermute);
-		newXyzScaleVec = vec_splat(newXyzScaleVec,0);		
-		newNormalsLoadPermute = vec_lvsl(0,newXyz);
-		newNormalsStorePermute = vec_lvsr(0,outXyz);
-		zero = (vector float)vec_splat_s8(0);
-		//
-		// just copy the vertexes
-		//
-		for (vertNum=0 ; vertNum < numVerts ; vertNum++,
-			newXyz += 4, newNormals += 4,
-			outXyz += 4, outNormal += 4) 
-		{
-			newNormalsLoadPermute = vec_lvsl(0,newXyz);
-			newNormalsStorePermute = vec_lvsr(0,outXyz);
-			newNormalsVec0 = vec_ld(0,newXyz);
-			newNormalsVec1 = vec_ld(16,newXyz);
-			newNormalsVec0 = vec_perm(newNormalsVec0,newNormalsVec1,newNormalsLoadPermute);
-			newNormalsIntVec = vec_unpackh(newNormalsVec0);
-			newNormalsFloatVec = vec_ctf(newNormalsIntVec,0);
-			newNormalsFloatVec = vec_madd(newNormalsFloatVec,newXyzScaleVec,zero);
-			newNormalsFloatVec = vec_perm(newNormalsFloatVec,newNormalsFloatVec,newNormalsStorePermute);
-			//outXyz[0] = newXyz[0] * newXyzScale;
-			//outXyz[1] = newXyz[1] * newXyzScale;
-			//outXyz[2] = newXyz[2] * newXyzScale;
-
-			lat = ( newNormals[0] >> 8 ) & 0xff;
-			lng = ( newNormals[0] & 0xff );
-			lat *= (FUNCTABLE_SIZE/256);
-			lng *= (FUNCTABLE_SIZE/256);
-
-			// decode X as cos( lat ) * sin( long )
-			// decode Y as sin( lat ) * sin( long )
-			// decode Z as cos( long )
-
-			outNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
-			outNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-			outNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
-
-			vec_ste(newNormalsFloatVec,0,outXyz);
-			vec_ste(newNormalsFloatVec,4,outXyz);
-			vec_ste(newNormalsFloatVec,8,outXyz);
-		}
-		
-#else
+	if ( backlerp == 0 )
+	{
 		//
 		// just copy the vertexes
 		//
@@ -671,7 +619,6 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 			outNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
 			outNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
 		}
-#endif
 	} 
 	else
 	{
@@ -838,15 +785,15 @@ static float LodErrorForVolume( vec3_t local, float radius ) {
 		return 0;
 	}
 
-	world[0] = local[0] * backEnd.or.axis[0][0] + local[1] * backEnd.or.axis[1][0] + 
-		local[2] * backEnd.or.axis[2][0] + backEnd.or.origin[0];
-	world[1] = local[0] * backEnd.or.axis[0][1] + local[1] * backEnd.or.axis[1][1] + 
-		local[2] * backEnd.or.axis[2][1] + backEnd.or.origin[1];
-	world[2] = local[0] * backEnd.or.axis[0][2] + local[1] * backEnd.or.axis[1][2] + 
-		local[2] * backEnd.or.axis[2][2] + backEnd.or.origin[2];
+	world[0] = local[0] * backEnd.ori.axis[0][0] + local[1] * backEnd.ori.axis[1][0] + 
+		local[2] * backEnd.ori.axis[2][0] + backEnd.ori.origin[0];
+	world[1] = local[0] * backEnd.ori.axis[0][1] + local[1] * backEnd.ori.axis[1][1] + 
+		local[2] * backEnd.ori.axis[2][1] + backEnd.ori.origin[1];
+	world[2] = local[0] * backEnd.ori.axis[0][2] + local[1] * backEnd.ori.axis[1][2] + 
+		local[2] * backEnd.ori.axis[2][2] + backEnd.ori.origin[2];
 
-	VectorSubtract( world, backEnd.viewParms.or.origin, world );
-	d = DotProduct( world, backEnd.viewParms.or.axis[0] );
+	VectorSubtract( world, backEnd.viewParms.ori.origin, world );
+	d = DotProduct( world, backEnd.viewParms.ori.axis[0] );
 
 	if ( d < 0 ) {
 		d = -d;
