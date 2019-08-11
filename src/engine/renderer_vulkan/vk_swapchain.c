@@ -223,8 +223,15 @@ void vk_createSwapChain(VkDevice device, VkSurfaceKHR HSurface,
     VK_CHECK( qvkCreateSwapchainKHR(device, &desc, NULL, pHSwapChain) );
 }
 
+
 void vk_destroySwapChain(void)
 {
     qvkDestroySwapchainKHR(vk.device, vk.swapchain, NULL);
     ri.Printf(PRINT_ALL, " Destroy vk.swapchain. \n");
+}
+
+
+void RE_WinMessage(unsigned int msgType, int Param1, int Param2, int Param3, int Param4)
+{
+	;
 }

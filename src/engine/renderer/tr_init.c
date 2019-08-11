@@ -140,38 +140,21 @@ cvar_t	*r_gpuIndex;
 */
 void GL_SetDefaultState( void )
 {
-	qglCullFace(GL_FRONT);
-
-	qglColor3f (1,1,1);
-
 	// initialize downstream texture unit
-	GL_SelectTexture( 1 );
+
+	glState.currenttmu = 0;
 	GL_TextureMode( r_textureMode->string );
-	GL_TexEnv( GL_MODULATE );
-	qglDisable( GL_TEXTURE_2D );
-	GL_SelectTexture( 0 );
 
-	qglEnable(GL_TEXTURE_2D);
+	glState.texEnv[1] = GL_MODULATE;
+	glState.texEnv[0] = GL_MODULATE;
+
+
 	GL_TextureMode( r_textureMode->string );
-	GL_TexEnv( GL_MODULATE );
-
-	qglDepthFunc( GL_LEQUAL );
-
-	// the vertex array is always enabled, but the color and texture
-	// arrays are enabled and disabled around the compiled vertex array call
-	qglEnableClientState (GL_VERTEX_ARRAY);
 
 	//
 	// make sure our GL state vector is set correctly
 	//
 	glState.glStateBits = GLS_DEPTHTEST_DISABLE | GLS_DEPTHMASK_TRUE;
-
-	qglPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-	qglDepthMask( GL_TRUE );
-	qglDisable( GL_DEPTH_TEST );
-	qglEnable( GL_SCISSOR_TEST );
-	qglDisable( GL_CULL_FACE );
-	qglDisable( GL_BLEND );
 }
 
 
@@ -190,10 +173,8 @@ void GfxInfo_f( void )
 	};
 
 
-	// DX12
-	if (dx.active) {
-		ri.Printf( PRINT_ALL, "\nActive 3D API: DirectX 12\n" );
-	}
+	ri.Printf( PRINT_ALL, "\nActive 3D API: DirectX 12\n" );
+
 
 	//
 	// Info that doesn't depend on r_renderAPI
@@ -430,15 +411,13 @@ void R_Init( void )
 	backEndData[0]->polyVerts = (polyVert_t *) ((char *) ptr + sizeof( *backEndData[0] ) + sizeof(srfPoly_t) * max_polys);
 
 
+	GL_SetDefaultState();
 	
 	R_ToggleSmpFrame();
 
 
 	// print info
 	GfxInfo_f();
-
-	// set default state
-	GL_SetDefaultState();
 
 	R_InitImages();
 

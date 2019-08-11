@@ -3,7 +3,7 @@
 #include "win_input.h"
 #include "win_event.h"
 #include "win_snd.h"
-
+#include "win_mode.h"
 
 WinVars_t g_wv;
 
@@ -237,10 +237,91 @@ static int MapChar( WPARAM wParam, byte scancode )
 
 void ToggleFullscreenWindow(void)
 {
-	g_wv.isFullScreen = !g_wv.isFullScreen;
+	// make sure r_mode left unchanged ? 
+	// Use r_mode to save the old window rect so 
+	// we can restore it when exiting fullscreen mode.
+	
+	// Make the window borderless so that the client
+	// area can fill the screen.
 
-	Cvar_SetValue("r_fullscreen", g_wv.isFullScreen);
-	Cbuf_AddText("vid_restart\n");
+	if (g_wv.isFullScreen)
+	{
+		// FullScreen to windowed
+
+		// Restore the window's attributes and size.
+		SetWindowLong(g_wv.hWnd, GWL_STYLE, g_wv.m_windowStyle);
+		// If you have changed certain window data using SetWindowLong,
+		// you must call SetWindowPos for the changes to take effect. 
+		// Use the following combination for uFlags: 
+		// SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED.
+
+
+		int width;
+		int height;
+
+		cvar_t* win_mode = Cvar_Get("r_mode", "12", 0);
+
+		int mode = R_GetModeInfo(&width, &height, win_mode->integer, g_wv.desktopWidth, g_wv.desktopHeight);
+		
+		RECT m_windowRect;
+		m_windowRect.left = 60;
+		m_windowRect.top = 80;
+		m_windowRect.right = 60 + width;
+		m_windowRect.bottom = 80 + height;
+
+		AdjustWindowRect(&m_windowRect, g_wv.m_windowStyle, FALSE);
+
+		SetWindowPos(
+			g_wv.hWnd,
+			HWND_NOTOPMOST,
+			m_windowRect.left,
+			m_windowRect.top,
+			m_windowRect.right - m_windowRect.left,
+			m_windowRect.bottom - m_windowRect.top,
+			SWP_FRAMECHANGED | SWP_NOACTIVATE);
+
+		ShowWindow(g_wv.hWnd, SW_NORMAL);
+
+
+		g_wv.isFullScreen = 0;
+	}
+	else
+	{
+		SetWindowLongPtr(g_wv.hWnd, GWL_STYLE,
+			g_wv.m_windowStyle & ~(WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_THICKFRAME));
+
+
+		// fullscreenWindowRect.left,
+		// fullscreenWindowRect.top,
+		// fullscreenWindowRect.right,
+		// fullscreenWindowRect.bottom,
+
+		// A window can be made a topmost window either 
+		// by setting the hWndInsertAfter parameter to HWND_TOPMOST
+		// and ensuring that the SWP_NOZORDER flag is not set, 
+		// or by setting a window's position in the Z order so that
+		// it is above any existing topmost windows. 
+		// 
+		// When a non-topmost window is made topmost, its owned windows
+		// are also made topmost. Its owners, however, are not changed.
+
+		int res = SetWindowPos(g_wv.hWnd, HWND_TOPMOST,
+			0, 0, g_wv.desktopWidth, g_wv.desktopHeight,
+			SWP_FRAMECHANGED | SWP_NOACTIVATE);
+
+
+		g_wv.isFullScreen = 1;
+		// try the long way if failed
+		if (res == 0)
+		{
+			Cvar_Set("r_fullscreen", "1");
+			Cbuf_AddText("vid_restart\n");
+		}
+		else
+		{
+			ShowWindow(g_wv.hWnd, SW_MAXIMIZE);
+		}
+	}
 }
 
 

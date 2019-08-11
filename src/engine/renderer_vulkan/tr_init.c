@@ -30,6 +30,89 @@
 #include "vk_descriptor_sets.h"
 
 
+
+// gl not means opengl, but general graphics libs
+static glconfig_t glConfig;
+
+
+void glConfig_FillString(void)
+{
+	ri.Printf(PRINT_ALL, "\nActive 3D API: Vulkan\n");
+
+	// To query general properties of physical devices once enumerated
+	VkPhysicalDeviceProperties props;
+	qvkGetPhysicalDeviceProperties(vk.physical_device, &props);
+
+	uint32_t major = VK_VERSION_MAJOR(props.apiVersion);
+	uint32_t minor = VK_VERSION_MINOR(props.apiVersion);
+	uint32_t patch = VK_VERSION_PATCH(props.apiVersion);
+
+	const char* device_type;
+	if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+		device_type = " INTEGRATED_GPU";
+	else if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		device_type = " DISCRETE_GPU";
+	else if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU)
+		device_type = " VIRTUAL_GPU";
+	else if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU)
+		device_type = " CPU";
+	else
+		device_type = " Unknown";
+
+	const char* vendor_name = "unknown";
+	if (props.vendorID == 0x1002) {
+		vendor_name = "Advanced Micro Devices, Inc.";
+	}
+	else if (props.vendorID == 0x10DE) {
+		vendor_name = "NVIDIA";
+	}
+	else if (props.vendorID == 0x8086) {
+		vendor_name = "Intel Corporation";
+	}
+
+
+	char tmpBuf[128] = { 0 };
+	snprintf(tmpBuf, 128, " Vk api version: %d.%d.%d ", major, minor, patch);
+	strncpy(glConfig.version_string, tmpBuf, sizeof(glConfig.version_string));
+	strncpy(glConfig.vendor_string, vendor_name, sizeof(glConfig.vendor_string));
+	strncpy(glConfig.renderer_string, props.deviceName, sizeof(glConfig.renderer_string));
+	strcat(glConfig.renderer_string, device_type);
+
+	if (*glConfig.renderer_string &&
+		glConfig.renderer_string[strlen(glConfig.renderer_string) - 1] == '\n')
+		glConfig.renderer_string[strlen(glConfig.renderer_string) - 1] = 0;
+
+	/////////////////// extention /////////////////////
+
+	uint32_t nDevExts = 0;
+
+	// To query the extensions available to a given physical device
+	VK_CHECK(qvkEnumerateDeviceExtensionProperties(vk.physical_device, NULL, &nDevExts, NULL));
+
+	assert(nDevExts > 0);
+
+	VkExtensionProperties* pDevExt =
+		(VkExtensionProperties *) malloc(sizeof(VkExtensionProperties) * nDevExts);
+
+	qvkEnumerateDeviceExtensionProperties(
+		vk.physical_device, NULL, &nDevExts, pDevExt);
+
+	int i = 0;
+	uint32_t indicator = 0;
+
+	// There much more device extentions, beyound UI driver info can display
+	for (i = 0; i < nDevExts; ++i)
+	{
+		uint32_t len = (uint32_t)strlen(pDevExt[i].extensionName);
+		memcpy(glConfig.extensions_string + indicator, pDevExt[i].extensionName, len);
+		indicator += len;
+		glConfig.extensions_string[indicator++] = ' ';
+	}
+
+	free(pDevExt);
+}
+
+
 void R_Init( void )
 {	
 
@@ -74,7 +157,6 @@ void R_Init( void )
 
 	ri.Printf(PRINT_ALL, "R_InitDisplayResolution. \n");
 
-	R_InitDisplayResolution();
 
 	R_InitFogTable();
 	ri.Printf(PRINT_ALL, "R_InitFogTable. \n");
@@ -84,7 +166,7 @@ void R_Init( void )
 
 	// make sure all the commands added here are also
 	// removed in R_Shutdown
-    ri.Cmd_AddCommand( "displayResoList", R_DisplayResolutionList_f );
+
     ri.Cmd_AddCommand( "monitorInfo", vk_displayInfo_f );
 
     ri.Cmd_AddCommand( "modellist", R_Modellist_f );
@@ -117,24 +199,30 @@ void R_Init( void )
 
     R_InitScene();
 
-    glConfig_Init();
+
 
     // VULKAN
     if ( !isVKinitialied() )
     {
-	ri.Printf(PRINT_ALL, " Create window fot vulkan . \n");
+		ri.Printf(PRINT_ALL, " Create window fot vulkan . \n");
 
-	// This function set the render window's height and width.
-	// R_SetWinMode( r_mode->integer, GetDesktopWidth(), GetDesktopHeight() , 60 );
-	void * pWinContext;
+		// This function set the render window's height and width.
+		// R_SetWinMode( r_mode->integer, GetDesktopWidth(), GetDesktopHeight() , 60 );
+		
+		void * pWinContext;
 
-	// Create window.
-	ri.GLimpInit(glConfig_getAddressOf(), &pWinContext);
+		// Create window.
+		ri.GLimpInit(&glConfig, &pWinContext);
 
 
-	vk_initialize(pWinContext);
+		vk.renderArea.offset.x = 0; // ?
+		vk.renderArea.offset.y = 0; // ?
+		vk.renderArea.extent.width = glConfig.vidWidth;
+		vk.renderArea.extent.height = glConfig.vidHeight;
 
-	glConfig_FillString();
+		vk_initialize(pWinContext);
+
+		glConfig_FillString();
         // print info
         // vulkanInfo_f();
     }
@@ -167,20 +255,13 @@ void RE_Shutdown( qboolean destroyWindow )
 
     ri.Printf( PRINT_ALL, "RE_Shutdown( %i )\n", destroyWindow );
     
-    ri.Cmd_RemoveCommand("displayResoList");
     ri.Cmd_RemoveCommand("monitorInfo");
-
     ri.Cmd_RemoveCommand("modellist");
-
     ri.Cmd_RemoveCommand("shaderlist");
     ri.Cmd_RemoveCommand("skinlist");
-
-	
     ri.Cmd_RemoveCommand("vkinfo");
     ri.Cmd_RemoveCommand("printDeviceExtensions");
     ri.Cmd_RemoveCommand("printInstanceExtensions");
-
-
     ri.Cmd_RemoveCommand("pipelineList");
     ri.Cmd_RemoveCommand("gpuMem");
     ri.Cmd_RemoveCommand("printOR");
@@ -239,11 +320,10 @@ void RE_Shutdown( qboolean destroyWindow )
 		
 		vk_cleanInstanceProcAddrImpl();
 
+		memset(&glConfig, 0, sizeof(glConfig));
+
+		// this will destroy the windows subsystem.
 		ri.GLimpShutdown();
-        
-        // It is cleared not for renderer_vulkan,
-        // but fot rendergl1, renderergl2 to create the window
-        glConfig_Clear();
     }
 
 	tr.registered = qfalse;
@@ -254,7 +334,10 @@ void RE_BeginRegistration(glconfig_t * const pGlCfg)
 {
 	R_Init();
     
-    glConfig_Get(pGlCfg);
+	// this is not necessary ...
+	// the window is putted on the client side
+	// the client can directly get the win width and height ...
+	*pGlCfg = glConfig;
 
 	tr.viewCluster = -1; // force markleafs to regenerate
 

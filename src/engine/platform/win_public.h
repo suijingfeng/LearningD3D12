@@ -30,8 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 struct glconfig_s;
 
 typedef struct WinVars_s {
-	
-	HINSTANCE		reflib_library;		// Handle to refresh DLL 
 
 	HWND			hWnd; // main window
 	HINSTANCE		hInstance;
@@ -45,6 +43,8 @@ typedef struct WinVars_s {
 
 	int 			activeApp;
 	int				isMinimized;
+	// 
+	int				m_windowStyle;
 	OSVERSIONINFO	osversion;
 
 	// when we get a windows message, we store the time off so keyboard processing

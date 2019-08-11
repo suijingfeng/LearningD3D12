@@ -1056,7 +1056,6 @@ void R_RotateForEntity( const trRefEntity_t *ent, const viewParms_t *viewParms, 
 ** GL wrapper/helper functions
 */
 void	GL_Bind( image_t *image );
-void	GL_SetDefaultState (void);
 void	GL_SelectTexture( int unit );
 void	GL_TextureMode( const char *string );
 
@@ -1485,6 +1484,6 @@ void SaveJPG(char * filename, int quality, int image_width, int image_height, un
 void R_InitFreeType();
 void R_DoneFreeType();
 void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
-
+void RE_WinMessage(unsigned int msgType, int Param1, int Param2, int Param3, int Param4);
 
 #endif //TR_LOCAL_H

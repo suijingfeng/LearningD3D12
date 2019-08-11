@@ -17,9 +17,6 @@
     <ClCompile Include="..\src\engine\renderer_vulkan\FixRenderCommandList.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\engine\renderer_vulkan\glConfig.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\engine\renderer_vulkan\matrix_multiplication.c">
       <Filter>Source Files</Filter>
     </ClCompile>

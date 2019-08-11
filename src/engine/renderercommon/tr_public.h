@@ -88,7 +88,9 @@ typedef struct refexport_s
 	qboolean (*GetEntityToken)( char *buffer, int size );
 	qboolean (*inPVS)( const vec3_t p1, const vec3_t p2 );
 
-	void (*TakeVideoFrame)( int h, int w, byte* captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
+	void (* TakeVideoFrame)( int h, int w, byte* captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
+	
+	void (* WinMessage)(unsigned int msgType, int Param1, int Param2, int Param3, int Param4);
 } refexport_t;
 
 //

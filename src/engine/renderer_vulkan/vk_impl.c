@@ -115,6 +115,7 @@ void vk_createSurfaceImpl(VkInstance hInstance, void * pCtx, VkSurfaceKHR* const
     //
 	desc.hinstance = pWinCtx->hInstance;
 	desc.hwnd = pWinCtx->hWnd;
+
 	VK_CHECK( qvkCreateWin32SurfaceKHR(hInstance, &desc, NULL, pSurface) );
 
 #elif defined(__unix__) || defined(__linux) || defined(__linux__)
@@ -137,11 +138,4 @@ void vk_createSurfaceImpl(VkInstance hInstance, void * pCtx, VkSurfaceKHR* const
 	qvkCreateXcbSurfaceKHR(hInstance, &createInfo, NULL, pSurface);
 
 #endif
-
-//	R_SetWinMode(r_mode->integer, pWinCtx->desktopWidth, pWinCtx->desktopHeight, 60);
-
-	vk.renderArea.offset.x = 0;
-	vk.renderArea.offset.y = 0;
-	vk.renderArea.extent.width = pWinCtx->winWidth;
-	vk.renderArea.extent.height = pWinCtx->winHeight;
 }

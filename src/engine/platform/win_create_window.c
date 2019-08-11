@@ -17,6 +17,9 @@ extern WinVars_t g_wv;
 
 extern LRESULT WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+cvar_t* r_mode;
+cvar_t* r_fullscreen;
+
 
 static int GetDesktopColorDepth(void)
 {
@@ -51,15 +54,14 @@ static void win_createWindowImpl( void )
 
 	Com_Printf( " Initializing window subsystem. \n" );
 
-	cvar_t* r_fullscreen = Cvar_Get("r_fullscreen", "1", 0);
-	cvar_t* r_mode = Cvar_Get("r_mode", "3", 0);
+	r_fullscreen = Cvar_Get("r_fullscreen", "1", 0);
+	r_mode = Cvar_Get("r_mode", "3", 0);
 
 	g_wv.desktopWidth = GetDesktopWidth();
 	g_wv.desktopHeight = GetDesktopHeight();
+	g_wv.m_windowStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 
-	int	stylebits;
 
-	RECT r;
 	int x, y, w, h;
 
 	if ( r_fullscreen->integer )
@@ -67,7 +69,7 @@ static void win_createWindowImpl( void )
 		// fullscreen 
 		// WS_POPUP | WS_VISIBLE ?
 		// CS_HREDRAW | CS_VREDRAW
-		stylebits = WS_POPUP | WS_VISIBLE;
+
 		g_wv.winWidth = g_wv.desktopWidth;
 		g_wv.winHeight = g_wv.desktopHeight;
 
@@ -81,10 +83,10 @@ static void win_createWindowImpl( void )
 	}
 	else
 	{
-		stylebits = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 
 		int width;
 		int height;
+		RECT r;
 
 		int mode = R_GetModeInfo(&width, &height, r_mode->integer, g_wv.desktopWidth, g_wv.desktopHeight);
 		
@@ -98,7 +100,7 @@ static void win_createWindowImpl( void )
 		r.right = width;
 		r.bottom = height;
 		// Compute window rectangle dimensions based on requested client area dimensions.
-		AdjustWindowRect(&r, stylebits, FALSE);
+		AdjustWindowRect(&r, g_wv.m_windowStyle, FALSE);
 
 		x = CW_USEDEFAULT;
 		y = CW_USEDEFAULT;
@@ -124,7 +126,7 @@ static void win_createWindowImpl( void )
 		memset(&wc, 0, sizeof(wc));
 
 		wc.cbSize = sizeof(WNDCLASSEX);
-		wc.style = 0;
+		wc.style = CS_HREDRAW | CS_VREDRAW;
 		wc.lpfnWndProc = MainWndProc;
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
@@ -153,7 +155,7 @@ static void win_createWindowImpl( void )
 		MAIN_WINDOW_CLASS_NAME,
 		// The following are the window styles. After the window has been
 		// created, these styles cannot be modified, except as noted.
-		stylebits,
+		g_wv.m_windowStyle,
 		x, y, w, h,
 		NULL,
 		NULL,
@@ -208,27 +210,30 @@ void win_minimizeImpl(void)
 }
 
 
+
+
 void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 {
 	// These values force the UI to disable driver selection
 	pConfig->driverType = GLDRV_ICD;
 	pConfig->hardwareType = GLHW_GENERIC;
 
-	// Only using SDL_SetWindowBrightness to determine if hardware gamma is supported
+	// to determine if hardware gamma is supported
 	pConfig->deviceSupportsGamma = qtrue;
 
 	pConfig->textureEnvAddAvailable = qfalse; // not used
 	pConfig->textureCompression = TC_NONE; // not used
 	// init command buffers and SMP
-	pConfig->stereoEnabled = qfalse;
+	pConfig->stereoEnabled = qfalse; // not used
 	pConfig->smpActive = qfalse; // not used
 
 	// hardcode it
 	pConfig->colorBits = 32;
 	pConfig->depthBits = 24;
 	pConfig->stencilBits = 8;
-
 	pConfig->displayFrequency = 60;
+
+
 
 	win_createWindowImpl();
 	
@@ -242,8 +247,6 @@ void GLimp_Init(struct glconfig_s * const pConfig, void **pContext)
 	pConfig->vidHeight = g_wv.winHeight;
 	pConfig->windowAspect = (float)g_wv.winWidth / (float)g_wv.winHeight;
 	pConfig->isFullscreen = g_wv.isFullScreen ? qtrue : qfalse;
-
-
 	pConfig->deviceSupportsGamma = win_checkHardwareGamma();
 
 	////

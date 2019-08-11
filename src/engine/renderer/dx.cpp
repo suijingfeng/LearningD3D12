@@ -32,7 +32,10 @@ static DXGI_FORMAT get_depth_format()
 }
 
 
-
+void RE_WinMessage(unsigned int msgType, int Param1, int Param2, int Param3, int Param4)
+{
+	;
+}
 
 
 

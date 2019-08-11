@@ -53,5 +53,6 @@ qboolean RE_GetEntityToken( char *buffer, int size );
 
 qboolean RE_inPVS( const vec3_t p1, const vec3_t p2 );
 void RE_TakeVideoFrame( int width, int height, unsigned char *captureBuffer, unsigned char *encodeBuffer, qboolean motionJpeg );
+void RE_WinMessage(unsigned int msgType, int Param1, int Param2, int Param3, int Param4);
 
 #endif

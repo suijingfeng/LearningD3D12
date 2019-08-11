@@ -1,13 +1,20 @@
 #include "../client/client.h"
 
+
+static cvar_t* r_customwidth;
+static cvar_t* r_customheight;
+static cvar_t* r_customaspect;
+
 /*
 ** R_GetModeInfo
 */
 typedef struct vidmode_s
 {
 	const char * description;
-	int         width, height;
+	int width;
+	int height;
 } vidmode_t;
+
 
 static const vidmode_t r_vidModes[] =
 {
@@ -38,11 +45,24 @@ static const vidmode_t r_vidModes[] =
 	{ "Mode 24: 1920x1200",		1920,	1200},
 	{ "Mode 25: 1920x1440",		1920,	1440},
 	{ "Mode 26: 2560x1080",		2560,	1080},
-	{ "Mode 27: 2560x1600",		2560,	1600},
+	{ "Mode 27: 2560x1600",		2560,	1440},
 	{ "Mode 28: 3840x2160 (4K)",3840,	2160}
 };
 
 const static int s_numVidModes = (sizeof(r_vidModes) / sizeof(r_vidModes[0]));
+
+
+void R_ListDisplayMode_f(void)
+{
+	Com_Printf("\n");
+	for (int i = 0; i < s_numVidModes; ++i)
+	{
+		Com_Printf("%s \n", r_vidModes[i].description);
+	}
+	Com_Printf("\n");
+}
+
+
 
 
 // always returu a valid mode ...
@@ -82,19 +102,15 @@ int R_GetModeInfo(int * const width, int * const height, int mode, const int des
 }
 
 
-void R_ListDisplayMode_f( void )
-{
-	Com_Printf( "\n" );
-	for (int i = 0; i < s_numVidModes; ++i)
-	{
-		Com_Printf( "%s \n", r_vidModes[i].description);
-	}
-	Com_Printf( "\n" );
-}
+
 
 void win_InitDisplayModel(void)
 {
 	Cmd_AddCommand("printDisplayModes", R_ListDisplayMode_f);
+
+	r_customwidth = Cvar_Get("r_customwidth", "960", CVAR_ARCHIVE | CVAR_LATCH);
+	r_customheight = Cvar_Get("r_customheight", "540", CVAR_ARCHIVE | CVAR_LATCH);
+	r_customaspect = Cvar_Get("r_customaspect", "1.78", CVAR_ARCHIVE | CVAR_LATCH);
 }
 
 void win_EndDisplayModel(void)

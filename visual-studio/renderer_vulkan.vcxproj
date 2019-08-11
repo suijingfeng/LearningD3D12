@@ -142,7 +142,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\engine\renderer_vulkan\FixRenderCommandList.c" />
-    <ClCompile Include="..\src\engine\renderer_vulkan\glConfig.c" />
     <ClCompile Include="..\src\engine\renderer_vulkan\matrix_multiplication.c" />
     <ClCompile Include="..\src\engine\renderer_vulkan\RB_DebugGraphics.c" />
     <ClCompile Include="..\src\engine\renderer_vulkan\RB_DeformGeometry.c" />
