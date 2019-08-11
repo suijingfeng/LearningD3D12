@@ -1,7 +1,7 @@
 
 #include "../platform/win_public.h"
 #include <D3d12.h>
-#include <DXGI1_4.h>
+#include <dxgi1_6.h>
 #include "tr_local.h"
 #include "dx_world.h"
 #include "dx_utils.h"
@@ -79,7 +79,32 @@ static void DX_CreateCommandQueue(ID3D12CommandQueue** ppCmdQueue)
 	ri.Printf( PRINT_ALL, "Command queue created. \n" );
 }
 
+bool CheckTearingSupport(void)
+{
+	bool tearingSupport = false;
+#ifndef PIXSUPPORT
+	IDXGIFactory6* factory = nullptr;
+	HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+	BOOL allowTearing = FALSE;
+	if (SUCCEEDED(hr))
+	{
+		hr = factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing));
+	}
 
+	tearingSupport = SUCCEEDED(hr) && allowTearing;
+
+
+#else
+	m_tearingSupport = TRUE;
+#endif
+
+	factory->Release();
+	factory = nullptr;
+
+	ri.Printf(PRINT_ALL, "tearing Support: %s \n" ,tearingSupport ? "Yes":"No");
+
+	return tearingSupport;
+}
 
 // You cannot cast a DXGI_SWAP_CHAIN_DESC1 to a DXGI_SWAP_CHAIN_DESC and vice versa. 
 // An application must explicitly use the IDXGISwapChain1::GetDesc1 method 
@@ -89,12 +114,12 @@ static void DX_CreateCommandQueue(ID3D12CommandQueue** ppCmdQueue)
 static void DX_CreateSwapChain(ID3D12CommandQueue* pCmdQueue, UINT width, UINT height, DXGI_FORMAT fmt, UINT numTargetBuf,
 	void* pContext, IDXGIFactory4* pFactory, IDXGISwapChain3 ** ppWwapchain)
 {
-
+	bool isTearingSupport = CheckTearingSupport();
 	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
 	// width
-	swap_chain_desc.Width = 0;
+	swap_chain_desc.Width = width;
 	// height
-	swap_chain_desc.Height = 0;
+	swap_chain_desc.Height = height;
 	swap_chain_desc.Format = fmt;
 	swap_chain_desc.Stereo = false;
 	// A DXGI_SAMPLE_DESC structure that describes multi-sampling parameters.
@@ -149,9 +174,13 @@ static void DX_CreateSwapChain(ID3D12CommandQueue* pCmdQueue, UINT width, UINT h
 	// making a full-screen transition. 
 	// To enable the automatic display mode change:
 	// DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+	// swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING ;
+	// It is recommended to always use the tearing flag when it is available.
+	
+	
+	swap_chain_desc.Flags = isTearingSupport ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
-
+	/*
 	DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreen_desc;
 	fullscreen_desc.RefreshRate.Numerator = 125;
 	fullscreen_desc.RefreshRate.Denominator = 1;
@@ -160,7 +189,7 @@ static void DX_CreateSwapChain(ID3D12CommandQueue* pCmdQueue, UINT width, UINT h
 	fullscreen_desc.Scaling =
 		DXGI_MODE_SCALING_UNSPECIFIED;
 	fullscreen_desc.Windowed = true;
-
+	*/
 
 	IDXGISwapChain1* pTmpSwapchain;
 	// IDXGIOutput * pOutputInfo = nullptr;
@@ -171,21 +200,71 @@ static void DX_CreateSwapChain(ID3D12CommandQueue* pCmdQueue, UINT width, UINT h
 		pCmdQueue,
 		pWinSys->hWnd,
 		&swap_chain_desc,
-		&fullscreen_desc,
+		nullptr,
 		nullptr,
 		&pTmpSwapchain
 	));
 
-	// DXGI_MWA_NO_WINDOW_CHANGES - Prevent DXGI from monitoring an applications
-	// message queue; this makes DXGI unable to respond to mode changes.
-	DX_CHECK( pFactory->MakeWindowAssociation(pWinSys->hWnd, DXGI_MWA_NO_ALT_ENTER));
+	if (isTearingSupport)
+	{
+		// When tearing support is enabled we will handle ALT+Enter key presses in
+		// the window message loop rather than let DXGI handle it by calling 
+		// SetFullscreenState. this makes DXGI unable to respond to mode changes.
+		
+		// If the application switches to full - screen mode, DXGI will choose a 
+		// fullscreen resolution to be the smallest supported resolution that is 
+		// larger or the same size as the current back buffer size.
 
+		// Applications can make some changes to make the transition from windowed 
+		// to full screen more efficient. For example, on a WM_SIZE message, the 
+		// application should release any outstanding swapchain back buffers, 
+		// call IDXGISwapChain::ResizeBuffers, then reacquire the back buffers 
+		// from the swap chain(s). This gives the swap chain(s) an opportunity to 
+		// resize the back buffers, and/or recreate them to enable fullscreen 
+		// flipping operation. If the application does not perform this sequence, 
+		// DXGI will still make the fullscreen / windowed transition, but may be 
+		// forced to use a stretch operation(since the back buffers may not be 
+		// the correct size), which may be less efficient. Even if a stretch is 
+		// not required, presentation may not be optimal because the back buffers
+		// might not be directly interchangeable with the front buffer. 
+		// Thus, a call to ResizeBuffers on WM_SIZE is always recommended, 
+		// since WM_SIZE is always sent during a fullscreen transition.
+		
+		pFactory->MakeWindowAssociation(pWinSys->hWnd, DXGI_MWA_NO_ALT_ENTER);
+	}
 
+	// Although there are mechanisms by which an object can express the 
+	// functionality it provides statically (before it is instantiated), 
+	// the fundamental COM mechanism is to use the IUnknown method 
+	// called QueryInterface.
+	// Every interface is derived from IUnknown, so every interface has
+	// an implementation of QueryInterface. Regardless of implementation, 
+	// this method queries an object using the IID of the interface to 
+	// which the caller wants a pointer. 
+	// 
+	// If the object supports that interface, QueryInterface retrieves a 
+	// pointer to the interface, while also calling AddRef. 
+	// Otherwise, it returns the E_NOINTERFACE error code.
+	//
+	// Note that you must obey Reference Counting rules at all times. 
+	// If you call Release on an interface pointer to decrement the 
+	// reference count to zero, you should not use that pointer again. 
+	// Occasionally you may need to obtain a weak reference to an object 
+	// (that is, you may wish to obtain a pointer to one of its interfaces
+	// without incrementing the reference count), but it is not acceptable 
+	// to do this by calling QueryInterface followed by Release. 
+	// The pointer obtained in such a manner is invalid and should not be used. 
+	// This more readily becomes apparent when _ATL_DEBUG_INTERFACES is defined, 
+	// so defining this macro is a useful way of finding reference counting bugs.
 	pTmpSwapchain->QueryInterface( IID_PPV_ARGS(ppWwapchain) );
+
+	//
+	dx.frame_index = (*ppWwapchain)->GetCurrentBackBufferIndex();
+
 	pTmpSwapchain->Release();
 	pTmpSwapchain = nullptr;
 
-	ri.Printf(PRINT_ALL, " Swap chain created( %d x %d ). \n",width, height);
+	ri.Printf(PRINT_ALL, " Swap chain created( %d x %d ). \n", width, height);
 }
 
 
@@ -310,24 +389,29 @@ void DX_CreateDevice(IDXGIFactory4* const pFactory, ID3D12Device** const ppDevic
 		res = D3D12CreateDevice(pHardwareAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(ppDevice));
 		if (res == S_OK)
 		{
-			ri.Printf(PRINT_ALL, " Create device on Adapter %d successed! \n", r_gpuIndex->integer);
-			
 			DXGI_ADAPTER_DESC1 desc;
 			
 			pHardwareAdapter->GetDesc1(&desc);
 			
-			printWideStr(desc.Description);
+			if (!(desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE))
+			{
+				// Don't select the Basic Render Driver adapter.
+				// If you want a software adapter, pass in "/warp" on the command line.
+				ri.Printf(PRINT_ALL, " Create device on Adapter %d successed! \n", r_gpuIndex->integer);
+				// printWideStr(desc.Description);
 
-			// printOutputInfo(pHardwareAdapter);
+				// printOutputInfo(pHardwareAdapter);
 
-			ri.Printf(PRINT_ALL, "\n");
+				ri.Printf(PRINT_ALL, "\n");
 
-			pHardwareAdapter->Release();
-			return;
+				pHardwareAdapter->Release();
+				pHardwareAdapter = nullptr;
+				return;
+			}
 		}
 	}
 
-	// create on r_gpuIndex failed, do it again!
+	// create on r_gpuIndex failed, enum from the zero index!
 
 	// The IDXGIAdapter1 interface represents a display sub-system 
 	// (including one or more GPU's, DACs and video memory).
@@ -368,7 +452,12 @@ void DX_CreateDevice(IDXGIFactory4* const pFactory, ID3D12Device** const ppDevic
 	}
 
 	pHardwareAdapter->Release();
+	pHardwareAdapter = nullptr;
 }
+
+
+
+
 
 void dx_initialize(void * pWinContext)
 {

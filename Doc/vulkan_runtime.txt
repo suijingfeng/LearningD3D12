@@ -1,0 +1,45 @@
+Output folder: C:\WINDOWS\System32
+File C:\WINDOWS\System32\vulkan-1.dll (version 1.1.106.0) will be upgraded to 1.1.114.0
+Extract: vulkan-1.dll... 100%
+File C:\WINDOWS\System32\vulkan-1-999-0-0-0.dll (version 1.1.106.0) will be upgraded to 1.1.114.0
+Extract: vulkan-1-999-0-0-0.dll... 100%
+File C:\WINDOWS\System32\vulkaninfo.exe (version 1.1.106.0) will be upgraded to 1.1.114.0
+Extract: vulkaninfo.exe... 100%
+File C:\WINDOWS\System32\vulkaninfo-1-999-0-0-0.exe (version 1.1.106.0) will be upgraded to 1.1.114.0
+Extract: vulkaninfo-1-999-0-0-0.exe... 100%
+Output folder: C:\WINDOWS\SysWOW64
+File C:\WINDOWS\SysWOW64\vulkan-1.dll (version 1.1.106.0) will be upgraded to 1.1.114.0
+Extract: vulkan-1.dll... 100%
+File C:\WINDOWS\SysWOW64\vulkan-1-999-0-0-0.dll (version 1.1.106.0) will be upgraded to 1.1.114.0
+Extract: vulkan-1-999-0-0-0.dll... 100%
+File C:\WINDOWS\SysWOW64\vulkaninfo.exe (version 1.1.106.0) will be upgraded to 1.1.114.0
+Extract: vulkaninfo.exe... 100%
+File C:\WINDOWS\SysWOW64\vulkaninfo-1-999-0-0-0.exe (version 1.1.106.0) will be upgraded to 1.1.114.0
+Extract: vulkaninfo-1-999-0-0-0.exe... 100%
+Output folder: C:\Program Files (x86)\VulkanRT
+Extract: VulkanRT-License.txt... 100%
+Completed
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Delete file: C:\Program Files (x86)\VulkanRT\install.log
+Output folder: C:\WINDOWS\System32
+File C:\WINDOWS\System32\vulkan-1.dll (version 0.0.0.0) will be upgraded to 1.1.114.0
+Extract: vulkan-1.dll... 100%
+File C:\WINDOWS\System32\vulkan-1-999-0-0-0.dll (version 0.0.0.0) will be upgraded to 1.1.114.0
+Extract: vulkan-1-999-0-0-0.dll... 100%
+File C:\WINDOWS\System32\vulkaninfo.exe (version 0.0.0.0) will be upgraded to 1.1.114.0
+Extract: vulkaninfo.exe... 100%
+File C:\WINDOWS\System32\vulkaninfo-1-999-0-0-0.exe (version 0.0.0.0) will be upgraded to 1.1.114.0
+Extract: vulkaninfo-1-999-0-0-0.exe... 100%
+Output folder: C:\WINDOWS\SysWOW64
+File C:\WINDOWS\SysWOW64\vulkan-1.dll (version 1.1.114.0) will be upgraded to 1.1.114.0
+Extract: vulkan-1.dll... 100%
+File C:\WINDOWS\SysWOW64\vulkan-1-999-0-0-0.dll (version 1.1.114.0) will be upgraded to 1.1.114.0
+Extract: vulkan-1-999-0-0-0.dll... 100%
+File C:\WINDOWS\SysWOW64\vulkaninfo.exe (version 1.1.114.0) will be upgraded to 1.1.114.0
+Extract: vulkaninfo.exe... 100%
+File C:\WINDOWS\SysWOW64\vulkaninfo-1-999-0-0-0.exe (version 1.1.114.0) will be upgraded to 1.1.114.0
+Extract: vulkaninfo-1-999-0-0-0.exe... 100%
+Output folder: C:\Program Files (x86)\VulkanRT
+Extract: VulkanRT-License.txt... 100%
+Completed

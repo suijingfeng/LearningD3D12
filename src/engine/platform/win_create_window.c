@@ -67,7 +67,7 @@ static void win_createWindowImpl( void )
 		// fullscreen 
 		// WS_POPUP | WS_VISIBLE ?
 		// CS_HREDRAW | CS_VREDRAW
-		stylebits = WS_POPUP & ~(WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_THICKFRAME);
+		stylebits = WS_POPUP | WS_VISIBLE;
 		g_wv.winWidth = g_wv.desktopWidth;
 		g_wv.winHeight = g_wv.desktopHeight;
 
@@ -81,7 +81,7 @@ static void win_createWindowImpl( void )
 	}
 	else
 	{
-		stylebits = WS_OVERLAPPEDWINDOW;
+		stylebits = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 
 		int width;
 		int height;
@@ -119,10 +119,11 @@ static void win_createWindowImpl( void )
 
 	if (isWinRegistered != 1)
 	{
-		WNDCLASS wc;
+		WNDCLASSEX wc;
 
 		memset(&wc, 0, sizeof(wc));
 
+		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.style = 0;
 		wc.lpfnWndProc = MainWndProc;
 		wc.cbClsExtra = 0;
@@ -134,7 +135,7 @@ static void win_createWindowImpl( void )
 		wc.lpszMenuName = 0;
 		wc.lpszClassName = MAIN_WINDOW_CLASS_NAME;
 
-		if (!RegisterClass(&wc))
+		if (!RegisterClassEx(&wc))
 		{
 			Com_Error(ERR_FATAL, "create main window: could not register window class");
 		}

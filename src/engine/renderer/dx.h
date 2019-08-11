@@ -87,6 +87,7 @@ void dx_shade_geometry(ID3D12PipelineState* pipeline, bool multitexture, DX_Dept
 struct Dx_Instance
 {
 	bool active = false;
+
 	ID3D12Device* device = nullptr;
 	ID3D12CommandQueue* command_queue = nullptr;
 	IDXGISwapChain3* swapchain = nullptr;
