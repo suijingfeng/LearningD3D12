@@ -30,57 +30,57 @@ GetRefAPI
 @@@@@@@@@@@@@@@@@@@@@
 */
 #ifdef USE_RENDERER_DLOPEN
-extern "C" __declspec(dllexport) refexport_t * QDECL GetRefAPI(int apiVersion, refimport_t *rimp)
+extern "C" __declspec(dllexport) void QDECL GetRefAPI(int apiVersion, refimport_t *const rimp, refexport_t * const pRExp)
 #else
-refexport_t* GetRefAPI(int apiVersion, refimport_t *rimp)
+void GetRefAPI(int apiVersion, refimport_t *rimp, refexport_t * re)
 #endif
 {
-	static refexport_t re;
-
 	ri = *rimp;
 
-	memset(&re, 0, sizeof(re));
+	memset(pRExp, 0, sizeof(refexport_t));
 
 	if (apiVersion != REF_API_VERSION)
 	{
 		ri.Printf(PRINT_ALL, "Mismatched REF_API_VERSION: expected %i, got %i\n",
 			REF_API_VERSION, apiVersion);
-		return NULL;
+
+		memset(pRExp, 0, sizeof(refexport_t));
+		return;
 	}
 
 	// the RE_ functions are Renderer Entry points
-	re.Shutdown = RE_Shutdown;
-	re.BeginRegistration = RE_BeginRegistration;
-	re.RegisterModel = RE_RegisterModel;
-	re.RegisterSkin = RE_RegisterSkin;
-	re.RegisterShader = RE_RegisterShader;
-	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
-	re.LoadWorld = RE_LoadWorldMap;
-	re.SetWorldVisData = RE_SetWorldVisData;
-	re.EndRegistration = RE_EndRegistration;
-	re.ClearScene = RE_ClearScene;
-	re.AddRefEntityToScene = RE_AddRefEntityToScene;
-	re.AddPolyToScene = RE_AddPolyToScene;
-	re.LightForPoint = R_LightForPoint;
-	re.AddLightToScene = RE_AddLightToScene;
-	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
+	pRExp->Shutdown = RE_Shutdown;
+	pRExp->BeginRegistration = RE_BeginRegistration;
+	pRExp->RegisterModel = RE_RegisterModel;
+	pRExp->RegisterSkin = RE_RegisterSkin;
+	pRExp->RegisterShader = RE_RegisterShader;
+	pRExp->RegisterShaderNoMip = RE_RegisterShaderNoMip;
+	pRExp->LoadWorld = RE_LoadWorldMap;
+	pRExp->SetWorldVisData = RE_SetWorldVisData;
+	pRExp->EndRegistration = RE_EndRegistration;
+	pRExp->ClearScene = RE_ClearScene;
+	pRExp->AddRefEntityToScene = RE_AddRefEntityToScene;
+	pRExp->AddPolyToScene = RE_AddPolyToScene;
+	pRExp->LightForPoint = R_LightForPoint;
+	pRExp->AddLightToScene = RE_AddLightToScene;
+	pRExp->AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
 
-	re.RenderScene = RE_RenderScene;
-	re.SetColor = RE_SetColor;
-	re.DrawStretchPic = RE_StretchPic;
-	re.DrawStretchRaw = RE_StretchRaw;
-	re.UploadCinematic = RE_UploadCinematic;
+	pRExp->RenderScene = RE_RenderScene;
+	pRExp->SetColor = RE_SetColor;
+	pRExp->DrawStretchPic = RE_StretchPic;
+	pRExp->DrawStretchRaw = RE_StretchRaw;
+	pRExp->UploadCinematic = RE_UploadCinematic;
 
-	re.BeginFrame = RE_BeginFrame;
-	re.EndFrame = RE_EndFrame;
-	re.MarkFragments = R_MarkFragments;
-	re.LerpTag = R_LerpTag;
-	re.ModelBounds = R_ModelBounds;
-	re.RegisterFont = RE_RegisterFont;
-	re.RemapShader = R_RemapShader;
-	re.GetEntityToken = R_GetEntityToken;
-	re.inPVS = R_inPVS;
+	pRExp->BeginFrame = RE_BeginFrame;
+	pRExp->EndFrame = RE_EndFrame;
+	pRExp->MarkFragments = R_MarkFragments;
+	pRExp->LerpTag = R_LerpTag;
+	pRExp->ModelBounds = R_ModelBounds;
+	pRExp->RegisterFont = RE_RegisterFont;
+	pRExp->RemapShader = R_RemapShader;
+	pRExp->GetEntityToken = R_GetEntityToken;
+	pRExp->inPVS = R_inPVS;
 
-	re.WinMessage = RE_WinMessage;
-	return &re;
+	pRExp->WinMessage = RE_WinMessage;
+
 }

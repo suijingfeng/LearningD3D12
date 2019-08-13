@@ -151,7 +151,6 @@
     <ClCompile Include="..\src\engine\renderer_vulkan\RB_ShowImages.c" />
     <ClCompile Include="..\src\engine\renderer_vulkan\RB_SurfaceAnim.c" />
     <ClCompile Include="..\src\engine\renderer_vulkan\ref_import.c" />
-    <ClCompile Include="..\src\engine\renderer_vulkan\render_export.c" />
     <ClCompile Include="..\src\engine\renderer_vulkan\RE_RegisterModel.c" />
     <ClCompile Include="..\src\engine\renderer_vulkan\R_FindShader.c" />
     <ClCompile Include="..\src\engine\renderer_vulkan\R_GetMicroSeconds.c" />

@@ -160,16 +160,15 @@ The given command will be transmitted to the server, and is gauranteed to
 not have future usercmd_t executed before it is executed
 ======================
 */
-void CL_AddReliableCommand( const char *cmd ) {
-	int		index;
-
+void CL_AddReliableCommand( const char *cmd )
+{
 	// if we would be losing an old command that hasn't been acknowledged,
 	// we must drop the connection
 	if ( clc.reliableSequence - clc.reliableAcknowledge > MAX_RELIABLE_COMMANDS ) {
 		Com_Error( ERR_DROP, "Client command overflow" );
 	}
 	clc.reliableSequence++;
-	index = clc.reliableSequence & ( MAX_RELIABLE_COMMANDS - 1 );
+	int index = clc.reliableSequence & ( MAX_RELIABLE_COMMANDS - 1 );
 	Q_strncpyz( clc.reliableCommands[ index ], cmd, sizeof( clc.reliableCommands[ index ] ) );
 }
 
@@ -2296,6 +2295,17 @@ void CL_InitRenderer( void )
 	g_consoleField.widthInChars = g_console_field_width;
 }
 
+
+void CL_SendMessageToRender(unsigned int msgType, int Param1, int Param2, int Param3, int Param4)
+{
+	// 0, create window
+	// 1, to fullscreen
+	// 2, to windowed model
+	// 3, resize. custom size
+	re.WinMessage(msgType, Param1, Param2, Param3, Param4);
+}
+
+
 /*
 ============================
 CL_StartHunkUsers
@@ -2356,7 +2366,7 @@ CL_InitRef
 void CL_InitRef( void )
 {
 	refimport_t	ri;
-	refexport_t	*ret;
+
 
 	Com_Printf( "----- Initializing Renderer ----\n" );
 
@@ -2444,16 +2454,12 @@ void CL_InitRef( void )
 	ri.GLimpSetGamma = GLimp_SetGamma;
 	ri.pfnLog = Impl_Logging;
 
-	ret = GetRefAPI( REF_API_VERSION, &ri );
+	GetRefAPI( REF_API_VERSION, &ri, &re);
 
 
 	Com_Printf( "-------------------------------\n");
 
-	if ( !ret ) {
-		Com_Error (ERR_FATAL, "Couldn't initialize refresh" );
-	}
 
-	re = *ret;
 
 	// unpause so the cgame definately gets a snapshot and renders a frame
 	Cvar_Set( "cl_paused", "0" );

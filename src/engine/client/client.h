@@ -386,7 +386,7 @@ void CL_ShutdownRef( void );
 void CL_InitRef( void );
 qboolean CL_CDKeyValidate( const char *key, const char *checksum );
 int CL_ServerStatus( char *serverAddress, char *serverStatusString, int maxLen );
-
+void CL_SendMessageToRender(unsigned int msgType, int Param1, int Param2, int Param3, int Param4);
 
 //
 // cl_input

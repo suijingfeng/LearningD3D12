@@ -133,10 +133,8 @@ cvar_t	*r_gpuIndex;
 
 
 
-/*
-** GL_SetDefaultState
-*/
-void GL_SetDefaultState( void )
+
+static void GL_SetDefaultState( void )
 {
 	// initialize downstream texture unit
 
@@ -473,6 +471,27 @@ void RE_Shutdown( qboolean destroyWindow )
 }
 
 
+
+//=============================================================================
+
+
+void RE_BeginRegistration(glconfig_t *glconfigOut)
+{
+
+	R_Init();
+
+	*glconfigOut = glConfig;
+
+
+	tr.viewCluster = -1;		// force markleafs to regenerate
+	RE_ClearScene();
+
+	tr.registered = qtrue;
+}
+
+
+
+
 /*
 =============
 RE_EndRegistration
@@ -482,5 +501,11 @@ Touch all images to make sure they are resident
 */
 void RE_EndRegistration(void)
 {
-	R_SyncRenderThread();
+	// why ?
+	if (tr.registered)
+	{
+		R_IssueRenderCommands(qfalse);
+	}
 }
+
+//=============================================================================

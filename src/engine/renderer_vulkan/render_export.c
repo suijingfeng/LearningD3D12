@@ -61,5 +61,6 @@ refexport_t* R_Export(void)
 
 	re.TakeVideoFrame = RE_TakeVideoFrame;
 	re.WinMessage = RE_WinMessage;
+
 	return &re;
 }
