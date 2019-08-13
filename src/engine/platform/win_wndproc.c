@@ -284,6 +284,10 @@ void ToggleFullscreenWindow(void)
 
 		Cvar_Set("r_fullscreen", "0");
 		g_wv.isFullScreen = 0;
+
+
+		// to window mode.
+		CL_SendMessageToRender(2, 60, 80, width, height);
 	}
 	else
 	{
@@ -319,7 +323,9 @@ void ToggleFullscreenWindow(void)
 		}
 		else
 		{
+
 			ShowWindow(g_wv.hWnd, SW_MAXIMIZE);
+			CL_SendMessageToRender(1, 0, 0, g_wv.desktopWidth, g_wv.desktopHeight);
 		}
 	}
 }

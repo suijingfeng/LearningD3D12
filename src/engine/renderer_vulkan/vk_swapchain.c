@@ -228,5 +228,6 @@ void vk_destroySwapChain(void)
 
 void RE_WinMessage(unsigned int msgType, int Param1, int Param2, int Param3, int Param4)
 {
-	;
+	ri.Printf(PRINT_ALL, "message type:%d from windows system: %d, %d, %d, %d",
+		msgType, Param1, Param2, Param3, Param4);
 }

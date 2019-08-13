@@ -62,6 +62,8 @@ static void win_createWindowImpl(void)
 
 
 	int x, y, w, h;
+	// we never create a fullscreen at started,
+	// we can toggle to fullscreen at leter time .
 
 	if (0)
 	{
