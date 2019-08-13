@@ -18,7 +18,6 @@ extern WinVars_t g_wv;
 extern LRESULT WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 cvar_t* r_mode;
-cvar_t* r_fullscreen;
 
 
 static int GetDesktopColorDepth(void)
@@ -48,13 +47,13 @@ static int GetDesktopHeight(void)
 }
 
 
-static void win_createWindowImpl( void )
+static void win_createWindowImpl(void)
 {
 	const char MAIN_WINDOW_CLASS_NAME[] = { "OpenArena" };
 
-	Com_Printf( " Initializing window subsystem. \n" );
+	Com_Printf(" Initializing window subsystem. \n");
 
-	r_fullscreen = Cvar_Get("r_fullscreen", "1", 0);
+
 	r_mode = Cvar_Get("r_mode", "3", 0);
 
 	g_wv.desktopWidth = GetDesktopWidth();
@@ -64,7 +63,7 @@ static void win_createWindowImpl( void )
 
 	int x, y, w, h;
 
-	if ( r_fullscreen->integer )
+	if (0)
 	{
 		// fullscreen 
 		// WS_POPUP | WS_VISIBLE ?
@@ -72,9 +71,10 @@ static void win_createWindowImpl( void )
 
 		g_wv.winWidth = g_wv.desktopWidth;
 		g_wv.winHeight = g_wv.desktopHeight;
-
+		//g_wv.m_windowStyle &= ~(WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_THICKFRAME);
+		g_wv.m_windowStyle = WS_POPUP;
 		g_wv.isFullScreen = 1;
-		Cvar_Set("r_fullscreen", "1");
+
 		Com_Printf(" Fullscreen mode. \n");
 		x = 0;
 		y = 0;
@@ -89,12 +89,12 @@ static void win_createWindowImpl( void )
 		RECT r;
 
 		int mode = R_GetModeInfo(&width, &height, r_mode->integer, g_wv.desktopWidth, g_wv.desktopHeight);
-		
+
 		g_wv.winWidth = width;
 		g_wv.winHeight = height;
 		g_wv.isFullScreen = 0;
 
-	
+
 		r.left = 0;
 		r.top = 0;
 		r.right = width;
@@ -110,8 +110,6 @@ static void win_createWindowImpl( void )
 		Com_Printf(" windowed mode: %d. \n", mode);
 	}
 
-
-	// g_wv.hWnd = create_main_window(g_wv.winWidth, g_wv.winHeight, g_wv.isFullScreen);
 
 	//
 	// register the window class if necessary
@@ -163,13 +161,14 @@ static void win_createWindowImpl( void )
 		g_wv.hInstance,
 		&g_wv);
 
+
 	if (!hwnd)
 	{
 		Com_Error(ERR_FATAL, " Couldn't create window ");
 	}
 
 
-	ShowWindow(hwnd, SW_SHOW);
+	ShowWindow(hwnd, SW_SHOW );
 	UpdateWindow(hwnd);
 
 	g_wv.hWnd = hwnd;

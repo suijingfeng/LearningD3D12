@@ -81,7 +81,6 @@ cvar_t	*r_lightmap;
 cvar_t	*r_vertexLight;
 cvar_t	*r_uiFullScreen;
 cvar_t	*r_shadows;
-cvar_t	*r_mode;
 cvar_t	*r_nobind;
 cvar_t	*r_singleShader;
 cvar_t	*r_roundImagesDown;
@@ -104,7 +103,6 @@ cvar_t	*r_portalOnly;
 cvar_t	*r_subdivisions;
 cvar_t	*r_lodCurveError;
 
-cvar_t	*r_fullscreen;
 
 cvar_t	*r_customwidth;
 cvar_t	*r_customheight;
@@ -166,11 +164,6 @@ void GfxInfo_f( void )
 		"disabled",
 		"enabled"
 	};
-	const char * fsstrings[2] =
-	{
-		"windowed",
-		"fullscreen"
-	};
 
 
 	ri.Printf( PRINT_ALL, "\nActive 3D API: DirectX 12\n" );
@@ -179,7 +172,7 @@ void GfxInfo_f( void )
 	//
 	// Info that doesn't depend on r_renderAPI
 	//
-	ri.Printf( PRINT_ALL, "\nMODE: %d, %d x %d %s\n", r_mode->integer, glConfig.vidWidth, glConfig.vidHeight, fsstrings[r_fullscreen->integer == 1] );
+	ri.Printf( PRINT_ALL, "\nMODE: %d x %d %s\n", glConfig.vidWidth, glConfig.vidHeight);
 
 	if (glConfig.deviceSupportsGamma) {
 		ri.Printf( PRINT_ALL, "GAMMA: hardware w/ %d overbright bits\n", tr.overbrightBits );
@@ -218,8 +211,8 @@ void R_Register( void )
 	r_texturebits = ri.Cvar_Get( "r_texturebits", "32", CVAR_CHEAT );
 	r_depthbits = ri.Cvar_Get( "r_depthbits", "24", CVAR_ARCHIVE | CVAR_LATCH );
 	r_overBrightBits = ri.Cvar_Get ("r_overBrightBits", "1", CVAR_ARCHIVE | CVAR_LATCH );
-	r_mode = ri.Cvar_Get( "r_mode", "3", CVAR_ARCHIVE | CVAR_LATCH );
-	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
+
+
 	r_customwidth = ri.Cvar_Get( "r_customwidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
 	r_customheight = ri.Cvar_Get( "r_customheight", "1024", CVAR_ARCHIVE | CVAR_LATCH );
 	r_customaspect = ri.Cvar_Get( "r_customaspect", "1", CVAR_ARCHIVE | CVAR_LATCH );

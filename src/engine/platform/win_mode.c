@@ -5,9 +5,7 @@ static cvar_t* r_customwidth;
 static cvar_t* r_customheight;
 static cvar_t* r_customaspect;
 
-/*
-** R_GetModeInfo
-*/
+
 typedef struct vidmode_s
 {
 	const char * description;
@@ -68,7 +66,7 @@ void R_ListDisplayMode_f(void)
 // always returu a valid mode ...
 int R_GetModeInfo(int * const width, int * const height, int mode, const int desktopWidth, const int desktopHeight)
 {
-	// corse error handle,
+	// corse error handle, only in wondowed mode , we need get a initial window resolution
 	if (mode < 0 || mode >= s_numVidModes)
 	{
 		// just 640 * 480;
@@ -77,28 +75,32 @@ int R_GetModeInfo(int * const width, int * const height, int mode, const int des
 		return 3;
 	}
 
-	int i = mode;
-	for ( ; i > 0; --i)
+	const vidmode_t * pVm = &r_vidModes[mode];
+	if (pVm->width == desktopWidth && pVm->height == desktopHeight)
 	{
-		const vidmode_t * pVm = &r_vidModes[i];
-		if (pVm->width >= desktopWidth || pVm->height >= desktopHeight)
-		{
-			continue;
-		}
-
-		*width = pVm->width;
-		*height = pVm->height;
-		return i;
-	}
-
-	if (i == 0)
-	{
+		// equal the destop resolution, but we are not in fullscreen mode ...
+		// we just give a minial default ...
 		*width = 640;
 		*height = 480;
 		return 3;
 	}
+	else if (pVm->width > desktopWidth || pVm->height > desktopHeight)
+	{
+		// even large than the destop resolution, but we are not in fullscreen mode ...
+		// we just give a minial default ...
+		*width = 640;
+		*height = 480;
+		return 3;
+	}
+	else
+	{
+		*width = pVm->width;
+		*height = pVm->height;
+		return mode;
+	}
 
-	return i;
+
+	return mode;
 }
 
 

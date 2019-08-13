@@ -282,7 +282,7 @@ void ToggleFullscreenWindow(void)
 
 		ShowWindow(g_wv.hWnd, SW_NORMAL);
 
-
+		Cvar_Set("r_fullscreen", "0");
 		g_wv.isFullScreen = 0;
 	}
 	else
