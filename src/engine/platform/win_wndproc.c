@@ -351,7 +351,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		// comments this allow pull-down console receive mousewheel message,
 		// but I don't know does this doing the right thing.
 		// !r_fullscreen->integer &&
-		if ( ( Key_GetCatcher() & KEYCATCH_CONSOLE))
+		// if ( ( Key_GetCatcher() & KEYCATCH_CONSOLE))
 		{
 			// 120 increments, might be 240 and multiples if wheel goes too fast
 			// NOTE Logitech: logitech drivers are screwed and send the message twice?
@@ -360,7 +360,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 	
 			if ( zDelta > 0 )
 			{
-				for(int i=0; i<zDelta; ++i)
+				// for(int i=0; i<zDelta; ++i)
 				{
 					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qtrue, 0, NULL );
 					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qfalse, 0, NULL );
@@ -368,7 +368,7 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			}
 			else
 			{
-				for(int i=0; i<-zDelta; ++i)
+				// (int i=0; i<-zDelta; ++i)
 				{
 					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qtrue, 0, NULL );
 					Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qfalse, 0, NULL );

@@ -42,7 +42,7 @@ typedef struct {
 
 static WinMouseVars_t s_wmv;
 
-cvar_t	*in_mouse;
+static cvar_t	*in_mouse;
 
 
 /*
@@ -66,7 +66,7 @@ static void IN_ShutdownWin32Mouse( void )
 
 static void IN_ActivateWin32Mouse( void )
 {
-
+	Com_Printf("IN_ActivateWin32Mouse.\n");
 	int width = GetSystemMetrics (SM_CXSCREEN);
 	int height = GetSystemMetrics (SM_CYSCREEN);
 
@@ -95,6 +95,7 @@ static void IN_ActivateWin32Mouse( void )
 
 static void IN_DeactivateWin32Mouse( void ) 
 {
+	Com_Printf("IN_DeactivateWin32Mouse.\n");
 	ClipCursor (NULL);
 	ReleaseCapture ();
 	while (ShowCursor (TRUE) < 0)
@@ -202,7 +203,6 @@ static void In_Restart_f(void)
 
 void IN_Init( void )
 {
-
     in_mouse = Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE|CVAR_LATCH);
 
 	Com_Printf("\n------- Input Initialization -------\n");

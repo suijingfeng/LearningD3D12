@@ -219,6 +219,7 @@ void vk_createSwapChain(VkDevice device, VkSurfaceKHR HSurface,
 }
 
 
+
 void vk_destroySwapChain(void)
 {
     qvkDestroySwapchainKHR(vk.device, vk.swapchain, NULL);
